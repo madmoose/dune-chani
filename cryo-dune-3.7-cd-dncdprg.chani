@@ -94,7 +94,7 @@ end
 
 struct[PalaceRoom]:
     background = hex(u8)
-    npcs       = [dec(u8); 4]
+    npcs       = [u8; 4]
 end
 
 struct[ResTableEntry]:
@@ -1838,7 +1838,13 @@ attr[seg001:0027]: type = u8; name = _unk_1F4D7_sietches_available?
 attr[seg001:0028]: type = u8; name = _byte_1F4D8_number_of_rallied_troops
 attr[seg001:0029]: type = u8; name = _byte_1F4D9_charisma
 attr[seg001:002a]: type = u8; name = _byte_1F4DA_game_phase
-attr[seg001:002b]: type = u8
+attr[seg001:002b]: type = u8; name = night_attack_stage; comment = [[[
+    Night-attack stage counter.
+    0 = inactive (normal room render).
+    Incremented at seg000:5058 each time the player enters a room whose data_0000a[room] & 2 flag marks it as a scripted-attack room; cleared to 0 by loc_00b21 (= _clear_night_attack, seg000:b21) and the alternate transition path at seg000:5041.
+    1 = the first attack frame (the only `cmp ...,1` site is seg000:83ea); >= 1 keeps the attack scene active.
+    While nonzero draw_room_game_screen takes the night_attack_start branch; build_room_command_records swaps in the MASSIVE ATTACK / FIGHT FOR A WHOLE DAY / CALL A WORM verbs in place of TAKE AN ORNITHOPTER; rebuild_and_draw_room_nav_panel skips its per-scene rebuild.
+]]]
 attr[seg001:002c]: type = u16
 attr[seg001:002e]: type = u8
 attr[seg001:002f]: type = u8
