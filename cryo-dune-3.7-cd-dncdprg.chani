@@ -44,6 +44,13 @@ struct[CmdArg]:
     field = ofs16(seg001)
 end
 
+struct[CursorShape]:
+    hotspot_x = dec(u16)
+    hotspot_y = dec(u16)
+    and_mask  = [bin(u16); 16]
+    or_mask   = [bin(u16); 16]
+end
+
 struct[FrameTask]:
     interval    = dec(u16)
     accumulator = dec(u16)
@@ -87,15 +94,21 @@ end
 
 struct[PalaceRoom]:
     background = hex(u8)
-    npc_0      = dec(u8)
-    npc_1      = dec(u8)
-    npc_2      = dec(u8)
-    npc_3      = dec(u8)
+    npcs       = [dec(u8); 4]
 end
 
 struct[ResTableEntry]:
     unk0 = u16
     name = cstr
+end
+
+struct[RoomPerson]:
+    location_and_room = hex(u16)
+    location_slot     = hex(u16)
+    handler           = ofs16(seg000)
+    pad               = [u8; 8]
+    person_index      = dec(u8)
+    flags             = hex(u8)
 end
 
 struct[UIElement]:
@@ -582,10 +595,25 @@ attr[seg000:2ffb]: name = rebuild_and_draw_room_nav_panel; comment = [[[
 ]]]
 attr[seg000:3090]: name = build_persons_in_room_records; comment = [[[
     Append the people-present command records to the verb-menu list (called after build_room_command_records when game_screen_mode_flags == 0).
-    Resets the four person slots (init_room_persons / loc_03127), then scans the room-person table via scan_matching_room_person_entries with two record-builder templates (30b9h, 3120h).
+    Reset the per-scene lip-sync state, run init_room_persons to reset the four scene-person slots, clear persons_in_room, then walk the room-person table twice with scan_matching_room_person_entries: first with bp = build_room_person_record_a (entries whose flags bit 0x40 is clear), then with bp = build_room_person_record_b (entries whose flags bit 0x40 is set). Both templates share the body at build_room_person_record_body.
 ]]]
-attr[seg000:30b9]: type = code
-attr[seg000:3120]: type = code
+attr[seg000:30b9]: type = code; name = build_room_person_record_a; comment = [[[
+    bp template A for scan_matching_room_person_entries (called from build_persons_in_room_records).
+    Skip when entry flags [si+0fh] & 0x40 is set; on the first match (data_047aa == 0) record si into data_047aa so the room-screen tail picks it as the lip-sync speaker; then fall through to the shared body at loc_030ca.
+]]]
+attr[seg000:30ca]: name = build_room_person_record_body; comment = [[[
+    Shared tail of build_room_person_record_a / _b.
+    emit a verb-menu record (text_id = 0x78 + persons_met[si], handler = location_and_room[si] = [si+4]), OR (1 << cl) into persons_in_room, and, when cl == 0x0f, emit data_0476a-1 extra chained 0x88..0x8f records. When game_phase >= 5 and data_0476b is non-zero, patch one earlier record to text_id 0x8f.
+]]]
+attr[seg000:3120]: type = code; name = build_room_person_record_b; comment = [[[
+    bp template B for scan_matching_room_person_entries (called from build_persons_in_room_records).
+    Mirror of build_room_person_record_a with the flags-bit-0x40 test inverted: process only entries whose [si+0fh] & 0x40 is set by jumping to the shared body at loc_030ca, otherwise return without touching data_047aa.
+    The static room_persons table has no bit-0x40 entries, so this only fires when game state writes the bit at runtime.
+]]]
+attr[seg000:3127]: name = init_room_persons; comment = [[[
+    Reset the four scene person slots before build_persons_in_room_records scans the room-person table.
+    Zero data_0476a and data_0476b, init the four person-state words at data_109a/10aa/10ba/10ca to 0x7f80, then (only when location_slot low byte == 0x80) classify entries by iterating the room-person table via loc_06603 with bp = loc_0316e, and run loc_0331e.
+]]]
 attr[seg000:316e]: type = code
 attr[seg000:3406]: type = code
 attr[seg000:348a]: type = code
@@ -655,6 +683,12 @@ attr[seg000:3d2f]: type = code; name = sal_draw_character; comment = [[[
     map id->sprite via character_id_to_sprite, then draw the sprite pair
     (id*2, id*2+1) at (dx,bx) with pal_offset byte_1C21A_pal_offset.
     Restores the previously open resource on exit.
+    The SAL cmd word's flip_x (0x4000) and flip_y (0x2000) bits propagate from
+    the room-sheet parser (seg000:3b80) into this function via AH: loc_03b80
+    keeps the cmd high byte in AH (only 0x0200 is masked off), the character
+    entry path jumps through sal_draw_character_entry, and here 3d4b saves AH
+    into CH and 3d72 restores it before draw_sprite. So Part::Character draws
+    use the same flip bits as Part::Sprite.
 ]]]
 attr[seg000:3d47]: comment = RES_PERS_HSQ
 attr[seg000:3d83]: type = code; name = sal_read_position_markers; comment = [[[
@@ -1032,6 +1066,10 @@ attr[seg000:978e]: name = start_room_lip_sync; comment = [[[
     (setup_lip_sync_data_from_sprite_sheet) and prime the animation.
 ]]]
 attr[seg000:9840]: type = code
+attr[seg000:98e6]: name = reset_scene_lip_sync_state; comment = [[[
+    Reset the per-scene speaker / lip-sync / dialogue-bubble indices: data_047c8 = 0, data_047aa = 0, current_bubble_layout_ptr = 0; then jmp loc_09b8b.
+    Called at the head of build_persons_in_room_records, draw_room_scene, ui_draw_room_command_panel (dialogue branch), and several scene-change sites.
+]]]
 attr[seg000:99b2]: type = code; name = swap_byte_arrays
 attr[seg000:99c8]: comment = CHAN.HSQ
 attr[seg000:9bee]: type = code; name = setup_non_lip_sync_data_structure
@@ -2008,16 +2046,11 @@ attr[seg001:088d]: comment = Harg
 attr[seg001:08a8]: type = signed(u16); name = end_of_locations
 attr[seg001:08aa]: name = _unk_1FD5A_troops
 attr[seg001:0fbb]: name = _unk_2046B_end_of_troops
-attr[seg001:0ff7]: type = u8
-attr[seg001:1048]: type = u16
-attr[seg001:104a]: type = u16
-attr[seg001:109a]: type = u16
-attr[seg001:10a7]: type = u8
-attr[seg001:10a8]: type = u16
-attr[seg001:10aa]: type = u16
-attr[seg001:10b4]: type = u16
-attr[seg001:10ba]: type = u16
-attr[seg001:10ca]: type = u16
+attr[seg001:0fd8]: type = [RoomPerson; 16]; name = room_persons; comment = [[[
+    16-entry, 16-byte table of room-person scenes. Walked by scan_matching_room_person_entries (seg000:36ee).
+    Each entry binds a (location_and_room, location_slot) pair to a handler and a 0..15 person_index. build_persons_in_room_records appends one verb-menu record per match (text_id 0x78 + person_index, handler = handler) and OR-es 1 << person_index into persons_in_room.
+    flags bit 0x40 splits scans into two passes: template loc_030b9 handles entries with the bit clear, template loc_03120 the ones with it set.
+]]]
 attr[seg001:113f]: type = u16
 attr[seg001:1141]: type = u8
 attr[seg001:114e]: type = u16; name = command_list_ptr; comment = Offset of the active command (verb) list in the data segment. Header is [x:u8, y:u8] giving the menu pixel origin (read by set_command_menu_origin), followed by the records build_room_command_records assembles. Its value also tags the list identity (e.g. 100h, 7c8h).
@@ -2339,16 +2372,16 @@ attr[seg001:2582]: type = u16; name = cursor_image_ptr; comment = [[[
     then OR mask u16x16). Init points to cursor_shape_arrow.
     redraw_mouse xchg-swaps in the shape get_mouse_cursor_image_addr selects.
 ]]]
-attr[seg001:2584]: name = cursor_shape_arrow; comment = [[[
+attr[seg001:2584]: type = CursorShape; name = cursor_shape_arrow; comment = [[[
     Default arrow cursor shape: hotspot (0,0), then AND mask u16x16 then OR mask u16x16.
     Per pixel (MSB = leftmost): AND set = transparent (keep background);
     AND clear + OR set = colour 0x0f; AND clear + OR clear = black.
 ]]]
-attr[seg001:25c8]: name = _unk_21A78_cursor_image_hand
-attr[seg001:260c]: name = cursor_image_up
-attr[seg001:2650]: name = cursor_image_right
-attr[seg001:2694]: name = cursor_image_down
-attr[seg001:26d8]: name = cursor_image_left
+attr[seg001:25c8]: type = CursorShape; name = cursor_shape_hand
+attr[seg001:260c]: type = CursorShape; name = cursor_shape_up
+attr[seg001:2650]: type = CursorShape; name = cursor_shape_right
+attr[seg001:2694]: type = CursorShape; name = cursor_shape_down
+attr[seg001:26d8]: type = CursorShape; name = cursor_shape_left
 attr[seg001:2772]: type = u16
 attr[seg001:2774]: type = u16
 attr[seg001:2776]: type = u16
