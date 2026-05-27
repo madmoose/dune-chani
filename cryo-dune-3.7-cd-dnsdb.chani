@@ -1,0 +1,259 @@
+project[cryo-dune-3.7-cd-dnsdb]:
+
+arch = 8086
+
+file[dnsdb]:
+    format = bin
+    path   = DNSDB.BIN
+end
+
+segment[seg001]:
+    type   = code
+    load   = [0x100..]:dnsdb
+    assume = ds:seg001 ss:seg001
+end
+
+attr[seg001:0100]: type = code; name = dnsdb_init; comment = [[[
+    Public entry / vtable slot 0: configure + reset the card.
+    ax = packed param (IRQ in low nibble, base port in upper bits, DMA channel from port low bits). Returns bx = capability/status word.
+    Body: dnsdb_init_impl (0x120).
+]]]
+attr[seg001:0103]: type = code; name = dnsdb_reset; comment = [[[
+    Public entry / vtable slot 1: reset / shutdown the PCM driver (stops playback via dispatch cmd 8). Called from the program-exit teardown (next to MIDI_Reset). Identical routine to dnsdb_stop.
+    Body: dnsdb_stop_impl (0x16b).
+]]]
+attr[seg001:0106]: type = code; name = dnsdb_start_playback; comment = [[[
+    Public entry / vtable slot 2 (far jmp). ds:si = ptr to a VOC job descriptor. Descriptor +0 = far ptr to the Creative Voice File data positioned at the first block (just past the header).
+    Body: dnsdb_start_playback_impl (0x187).
+]]]
+attr[seg001:0109]: type = code; name = dnsdb_stop; comment = [[[
+    Public entry / vtable slot 3: stop the current voice (dispatch cmd 8 -> cmd_stop_playback). Identical routine to dnsdb_reset.
+    Body: dnsdb_stop_impl (0x16b).
+]]]
+attr[seg001:010c]: type = code; name = dnsdb_end_loop; comment = [[[
+    Public entry / vtable slot 4: end the active repeat loop after the current iteration (dispatch cmd 0xC, arg 0). Returns ax=1 if no loop was active.
+    Body: dnsdb_loop_stop_graceful (0x174).
+]]]
+attr[seg001:010f]: type = code; name = dnsdb_break_loop; comment = [[[
+    Public entry / vtable slot 5: break out of the active repeat loop immediately (dispatch cmd 0xC, arg 1).
+    Body: dnsdb_loop_stop_now (0x181).
+]]]
+attr[seg001:0112]: type = code; name = dnsdb_queue_next; comment = [[[
+    Public entry / vtable slot 6: queue the next VOC job for gapless/looped playback. ds:si = next descriptor.
+    Body: dnsdb_queue_next_impl (0x1c0).
+]]]
+attr[seg001:0115]: type = code; name = dnsdb_set_volume; comment = [[[
+    Public entry / vtable slot 7: set volume (al, ah). NOT implemented by this driver - the body is just retf. Called once after init from the settings code.
+    Body: loc_0016a (retf).
+]]]
+attr[seg001:0118]: type = u16; name = voc_read_seg; comment = cur_job_ptr: far ptr (offset here, segment at 0x11a) to the CURRENT VOC job descriptor (set by dnsdb_start_playback from ds:si). Note: name is reversed - 0x118 holds the offset, 0x11a the segment.
+attr[seg001:011a]: type = u16; name = voc_read_ofs; comment = High word (segment) of cur_job_ptr.
+attr[seg001:011c]: type = u16; name = queued_job_ptr; comment = Far ptr to the QUEUED (next) VOC job descriptor (set by dnsdb_queue_next). voc_blk0_terminator chains to it when its state (+6) == 2.
+attr[seg001:011e]: type = u16; name = queued_job_ptr_seg; comment = Segment word of queued_job_ptr.
+attr[seg001:0120]: type = code; name = dnsdb_init_impl; comment = [[[
+    dnsdb_func_1 body: configure + reset the card.
+    If ax!=0 the packed param sets IRQ (low nibble -> cmd2), base port (ax>>4 -> cmd1) and DMA channel (ax>>4 low bits -> cmd0xd). Then cmd3 (reset/init DSP), initialize current/queued job pointers to self, stop playback (cmd8), return bx=1.
+]]]
+attr[seg001:016b]: type = code; name = dnsdb_stop_impl; comment = dnsdb_reset / dnsdb_stop body: stop playback via dispatch cmd 8 (cmd_stop_playback).
+attr[seg001:0174]: type = code; name = dnsdb_loop_stop_graceful; comment = dnsdb_end_loop body: dispatch cmd 0xC (cmd_break_loop) with arg 0 - mark the active repeat loop to end at the next repeat-end block.
+attr[seg001:0181]: type = code; name = dnsdb_loop_stop_now; comment = dnsdb_break_loop body: dispatch cmd 0xC (cmd_break_loop) with arg 1 - break out of the active repeat loop immediately.
+attr[seg001:0187]: type = code; name = dnsdb_start_playback_impl; comment = [[[
+    dnsdb_start_playback body. ds:si = VOC job descriptor; saved as the current job (cur_job_ptr).
+    Descriptor fields (inferred): +0 far ptr to the Creative Voice File data (first block, just past the 26-byte header), +4 length/offset into the host buffer, +6 state byte, +7 loop flags.
+    Updates the host command buffer at [0x000], sets descriptor +6 |= 3, then dispatch cmd 6 (dispatch_0891) starts the block engine.
+]]]
+attr[seg001:0188]: comment = [[[
+    State: cur_job_ptr := this descriptor. Overwrites the currently-playing
+    job with NO preemption check; cmd 6 below then refuses to restart while
+    playing_flag is set, so the new VOC is silently dropped mid-playback.
+]]]
+attr[seg001:0197]: comment = State: mark this descriptor active (set state bits 0|1 in +6).
+attr[seg001:01c0]: type = code; name = dnsdb_queue_next_impl; comment = [[[dnsdb_queue_next body. ds:si = next VOC job descriptor; saved to queued_job_ptr and marked ready (+6=2) so voc_blk0_terminator chains to it. If nothing is playing (playing_flag==0 and idle_flag==0) it starts playback immediately via dnsdb_start_playback_impl.]]]
+attr[seg001:01ee]: comment = [[[
+    State: mark this descriptor QUEUED/ready (+6 := 2) so voc_blk0_terminator
+    chains to it at the current stream's end.
+]]]
+attr[seg001:01f2]: comment = [[[
+    State gate: if a voice is PLAYING, leave the job queued and return
+    (voc_blk0_terminator picks it up). Start immediately only when
+    playing_flag==0 and idle_flag==0 (checked next).
+]]]
+attr[seg001:01fa]: comment = [[[
+    State gate: also defer unless idle_flag==0; otherwise start the queued
+    job now via dnsdb_start_playback_impl.
+]]]
+attr[seg001:022c]: type = u16; name = cur_marker; comment = [[[Current marker / playback position; set by VOC type-4 marker blocks (and type-3/queue paths). Host-readable.]]]
+attr[seg001:022e]: type = u16; name = sb_base_port; comment = Sound Blaster base I/O port (default 0x220). DSP ports: reset base+6, read-data base+0x0A, write/cmd base+0x0C, read-status base+0x0E.
+attr[seg001:0230]: type = u8; name = sb_irq; comment = [[[IRQ line number (default 7); IRQ0-7 -> int 8-15.]]]
+attr[seg001:0231]: type = u8; name = dma_channel; comment = [[[8-bit DMA channel (default 1); valid 0,1,3.]]]
+attr[seg001:0232]: type = u8; name = dma_page_port; comment = DMA page-register I/O port for dma_channel (default 0x83 = ch1).
+attr[seg001:0233]: type = [u8; 4]; name = dma_page_port_table; comment = channel -> page register port: ch0=0x87, ch1=0x83, ch2=0x81, ch3=0x82.
+attr[seg001:0237]: type = u8; name = card_present_flag; comment = [[[Set by irq_probe_isr when the IRQ fires; indicates init succeeded and gates dispatch commands 4..0xC.]]]
+attr[seg001:0238]: type = u16; name = saved_caller_es; comment = Caller ES saved on entry to dispatch.
+attr[seg001:023a]: type = u8; name = irq_probe_dma_buf; comment = One-byte DMA scratch buffer used by irq_probe to force a single SB interrupt.
+attr[seg001:023b]: type = u8; name = playing_flag; comment = Non-zero while a VOC is playing.
+attr[seg001:023c]: type = u16; name = voc_cursor; comment = Far ptr: current VOC read cursor (offset here, segment at 0x23e). Walked through the Creative Voice File blocks by voc_read_loop / voc_advance_block.
+attr[seg001:023e]: type = u16; name = voc_cursor_seg; comment = Segment word of voc_cursor.
+attr[seg001:0240]: type = u16; name = saved_irq_vector; comment = Saved original IVT vector for the hooked IRQ (offset here, segment at 0x242).
+attr[seg001:0242]: type = u16; name = saved_irq_vector_seg; comment = Segment word of saved_irq_vector.
+attr[seg001:0244]: type = u8; name = saved_pic_mask_master; comment = Saved master PIC mask bit (port 0x21).
+attr[seg001:0245]: type = u8; name = saved_pic_mask_slave; comment = Saved slave PIC mask bit (port 0xA1).
+attr[seg001:0246]: type = u8; name = dma_phys_page; comment = Current DMA physical page byte.
+attr[seg001:0247]: type = u16; name = dma_phys_ofs; comment = Current DMA physical offset within the page.
+attr[seg001:0249]: type = u16; name = dma_remaining_lo; comment = Remaining transfer length (32-bit: low at 0x249, high at 0x24b).
+attr[seg001:024b]: type = u16; name = dma_remaining_hi
+attr[seg001:024d]: type = u16; name = dma_to_page_end; comment = [[[Bytes until the 64KB DMA page boundary (0x24d); page-cross flag at 0x24f.]]]
+attr[seg001:0250]: type = u8; name = end_of_stream_flag; comment = [[[Set by voc_blk0_terminator when the stream ends; checked by playback_isr to stop.]]]
+attr[seg001:0251]: type = u16; name = dma_chunk_len; comment = Length of the DMA chunk currently being programmed.
+attr[seg001:0253]: type = u8; name = dsp_dma_cmd; comment = DSP DMA transfer command byte derived from the VOC codec via codec_to_dsp_cmd.
+attr[seg001:0254]: type = u16; name = repeat_stack_ptr; comment = [[[
+    Repeat-loop stack pointer (byte offset; 0 = empty), bumped by 2 per nested repeat (values 2,4,6).
+    Count stack = words at repeat_stack_ptr[0x254]: levels 1-3 at 0x256/0x258/0x25a. Saved loop-start cursors in repeat_loopstart (0x25c).
+    SIZE: max 3 nested repeats - no bounds check; a 4th level overruns into repeat_loopstart / codec_to_dsp_cmd.
+]]]
+attr[seg001:025c]: name = repeat_loopstart; comment = [[[
+    Saved loop-start cursors (far ptr, 4 bytes/entry) for repeat blocks, indexed by 2*repeat_stack_ptr: levels 1-3 at 0x260/0x264/0x268.
+    SIZE: 3 entries (region 0x25c-0x26d, bounded by codec_to_dsp_cmd at 0x26e), matching the 3-level count stack.
+]]]
+attr[seg001:026e]: type = [u8; 11]; name = codec_to_dsp_cmd; comment = xlat table: VOC codec byte -> SB DSP DMA command. 0->0x14 (8-bit PCM), 1->0x75 (4-bit ADPCM), 2->0x77 (2.6-bit ADPCM), 3->0x17 (2-bit ADPCM), 4..10->0x61..0x67 (extended).
+attr[seg001:0279]: type = [ofs16(seg001); 8]; name = playback_state_handlers; comment = [[[
+    VOC block-type dispatch table, indexed by the block type byte (0-7).
+    voc_read_loop (0x608) peeks the next block type and calls the matching handler; types >= 8 are skipped (voc_skip_unknown_block).
+    [0] 0x676 terminator (end of data): chain to queued job or stop
+    [1] 0x6e9 sound data: time-constant +4, codec +5, PCM at +6
+    [2] 0x731 sound continuation: PCM at +4 (reuse prev tc/codec)
+    [3] 0x73f silence: count +4 (word), time-constant +6 (DSP 0x80)
+    [4] 0x768 marker: 16-bit marker at +4 -> cur_marker
+    [5] 0x774 ASCII text: skipped
+    [6] 0x779 repeat-start: count +4 pushed on the repeat stack
+    [7] 0x7a2 repeat-end: loop back or pop the repeat stack
+]]]
+attr[seg001:0289]: type = [ofs16(seg001); 14]; name = dispatch_targets; comment = [[[
+    Command dispatch table for `dispatch` (indexed by bx = command number 0..0xD).
+    0 cmd_get_driver_id, 1 cmd_set_base_port, 2 cmd_set_irq, 3 cmd_init_card, 4 cmd_set_speaker, 5/7/9 cmd_unsupported, 6 cmd_start_playback, 8 cmd_stop_playback, 0xA cmd_pause, 0xB cmd_resume, 0xC cmd_break_loop, 0xD cmd_set_dma_channel.
+]]]
+attr[seg001:02a5]: type = u8; name = last_time_constant; comment = Time constant of the last type-1 block (saved for restart/continuation).
+attr[seg001:02a6]: type = u8; name = last_codec; comment = Codec of the last type-1 block (saved for restart/continuation).
+attr[seg001:02a7]: type = u8; name = idle_flag; comment = Set when playback is idle/stopped.
+attr[seg001:02a8]: type = code; name = dsp_write_timeout; comment = Write al to DSP port dx, polling write-status (bit7 clear) up to 0x200 times. CF=1 on timeout.
+attr[seg001:02be]: type = code; name = dsp_read_timeout; comment = Read a DSP data byte: poll data-available at base+0x0E (bit7 set) up to 0x200 times, then read base+0x0A. CF=1 on timeout.
+attr[seg001:02dc]: type = code; name = dsp_write_cmd; comment = Set dx = SB base + 0x0C (DSP command/data port), then fall through to dsp_write. al = command byte.
+attr[seg001:02e3]: type = code; name = dsp_write; comment = Write al to the DSP command/data port (dx), spinning until write-status bit 0x80 is clear.
+attr[seg001:02f0]: type = code; name = dsp_read; comment = Read a DSP data byte (no timeout): wait for data-available at base+0x0E bit7, then read base+0x0A.
+attr[seg001:0305]: type = code; name = dsp_reset; comment = Reset the DSP via the reset port (base+6): write 1, dummy reads for delay, write 0, then expect 0xAA within 16 reads. ax=0 on success.
+attr[seg001:032e]: type = code; name = dsp_identify_test; comment = [[[DSP identification self-test: send command 0xE0 then 0xAA; the DSP must echo the one-complement 0x55. ax=0 on success.]]]
+attr[seg001:0356]: type = code; name = irq_probe_isr; comment = Tiny ISR used by irq_probe: read base+0x0E to ack the SB IRQ, set card_present_flag=1, send PIC EOI, iret.
+attr[seg001:037a]: type = code; name = irq_probe; comment = Verify IRQ wiring: install the probe ISR (irq_probe_isr), force a single 1-byte DMA interrupt, and poll the card_present_flag. ax=0 if the IRQ fired.
+attr[seg001:0387]: ofs_seg = seg001
+attr[seg001:03c5]: type = code; name = dsp_get_version; comment = Query DSP version (command 0xE1 -> major.minor). Returns ax=0 only if version >= 1.03.
+attr[seg001:03db]: type = code; name = dsp_wait_block_done; comment = Wait (interrupts on) for the current DMA block to finish while playing, then issue DSP 0xD0 (halt DMA) and restore flags.
+attr[seg001:03f9]: type = code; name = dma_program_8237; comment = Program the 8237 DMA controller for the SB channel (dma_channel): mask channel, clear flip-flop, set mode, base address (ax), count (cx), page register via dma_page_port, then unmask.
+attr[seg001:0433]: type = code; name = linear_from_segofs; comment = Normalize a seg:ofs (ax=ofs, dx=seg) into a 20-bit linear address (ax=low16, dx=page nibble).
+attr[seg001:0447]: type = code; name = linear_add_readbase; comment = Add the VOC read base (voc_cursor) to ax, producing the linear page (dx)/offset for DMA.
+attr[seg001:0455]: type = code; name = voc_block_length; comment = Read the current VOC block 24-bit body length: ax = word at cursor+1, dx = byte at cursor+3.
+attr[seg001:0468]: type = code; name = irq_vector_addr; comment = Compute the IVT entry address (es:bx) for the configured IRQ (sb_irq): IRQ0-7 -> int 8-15, IRQ8-15 -> int 0x70+, then cli.
+attr[seg001:0481]: type = code; name = irq_install; comment = Hook the IRQ: save the old IVT vector to saved_irq_vector, install the handler (ax=offset, cs=segment), save and unmask the relevant PIC mask bit.
+attr[seg001:04cd]: type = code; name = irq_restore; comment = Restore the IRQ: put back the saved IVT vector and the saved PIC masks.
+attr[seg001:04f5]: type = code; name = voc_peek_block_type; comment = Read the block type byte at the read cursor (voc_cursor) WITHOUT advancing it.
+attr[seg001:04ff]: type = code; name = dma_setup_from_block; comment = [[[
+    Compute the DMA physical address and PCM byte count for the current block.
+    ax (in) = data offset within the block (6 for type-1, 4 for type-2). Resolves cursor -> 20-bit address into dma_phys_page/dma_phys_ofs, reads block length, subtracts (offset-4) header bytes, and stores the remaining length (dma_remaining) and bytes-to-page-end (dma_to_page_end).
+]]]
+attr[seg001:053a]: type = code; name = playback_isr; comment = [[[
+    DMA-complete ISR installed during playback (by dispatch_0891).
+    Sends PIC EOI and acks the SB (read base+0x0E). If transfer bytes remain (dma_remaining) -> dma_program_chunk for the next chunk; else advance to the next VOC block (voc_advance_block + voc_read_loop), calling playback_stop_dma when end_of_stream_flag is set. iret.
+]]]
+attr[seg001:0572]: comment = [[[
+    State: if voc_read_loop set end_of_stream_flag, stop the engine;
+    otherwise the DMA chunk path continues.
+]]]
+attr[seg001:058b]: type = code; name = dma_program_chunk; comment = Program the 8237 and issue the SB DSP transfer command for the next chunk, clamping to the 64KB DMA page boundary. Writes dsp_dma_cmd then the (count-1) low/high bytes.
+attr[seg001:05e9]: type = code; name = playback_stop_dma; comment = Stop playback: mask the DMA channel (out 0x0A), restore the IRQ handler (irq_restore), clear playing/length/marker state, and read DSP status to ack.
+attr[seg001:05f6]: comment = State: leave PLAYING (playing_flag := 0). The only site that clears it.
+attr[seg001:0608]: type = code; name = voc_read_loop; comment = [[[
+    Creative Voice File block read/dispatch loop.
+    Peeks the next block type (voc_peek_block_type). Types 0-7 dispatch through playback_state_handlers[type]; types >= 8 are skipped via voc_skip_unknown_block.
+    Continues while a handler returns CF=1; handlers that start a DMA/silence transfer return CF=0 to suspend the loop, which the DMA-done ISR (0x53a) later resumes.
+]]]
+attr[seg001:061b]: type = code; name = voc_skip_unknown_block; comment = Skip an unsupported VOC block (type >= 8, e.g. extended 0x08 / new-format 0x09 which this driver does not implement): advance past it and re-enter voc_read_loop.
+attr[seg001:0620]: type = code; name = voc_advance_block; comment = Advance the VOC read cursor (voc_cursor) past the current block: add 4 (1 type byte + 3 length bytes) + the 24-bit body length from block+1..+3, then renormalize the far pointer.
+attr[seg001:0666]: type = code; name = normalize_far_ptr; comment = Normalize a far pointer: fold ax (offset) overflow into dx (segment) so the offset stays in 0..15.
+attr[seg001:0676]: type = code; name = voc_blk0_terminator; comment = [[[
+    VOC block type 0 (terminator / end of data).
+    Clears job state (+6) and inspects loop flags (+7): bit7 = stop at end. Otherwise, if the queued job is ready (+6==2) chain to it; else if bit6 set restart this job (loop).
+    On stop: set end_of_stream_flag and idle_flag, return CF=0. On chain/loop: repoint voc_cursor and return CF=1.
+]]]
+attr[seg001:067b]: comment = [[[State: clear the current job's state byte (+6 := 0); this run is consumed.]]]
+attr[seg001:068c]: comment = State: is the queued job marked ready (+6 == 2)? If so, chain to it.
+attr[seg001:069b]: comment = State: re-arm the current job (+6 := 3) to replay it (loop).
+attr[seg001:06b8]: comment = State: promote the queued job to cur_job_ptr (it becomes current).
+attr[seg001:06c0]: comment = State: mark the promoted job active (+6 := 3).
+attr[seg001:06dc]: comment = [[[State: enter IDLE (idle_flag := 1); falls through to set end-of-stream.]]]
+attr[seg001:06e1]: comment = State: signal end-of-stream (end_of_stream_flag := 1) so the ISR stops.
+attr[seg001:06e9]: type = code; name = voc_blk1_sound_data; comment = [[[
+    VOC block type 1 (sound data).
+    block+4 = time constant (rate = 1000000/(256-tc)); block+5 = codec (0=8-bit PCM, 1=4-bit, 2=2.6-bit, 3=2-bit ADPCM); PCM data starts at block+6.
+    Issues DSP 0x40 (set time constant), saves tc/codec to last_time_constant/last_codec, maps codec -> DSP DMA command via codec_to_dsp_cmd (xlat) into dsp_dma_cmd, then dma_setup_from_block(6) + dma_program_chunk start the transfer. Returns CF=0 (loop suspended; resumed by the DMA-done ISR).
+]]]
+attr[seg001:0704]: ofs_seg = seg001
+attr[seg001:071a]: type = code; name = codec_apply_speed_flag; comment = Adjust dsp_dma_cmd for the codec: if it is in 0x61..0x67 (extended codecs) set bit 3, else clear bit 0.
+attr[seg001:0731]: type = code; name = voc_blk2_continuation; comment = [[[
+    VOC block type 2 (sound continuation).
+    PCM data starts at block+4; reuses the time constant and codec of the preceding type-1 block. dma_setup_from_block(4) + dma_program_chunk. Returns CF=0 (resumed by ISR).
+]]]
+attr[seg001:073f]: type = code; name = voc_blk3_silence; comment = [[[
+    VOC block type 3 (silence).
+    block+4 = silence length in samples (word, count-1); block+6 = time constant.
+    Issues DSP 0x40 (time constant) then DSP 0x80 (silence DAC for count). Returns CF=0.
+]]]
+attr[seg001:0768]: type = code; name = voc_blk4_marker; comment = [[[
+    VOC block type 4 (marker).
+    block+4 = 16-bit marker value -> cur_marker (host-queryable playback position). Falls into voc_advance_block + CF=1 to continue.
+]]]
+attr[seg001:0774]: type = code; name = voc_blk5_text; comment = [[[
+    VOC block type 5 (ASCII text comment) handler, and the generic skip tail.
+    Advances past the block (voc_advance_block) and returns CF=1; the body is ignored.
+]]]
+attr[seg001:0779]: type = code; name = voc_blk6_repeat_start; comment = [[[
+    VOC block type 6 (repeat start).
+    block+4 = repeat count (word; 0xFFFF = infinite). Pushes the count onto the repeat-count stack (repeat_stack_ptr) and saves the post-block cursor into the parallel loop-start array at 0x25c. Returns CF=1.
+]]]
+attr[seg001:0793]: ofs_seg = seg001
+attr[seg001:0796]: ofs_seg = seg001
+attr[seg001:07a2]: type = code; name = voc_blk7_repeat_end; comment = [[[
+    VOC block type 7 (repeat end).
+    If the repeat stack is empty, just advance and continue. Otherwise: if the top count is 0, pop the loop; else restore the saved loop-start cursor (jump back) and, unless the count is 0xFF (infinite), decrement it. Returns CF=1.
+]]]
+attr[seg001:07b1]: ofs_seg = seg001
+attr[seg001:07b4]: ofs_seg = seg001
+attr[seg001:07d4]: type = code; name = dispatch; comment = [[[Command dispatcher. bx = command index (0..0xd) -> dispatch_targets[bx]. Saves caller ES to saved_caller_es. Commands 4..0xC (except 0xD) are gated on card_present_flag; out-of-range/unknown -> ax=0xffff.]]]
+attr[seg001:080c]: type = code; name = cmd_get_driver_id; comment = Command 0: return driver id 0x10D.
+attr[seg001:0810]: type = code; name = cmd_set_base_port; comment = [[[Command 1: set SB base I/O port (sb_base_port), aligned to 8; valid 0x210..0x260.]]]
+attr[seg001:0824]: type = code; name = cmd_set_irq; comment = [[[Command 2: set IRQ line number (sb_irq); valid 2,3,5,7,10.]]]
+attr[seg001:083e]: type = code; name = cmd_set_dma_channel; comment = [[[Command 0xD: set 8-bit DMA channel (dma_channel; param = channel+1, channels 0,1,3) and its page-register port (dma_page_port) from dma_page_port_table.]]]
+attr[seg001:084e]: ofs_seg = seg001
+attr[seg001:0859]: type = code; name = cmd_unsupported; comment = Unsupported-command stub (commands 5,7,9): return ax=0xffff.
+attr[seg001:085d]: type = code; name = cmd_init_card; comment = Command 3: initialize the card - dsp_reset, dsp_identify_test, dsp_get_version, irq_probe, then speaker on. ax=0 on success.
+attr[seg001:087c]: type = code; name = cmd_set_speaker; comment = Command 4: speaker on/off. al!=0 -> DSP 0xD1 (on), al==0 -> DSP 0xD3 (off).
+attr[seg001:0891]: type = code; name = cmd_start_playback; comment = Command 6: start the playback engine. Sets voc_cursor from di (host buffer), marks playing_flag=1, installs playback_isr, resets the repeat stack, then runs voc_read_loop.
+attr[seg001:0896]: comment = [[[
+    State guard: if already PLAYING, divert to cmd_unsupported (returns 0xFFFF,
+    does nothing). No preemption - caller must dnsdb_stop or dnsdb_queue_next
+    to change the active voice.
+]]]
+attr[seg001:0898]: comment = State: enter PLAYING (playing_flag 0 -> 1).
+attr[seg001:08ae]: comment = State: clear end_of_stream_flag for this new run.
+attr[seg001:08c6]: comment = State: leave IDLE (idle_flag := 0) once the read loop is primed.
+attr[seg001:08ce]: type = code; name = cmd_stop_playback; comment = [[[Command 8: stop playback. If playing, dsp_wait_block_done then playback_stop_dma; set idle_flag=1.]]]
+attr[seg001:08d6]: comment = [[[
+    State: only tear down the engine if currently PLAYING; otherwise just
+    fall through and mark idle.
+]]]
+attr[seg001:08e0]: comment = State: enter IDLE (idle_flag := 1). Shared exit for stop/pause/resume.
+attr[seg001:08e6]: type = code; name = cmd_pause; comment = Command 0xA: pause - dsp_wait_block_done (halt DMA after the current block).
+attr[seg001:08e9]: comment = State check: pause is a no-op unless PLAYING.
+attr[seg001:08f6]: type = code; name = cmd_resume; comment = Command 0xB: resume - DSP 0xD4 (continue DMA).
+attr[seg001:08f9]: comment = State check: resume is a no-op unless PLAYING.
+attr[seg001:0908]: type = code; name = cmd_break_loop; comment = [[[Command 0xC: break the active repeat loop. arg 0 just marks the top loop count 0; nonzero pops it, halts the current block, and resumes reading after the loop.]]]
+
+end
