@@ -16,6 +16,16 @@ Each `.chani` file is a annotation project produced and edited by the tools in [
 | `cryo-dune-3.7-cd-dnsdb.chani`   | `DNSDB.BIN` — Sound Blaster/Creative .VOC PCM driver. |
 | `cryo-dune-3.7-cd-dnadl.chani`   | `DNADL.BIN` — AdLib-only music/SFX driver. |
 
+## Disassembly Listings
+
+Generated html listings for these projects are available here:
+
+[cryo-dune-3.7-cd-dncdprg.html](https://thomas.fach-pedersen.net/dune/cryo-dune-3.7-cd-dncdprg.html)
+
+[cryo-dune-3.7-cd-dnsdb.html](https://thomas.fach-pedersen.net/dune/cryo-dune-3.7-cd-dnsdb.html)
+
+[cryo-dune-3.7-cd-dnadl.html](https://thomas.fach-pedersen.net/dune/cryo-dune-3.7-cd-dnadl.html)
+
 ## Working with these files
 
 From the repository root:
