@@ -401,42 +401,46 @@ attr[seg000:0f66]: type = code
 attr[seg000:0f67]: type = code
 attr[seg000:0fc5]: type = code
 attr[seg000:100b]: type = code
-attr[seg000:1011]: type = code
+attr[seg000:1011]: type = code; name = callback_game_phase_change_04_Tuono_Tabr_1
 attr[seg000:1015]: ofs_seg = seg000
-attr[seg000:1021]: type = [ofs16(seg001); 2]
+attr[seg000:1021]: type = [ofs16(seg001); 2]; name = array_offsets_locations_found_by_meeting_stillsuit_maker
 attr[seg000:1025]: type = u16
-attr[seg000:1027]: type = code
-attr[seg000:102f]: type = code
-attr[seg000:1045]: type = code
-attr[seg000:1053]: type = code
-attr[seg000:1069]: type = [u16; 4]
-attr[seg000:10a4]: type = code
-attr[seg000:10b2]: type = code
-attr[seg000:10b7]: type = code
-attr[seg000:10b8]: type = code
-attr[seg000:10be]: type = code
+attr[seg000:1027]: type = code; name = callback_game_phase_change_08
+attr[seg000:102f]: type = code; name = callback_game_phase_change_0c
+attr[seg000:1045]: type = code; name = callback_game_phase_change_10
+attr[seg000:1053]: type = code; name = callback_game_phase_change_14_met_Harah
+attr[seg000:1053]: type = code; name = make_null_terminated_array_of_location_ptrs_discovered
+attr[seg000:1058]: ofs_seg = seg000
+attr[seg000:1069]: type = [ofs16(seg001); 3]; name = array_offsets_locations_found_by_meeting_Harah
+attr[seg000:106f]: type = u16
+attr[seg000:10a4]: type = code; name = callback_game_phase_change_1c
+attr[seg000:10b2]: type = code; name = callback_game_phase_change_20_make_Thufir_Hawat_visible
+attr[seg000:10b7]: type = code; name = callback_game_phase_change_18_24_3c_68_6c
+attr[seg000:10b8]: type = code; name = callback_game_phase_change_28_mark_Sihaya_Clam_on_map
+attr[seg000:10be]: type = code; name = callback_game_phase_change_2c_met_Stilgar
 attr[seg000:10f1]: ofs_seg = seg000
-attr[seg000:10f7]: type = [ofs16(seg001); 5]
+attr[seg000:10f7]: type = [ofs16(seg001); 5]; name = array_offsets_locations_found_by_meeting_Stilgar
 attr[seg000:1101]: type = u16
-attr[seg000:1103]: type = code
-attr[seg000:110f]: type = code
-attr[seg000:1127]: type = code
-attr[seg000:112d]: type = code
-attr[seg000:1133]: type = code
-attr[seg000:1139]: type = code
+attr[seg000:1103]: type = code; name = callback_game_phase_change_30_Baron_Harkonnen_pretends_sietch_devastated
+attr[seg000:110f]: type = code; name = callback_game_phase_change_34
+attr[seg000:1127]: type = code; name = callback_game_phase_change_38
+attr[seg000:112d]: type = code; name = callback_game_phase_change_40
+attr[seg000:1133]: type = code; name = callback_game_phase_change_44_mark_Oxtyn_Tabr_on_nap
+attr[seg000:1139]: type = code; name = callback_game_phase_change_48_met_Chani
 attr[seg000:1156]: ofs_seg = seg000
-attr[seg000:115c]: type = [ofs16(seg001); 4]
+attr[seg000:115c]: type = [ofs16(seg001); 4]; name = array_offsets_locations_found_by_meeting_Chani
 attr[seg000:1164]: type = u16
-attr[seg000:1166]: type = code
-attr[seg000:117b]: type = code
-attr[seg000:1188]: type = code
-attr[seg000:1196]: type = code
+attr[seg000:1166]: type = code; name = callback_game_phase_change_4c_leto_killed
+attr[seg000:117b]: type = code; name = callback_game_phase_change_50_after_riding_worm
+attr[seg000:1188]: type = code; name = callback_game_phase_change_54_greenhouse
+attr[seg000:1196]: type = code; name = callback_game_phase_change_58_met_Liet_Kynes
 attr[seg000:11a1]: ofs_seg = seg000
-attr[seg000:11a7]: type = [ofs16(seg001); 5]
+attr[seg000:11a7]: type = [ofs16(seg001); 5]; name = array_offsets_locations_found_by_meeting_Liet_Kynes
 attr[seg000:11b1]: type = u16
-attr[seg000:11b3]: type = code
-attr[seg000:11e6]: type = code
-attr[seg000:11e9]: type = [ofs16(seg000); 27]
+attr[seg000:11b3]: type = code; name = callback_game_phase_change_5c
+attr[seg000:11cb]: type = code; name = callback_game_phase_change_60_go_find_chani
+attr[seg000:11e6]: type = code; name = callback_game_phase_change_64
+attr[seg000:11e9]: type = [ofs16(seg000); 27]; name = array_callbacks_for_game_phase_change
 attr[seg000:121f]: type = code; name = set_game_phase
 attr[seg000:123d]: targets = seg000:1011, seg000:1027, seg000:102f, seg000:1045, seg000:1053, seg000:10a4, seg000:10b2, seg000:10b7, seg000:10b8, seg000:10be, seg000:1103, seg000:110f, seg000:1127, seg000:112d, seg000:1133, seg000:1139, seg000:1166, seg000:117b, seg000:1188, seg000:1196, seg000:11b3, seg000:11cb, seg000:11e6
 attr[seg000:1269]: type = code
