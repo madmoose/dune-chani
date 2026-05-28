@@ -198,7 +198,7 @@ attr[seg000:0264]: ofs_seg = seg000
 attr[seg000:026f]: comment = fade to night
 attr[seg000:027f]: comment = fade night to day
 attr[seg000:0296]: targets = segvga:0118
-attr[seg000:02c1]: type = code
+attr[seg000:02c1]: type = code; name = transition_callback_intro2_002c1
 attr[seg000:02de]: type = code; name = intro2_scene_stars; comment = [[[
     script_2[0] (si=1): plain starfield scene. xor cx,cx; jmp draw_stars -> the unscrolled starfield at count=0 with the moons composited on top.
     Dispatched by loc_002c1 via cs:[si*2 + 0x20a] when intro2 plays scene 1.
@@ -290,13 +290,13 @@ attr[seg000:06bd]: type = code; name = intro_play_hnm_skippable
 attr[seg000:06ce]: type = code; name = intro_load_desert_flyover_video; comment = MTG1.HNM
 attr[seg000:06d3]: type = code; name = intro_desert_flight_to_sietch
 attr[seg000:06d8]: type = code; name = intro_29_init
-attr[seg000:06ea]: type = code
+attr[seg000:06ea]: type = code; name = intro_39_init
 attr[seg000:06f9]: comment = PLANT.HNM
 attr[seg000:06fc]: type = code; name = intro_29_play
 attr[seg000:0704]: type = code; name = intro_play_hnm_with_frame_task
 attr[seg000:0706]: ofs_seg = seg000
 attr[seg000:070c]: type = code
-attr[seg000:0711]: type = code
+attr[seg000:0711]: type = code; name = intro_41_init
 attr[seg000:071a]: comment = VER.HNM
 attr[seg000:071d]: type = code; name = intro_41_play_VER_HNM; comment = [[[
     Intro stage 41 play. Start the looping SN8.VOC (al=8, audio_start_voc), then run VER.HNM to
@@ -305,17 +305,18 @@ attr[seg000:071d]: type = code; name = intro_41_play_VER_HNM; comment = [[[
     loop at frame 0x0b and reports completion; also breaks on user input.
 ]]]
 attr[seg000:071f]: comment = Play SN8.VOC
-attr[seg000:0737]: type = code
-attr[seg000:073c]: type = code
-attr[seg000:0740]: type = code
-attr[seg000:0747]: type = code
-attr[seg000:074b]: type = code
-attr[seg000:0752]: type = code
-attr[seg000:0756]: type = code
-attr[seg000:075a]: type = code
-attr[seg000:075e]: type = code
-attr[seg000:0762]: type = code
-attr[seg000:0766]: type = code
+attr[seg000:0737]: type = code; name = intro_36_init
+attr[seg000:073c]: type = code; name = intro_33_init
+attr[seg000:0740]: type = code; name = intro_30_init
+attr[seg000:0747]: type = code; name = intro_37_init
+attr[seg000:074b]: type = code; name = intro_40_init
+attr[seg000:0752]: type = code; name = intro_32_init
+attr[seg000:0756]: type = code; name = intro_34_init
+attr[seg000:075a]: type = code; name = intro_31_init
+attr[seg000:075e]: type = code; name = intro_35_init
+attr[seg000:0762]: type = code; name = intro_43_init
+attr[seg000:0766]: type = code; name = intro_44_init
+attr[seg000:076a]: type = code; name = intro_scene_back
 attr[seg000:0771]: type = code; name = intro_lady_jessica_2
 attr[seg000:077c]: type = code; name = intro_inside_sietch
 attr[seg000:0788]: type = code; name = intro_chani_in_sietch
@@ -337,7 +338,7 @@ attr[seg000:0857]: comment = CHAN.HSQ
 attr[seg000:085a]: comment = CHAN.HSQ
 attr[seg000:085d]: type = code; name = intro_play_desert_sky_animation; ofs_seg = seg000
 attr[seg000:0868]: type = code; name = intro_midnight
-attr[seg000:087b]: type = code
+attr[seg000:087b]: type = code; name = intro_24_play
 attr[seg000:0886]: type = code; name = intro_25_sting_start
 attr[seg000:0889]: comment = BACK.HSQ
 attr[seg000:0895]: targets = segvga:011e
