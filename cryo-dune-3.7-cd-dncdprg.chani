@@ -2,8 +2,8 @@ project[cryo-dune-3.7-cd]:
 
 arch  = 8086
 notes = [[[
-    This is a disassembly of the main execuable DNCDPRG.EXE v3.7 from Cryo
-    Interactive's Dune (1992) and the vga driver DNVGA.BIN, loaded in the
+    This is a disassembly of the main executable DNCDPRG.EXE v3.7 from Cryo
+    Interactive's Dune (1992) and the VGA driver DNVGA.BIN, loaded in the
     segment `segvga`.
     
     Disassembly by Thomas Fach-Pedersen - https://mastodon.social/@madmoose
@@ -90,6 +90,19 @@ struct[Location]:
     atomics               = u8
     bulbs                 = u8
     water                 = u8
+end
+
+struct[MenuEntry]:
+    id       = u16
+    callback = ofs16(seg000)
+end
+
+struct[MenuFence]:
+    fence = u16
+end
+
+struct[MenuHeader]:
+    flags = u16
 end
 
 struct[PalaceRoom]:
@@ -389,8 +402,9 @@ attr[seg000:0d1e]: targets = segvga:0175
 attr[seg000:0d30]: targets = segvga:0106
 attr[seg000:0d40]: targets = segvga:0172
 attr[seg000:0e1b]: targets = segvga:0160
-attr[seg000:0e3e]: type = code
-attr[seg000:0e47]: type = code
+attr[seg000:0e3e]: type = code; name = menu_callback_choice_exit_game; ofs_seg = seg000
+attr[seg000:0e41]: ofs_seg = seg001
+attr[seg000:0e47]: type = code; name = menu_callback_choice_multiple_restart_game
 attr[seg000:0e80]: comment = DEAD3.HNM
 attr[seg000:0ea6]: type = code
 attr[seg000:0eb9]: type = code; name = menu_callback_choice_palace_look_away_from_mirror
@@ -504,6 +518,10 @@ attr[seg000:167c]: type = code
 attr[seg000:169d]: targets = segvga:0163
 attr[seg000:16aa]: ofs_seg = seg001
 attr[seg000:16c1]: targets = segvga:017b
+attr[seg000:16fc]: type = code; name = game_phase_set_to_c8_game_ending
+attr[seg000:1701]: ofs_seg = seg000
+attr[seg000:170f]: ofs_seg = seg001
+attr[seg000:171a]: type = code; name = menu_callback_choice_continue
 attr[seg000:1731]: targets = seg000:13a0, seg000:13aa, seg000:13c8, seg000:13db, seg000:13e4, seg000:140b, seg000:1422, seg000:1442, seg000:1474, seg000:148d, seg000:14c9, seg000:167c
 attr[seg000:1736]: ofs_seg = seg000
 attr[seg000:176b]: type = code; name = blink
@@ -598,9 +616,10 @@ attr[seg000:2388]: type = code
 attr[seg000:23d5]: type = code
 attr[seg000:23e6]: type = code
 attr[seg000:2419]: type = code
-attr[seg000:241a]: type = code
+attr[seg000:241a]: type = code; name = menu_callback_choice_accept
 attr[seg000:2431]: type = code
-attr[seg000:2453]: type = code
+attr[seg000:2432]: type = code; name = menu_callback_choice_refuse
+attr[seg000:2453]: type = code; name = menu_callback_choice_argue
 attr[seg000:24a3]: type = code
 attr[seg000:24ee]: type = code
 attr[seg000:2555]: type = code
@@ -633,7 +652,7 @@ attr[seg000:28b8]: comment = COMM.HSQ
 attr[seg000:28bd]: comment = Play SNA.VOC
 attr[seg000:28e1]: type = code
 attr[seg000:290b]: type = code
-attr[seg000:2993]: type = code
+attr[seg000:2993]: type = code; name = menu_callback_choice_comms_room_message_viewed
 attr[seg000:2997]: type = code
 attr[seg000:29d4]: type = code
 attr[seg000:2aaf]: type = code
@@ -806,7 +825,7 @@ attr[seg000:4285]: type = code
 attr[seg000:42c9]: comment = RES_VER_HSQ
 attr[seg000:42cc]: targets = segvga:0160
 attr[seg000:42d1]: type = code
-attr[seg000:42d9]: type = code
+attr[seg000:42d9]: type = code; name = menu_callback_choice_map_main_take_an_ornithopter
 attr[seg000:42f2]: comment = RES_ORNYPAN_HSQ
 attr[seg000:4328]: ofs_seg = seg001; comment = Right-side map navigation buttons
 attr[seg000:4362]: comment = RES_ORNYPAN_HSQ
@@ -844,7 +863,7 @@ attr[seg000:4937]: name = hnm_end_voc_loop_check_complete; comment = [[[
     Then tail-call check_if_hnm_complete, returning ZF=clip finished. Called once per advanced
     frame by intro_41_play_VER_HNM (loc_0071d).
 ]]]
-attr[seg000:497a]: type = code
+attr[seg000:497a]: type = code; name = menu_callback_choice_change_destination
 attr[seg000:49e6]: targets = seg000:4377, seg000:49a0
 attr[seg000:4ab8]: type = code; name = frame_task_callback_04ab8
 attr[seg000:4aad]: type = code
@@ -874,12 +893,12 @@ attr[seg000:4ffb]: type = code
 attr[seg000:5082]: type = code
 attr[seg000:50a2]: type = code
 attr[seg000:50c4]: type = code
-attr[seg000:50db]: type = code
-attr[seg000:50ea]: type = code
+attr[seg000:50db]: type = code; name = menu_callback_choice_move_to_location_orni
+attr[seg000:50ea]: type = code; name = menu_callback_choice_move_to_location_worm
 attr[seg000:5274]: type = code; name = prepare_location_data_for_condit_sub_5274
 attr[seg000:5381]: type = code
 attr[seg000:53b6]: type = code
-attr[seg000:53f1]: type = code
+attr[seg000:53f1]: type = code; name = menu_callback_choice_map_main_see_spice_density
 attr[seg000:5481]: comment = RES_MAP2_HSQ
 attr[seg000:55dd]: type = code; name = map_func
 attr[seg000:562c]: targets = segvga:011e
@@ -934,7 +953,7 @@ attr[seg000:5adf]: name = reset_room_scene_state; comment = [[[
 ]]]
 attr[seg000:5aff]: ofs_seg = seg000
 attr[seg000:5b05]: type = code
-attr[seg000:5b1e]: type = code
+attr[seg000:5b1e]: type = code; name = menu_callback_choice_map_main_find_prospectors
 attr[seg000:5b99]: type = code; name = copy_rect_at_si_to_di
 attr[seg000:5ba0]: type = code; name = copy_game_area_rect_to_unknown_rect; ofs_seg = seg001
 attr[seg000:5ba3]: ofs_seg = seg001
@@ -973,16 +992,18 @@ attr[seg000:66ce]: type = code
 attr[seg000:676e]: type = code
 attr[seg000:68d2]: type = code
 attr[seg000:68da]: type = code
-attr[seg000:69b3]: type = code
-attr[seg000:6a2b]: type = code
-attr[seg000:6a2f]: type = code
+attr[seg000:69b3]: type = code; name = menu_callback_choice_map_troop_dialog_change_troop_occupation
+attr[seg000:6a2b]: type = code; name = menu_callback_choice_troop_occupation_ecology_troop_assembly_wind_trap
+attr[seg000:6a2f]: type = code; name = menu_callback_choice_troop_occupation_army_troop_doing_espionage_attack
 attr[seg000:6a33]: type = code
+attr[seg000:6a35]: type = code; name = choice_troop_occupation_common_code
 attr[seg000:6a44]: type = u8
-attr[seg000:6a45]: type = code
+attr[seg000:6a45]: type = code; name = menu_callback_choice_troop_occupation_army_troop_espionage
 attr[seg000:6a6b]: type = code
-attr[seg000:6a71]: type = code
-attr[seg000:6a83]: type = code
-attr[seg000:6a87]: type = code
+attr[seg000:6a70]: type = code
+attr[seg000:6a71]: type = code; name = menu_callback_choice_troop_occupation_specialize_in_spice
+attr[seg000:6a83]: type = code; name = menu_callback_choice_troop_occupation_specialize_in_army
+attr[seg000:6a87]: type = code; name = menu_callback_choice_troop_occupation_specialize_in_ecology
 attr[seg000:6b34]: type = code; name = frame_task_callback_06b34
 attr[seg000:6b8a]: type = code
 attr[seg000:6b96]: type = code
@@ -1024,27 +1045,34 @@ attr[seg000:764d]: type = code
 attr[seg000:767d]: type = code
 attr[seg000:7693]: type = code
 attr[seg000:7711]: type = code
-attr[seg000:7734]: type = code
-attr[seg000:775c]: type = code
-attr[seg000:776d]: type = code
+attr[seg000:7734]: type = code; name = menu_callback_choice_troop_occupation_army_troop_go_search_for_equipment
+attr[seg000:775c]: type = code; name = menu_callback_choice_troop_occupation_ecology_troop_go_search_for_equipment
+attr[seg000:776d]: type = code; name = menu_callback_choice_troop_occupation_spice_troop_go_search_for_equipment
 attr[seg000:794f]: comment = "Average: {word_4Ah} kgs/h\\nCurrent: {word_48h} kgs/h"
 attr[seg000:79c4]: comment = "Equipment:"
 attr[seg000:7b23]: targets = segvga:011e
-attr[seg000:7cbb]: type = code
+attr[seg000:7bed]: type = code; name = menu_callback_choice_map_troop_dialog_ask_for_more_information
+attr[seg000:7cbb]: type = code; name = menu_callback_choice_map_troop_dialog_modify_equipment
 attr[seg000:7d68]: type = code
 attr[seg000:7e64]: comment = "none"
 attr[seg000:7ee1]: type = code
-attr[seg000:8064]: type = code
-attr[seg000:80c7]: type = code
-attr[seg000:80c8]: type = code
-attr[seg000:80d9]: type = code
+attr[seg000:8064]: type = code; name = menu_callback_choice_multiple_move_troop
+attr[seg000:80c7]: type = code; name = menu_callback_choice_map_move_prospectors_add_destination
+attr[seg000:80c8]: type = code; name = give_new_destinations_for_prospectors
+attr[seg000:80d9]: type = code; name = menu_callback_choice_map_move_prospectors_give_new_destinations
 attr[seg000:81cc]: targets = segvga:0139
 attr[seg000:81ec]: type = code
+attr[seg000:8214]: type = code; name = menu_callback_choice_map_move_prospectors_done
+attr[seg000:821a]: ofs_seg = seg001
 attr[seg000:824d]: type = code
 attr[seg000:8403]: type = code
 attr[seg000:8454]: type = code
 attr[seg000:86c6]: targets = seg000:4377, seg000:49a0
+attr[seg000:86cc]: type = code; name = menu_callback_choice_map_main_contact_fremen_troops
+attr[seg000:86fa]: type = code; name = menu_callback_choice_map_troop_contact_next_troop
 attr[seg000:8751]: type = code
+attr[seg000:8763]: type = code; name = menu_callback_choice_multiple_no_more_orders
+attr[seg000:8770]: type = code; name = menu_callback_choice_map_troop_contact_no_more_orders
 attr[seg000:881f]: type = code; name = ui_click_map_left
 attr[seg000:8824]: type = code; name = ui_click_map_right
 attr[seg000:8829]: type = code; name = ui_click_map_up
@@ -1157,9 +1185,11 @@ attr[seg000:936f]: type = code
 attr[seg000:9373]: type = code
 attr[seg000:937e]: type = code
 attr[seg000:941d]: type = code
-attr[seg000:9533]: type = code
+attr[seg000:9472]: type = code; name = menu_callback_choice_talk_to_me
+attr[seg000:9533]: type = code; name = menu_callback_choice_stay_here
 attr[seg000:9584]: type = code
 attr[seg000:95c1]: type = code
+attr[seg000:95e2]: type = code; name = menu_callback_choice_come_with_me
 attr[seg000:961a]: type = code
 attr[seg000:978e]: name = start_room_lip_sync; comment = [[[
     Start the talking-head lip-sync for the current speaker: when
@@ -1274,9 +1304,9 @@ attr[seg000:ac30]: type = code; name = call_pcm_vtable_end_loop; comment = Thin 
 attr[seg000:ac35]: type = code
 attr[seg000:ac6e]: type = code
 attr[seg000:ac7e]: type = code
-attr[seg000:ac90]: type = code
-attr[seg000:ac97]: type = code
-attr[seg000:acbe]: type = u8
+attr[seg000:ac90]: type = code; name = menu_callback_choice_music_cd_order_shuffle
+attr[seg000:ac97]: type = code; name = menu_callback_choice_music_cd_order_standard
+attr[seg000:acbe]: type = code
 attr[seg000:ad50]: type = code; name = play_music_WORMSUIT_HSQ
 attr[seg000:ad57]: type = code; name = play_music_MORNING_HSQ
 attr[seg000:ad5c]: comment = MORNING.HSQ
@@ -1313,10 +1343,10 @@ attr[seg000:aeb7]: type = code; name = midi_reset; comment = [[[
 attr[seg000:aed6]: type = code
 attr[seg000:af00]: type = code
 attr[seg000:af26]: type = code
-attr[seg000:af58]: type = code
-attr[seg000:af60]: type = code
-attr[seg000:af68]: type = code
-attr[seg000:af70]: type = code
+attr[seg000:af58]: type = code; name = menu_callback_choice_book_all_topics
+attr[seg000:af60]: type = code; name = menu_callback_choice_book_politics
+attr[seg000:af68]: type = code; name = menu_callback_choice_book_paul_on_dune
+attr[seg000:af70]: type = code; name = menu_callback_choice_book_spice
 attr[seg000:afb5]: type = code
 attr[seg000:afc7]: type = code
 attr[seg000:b031]: comment = Play SN2.VOC - Papers ruffle
@@ -1333,8 +1363,8 @@ attr[seg000:b236]: type = code
 attr[seg000:b23f]: type = code
 attr[seg000:b270]: type = code; name = handle_ctrl_v_once
 attr[seg000:b285]: comment = replace first instruction with ret
-attr[seg000:b28c]: type = code
-attr[seg000:b29e]: type = code
+attr[seg000:b28c]: type = code; name = menu_callback_choice_mirror_room_save_game
+attr[seg000:b29e]: type = code; name = menu_callback_choice_mirror_room_load_game
 attr[seg000:b2b3]: name = resume_game_clock; comment = [[[
     dec game_suspend_count, clamped at 0 (falls into suspend_game_clock to re-inc
     when it would go negative) — resume one suspend level.
@@ -1346,9 +1376,10 @@ attr[seg000:b2be]: name = reset_game_suspend; comment = [[[
     transitions (0ebe/0f9c/0fde/loc_01755/b3fd).
 ]]]
 attr[seg000:b30f]: type = code; name = load_save_game_timestamp
-attr[seg000:b35a]: type = code
+attr[seg000:b35a]: type = code; name = menu_callback_choice_globe_save_game
 attr[seg000:b379]: comment = "SAVE ERROR"
 attr[seg000:b389]: type = code; name = create_save_cl
+attr[seg000:b3b0]: type = code; name = menu_callback_choice_globe_load_game
 attr[seg000:b427]: type = code; name = create_save_in_memory
 attr[seg000:b473]: type = code; name = restore_from_save_memory
 attr[seg000:b4bb]: type = code; name = decompress_sav
@@ -1379,7 +1410,8 @@ attr[seg000:b915]: type = code; name = globe_slide_decorations_close
 attr[seg000:b930]: type = code; name = remove_globe_frame_tasks
 attr[seg000:b935]: ofs_seg = seg000
 attr[seg000:b93b]: ofs_seg = seg000
-attr[seg000:b961]: type = code
+attr[seg000:b961]: type = code; name = menu_callback_choice_globe_see_standard_vision
+attr[seg000:b96b]: type = code; name = menu_callback_choice_globe_see_results
 attr[seg000:b977]: type = code; name = map_func_gfx
 attr[seg000:b985]: targets = segvga:0145
 attr[seg000:b9ae]: type = code; name = frame_task_callback_0b9ae
@@ -1397,6 +1429,12 @@ attr[seg000:ba75]: type = code; name = set_globe_tilt_and_rotation
 attr[seg000:baf1]: type = code
 attr[seg000:bc0c]: type = code; name = draw_globe_cursor_at_dx_bx
 attr[seg000:bc1f]: type = code
+attr[seg000:bc22]: ofs_seg = seg001
+attr[seg000:bc28]: ofs_seg = seg001
+attr[seg000:bc33]: ofs_seg = seg001
+attr[seg000:bc3c]: ofs_seg = seg001
+attr[seg000:bc42]: ofs_seg = seg001
+attr[seg000:bc45]: ofs_seg = seg000
 attr[seg000:bc64]: type = code
 attr[seg000:bc81]: type = code
 attr[seg000:bdfa]: type = code; name = ui_stats_draw_ingame_day_and_charisma
@@ -1590,7 +1628,8 @@ attr[seg000:d2bd]: name = run_pending_ui_tasks; comment = [[[
     is clear or 0ffh, then restore the saved in-transition flag. Lets the current
     screen animation settle before a view switch.
 ]]]
-attr[seg000:d2df]: type = code
+attr[seg000:d2df]: type = code; name = menu_callback_choice_music_cd_order_cancel
+attr[seg000:d2e2]: type = code; name = menu_callback_choice_exit_menu
 attr[seg000:d33a]: name = screen_element_stack_insert; comment = Insert (bp = record buffer, bx = per-frame render func) into the z-ordered screen-element stack (screen_element_stack_ptr / data_021da), sorted by the buffers leading priority byte. Higher-priority entries already on the stack are popped and their render func called as it inserts. loc_0d338 enters with cl = 0ffh.
 attr[seg000:d36d]: name = draw_command_menu; comment = Set the top screen-element-stack slot to bp (the menu record buffer), mark the menu records, then fall into redraw_active_command_menu to paint it.
 attr[seg000:d397]: name = redraw_active_command_menu; comment = [[[Repaint the active (top-of-stack) verb menu: walk its record buffer (skip header byte, then 4-byte [text_id,handler] records) and draw up to 5 slots via draw_command_menu_item; the 5th slot shows the 0a0h "more" arrow when records overflow. Remaining slots are filled blank. Falls into highlight_hovered_text_action_item (loc_0d410).]]]
@@ -2440,12 +2479,175 @@ attr[seg001:1f0e]: name = command_menu_buf; comment = The verb-menu record buffe
 attr[seg001:1f0f]: type = u8
 attr[seg001:1f10]: type = u16
 attr[seg001:1f12]: type = u16
-attr[seg001:1fc3]: type = u8
-attr[seg001:2110]: type = u16
-attr[seg001:2115]: type = u8
-attr[seg001:2119]: type = u8
-attr[seg001:211c]: type = u16
+attr[seg001:1f7e]: type = MenuHeader; name = menu_NPC_actions
+attr[seg001:1f80]: type = MenuEntry; comment = " TALK TO ME "
+attr[seg001:1f84]: type = MenuEntry; comment = " COME WITH ME "
+attr[seg001:1f88]: type = MenuEntry
+attr[seg001:1f8c]: type = MenuEntry; comment = STOP TALKING
+attr[seg001:1f90]: type = MenuFence
+attr[seg001:1f92]: type = MenuHeader; name = menu_go_towards_this_place
+attr[seg001:1f94]: type = MenuEntry; comment = GO TOWARDS THIS PLACE
+attr[seg001:1f98]: type = MenuEntry
+attr[seg001:1f9c]: type = MenuFence
+attr[seg001:1f9e]: type = MenuHeader; name = menu_change_destination_ignore_warning
+attr[seg001:1fa0]: type = MenuEntry; comment = CHANGE DESTINATION
+attr[seg001:1fa4]: type = MenuEntry; comment = IGNORE WARNING
+attr[seg001:1fa8]: type = MenuEntry
+attr[seg001:1fac]: type = MenuFence
+attr[seg001:1fae]: type = MenuHeader
+attr[seg001:1fb0]: type = MenuEntry
+attr[seg001:1fb4]: type = MenuEntry
+attr[seg001:1fb8]: type = MenuFence
+attr[seg001:1fba]: type = MenuHeader
+attr[seg001:1fbc]: type = MenuEntry
+attr[seg001:1fc0]: type = MenuFence
+attr[seg001:1fc2]: type = MenuHeader; name = menu_dynamic
+attr[seg001:1fc4]: type = MenuEntry
+attr[seg001:1fc8]: type = MenuEntry
+attr[seg001:1fcc]: type = MenuEntry
+attr[seg001:1ff2]: type = MenuHeader; name = menu_comms_room_messages_viewed
+attr[seg001:1ff4]: type = MenuEntry; comment = Viewed
+attr[seg001:1ff8]: type = MenuEntry
+attr[seg001:1ffc]: type = MenuFence
+attr[seg001:1ffe]: type = MenuHeader; name = menu_argue_accept_refuse
+attr[seg001:2000]: type = MenuEntry; comment = ARGUE
+attr[seg001:2004]: type = MenuEntry; comment = ACCEPT
+attr[seg001:2008]: type = MenuEntry; comment = REFUSE
+attr[seg001:200c]: type = MenuEntry
+attr[seg001:2010]: type = MenuFence
+attr[seg001:2012]: type = MenuHeader; name = menu_done
+attr[seg001:2014]: type = MenuEntry; comment =  Done
+attr[seg001:2018]: type = MenuFence
+attr[seg001:201a]: type = MenuHeader; name = menu_mixer_panel
+attr[seg001:201c]: type = MenuEntry; comment = MUSIC OFF
+attr[seg001:2020]: type = MenuEntry; comment = MUSIC ON (GAME RELATIVE)
+attr[seg001:2024]: type = MenuEntry; comment = MUSIC ON (CD-STYLE)
+attr[seg001:2028]: type = MenuEntry; comment = EXIT GAME
+attr[seg001:202c]: type = MenuEntry; comment =  Done
+attr[seg001:2030]: type = MenuFence
+attr[seg001:2032]: type = MenuHeader; name = menu_book
+attr[seg001:2034]: type = MenuEntry; comment = ALL TOPICS
+attr[seg001:2038]: type = MenuEntry; comment = TOPIC: POLITICS
+attr[seg001:203c]: type = MenuEntry; comment = TOPIC: PAUL ON DUNE
+attr[seg001:2040]: type = MenuEntry; comment = TOPIC: SPICE
+attr[seg001:2044]: type = MenuEntry; comment =  Close book
+attr[seg001:2048]: type = MenuFence
+attr[seg001:204a]: type = MenuHeader; name = menu_globe
+attr[seg001:204c]: type = MenuEntry; comment = EXIT GLOBE
+attr[seg001:2050]: type = MenuEntry; comment = SEE RESULTS
+attr[seg001:2054]: type = MenuEntry; comment = SAVE GAME
+attr[seg001:2058]: type = MenuEntry; comment = LOAD GAME
+attr[seg001:205c]: type = MenuEntry; comment = EXIT GAME
+attr[seg001:2060]: type = MenuFence
+attr[seg001:2062]: type = MenuHeader
+attr[seg001:2064]: type = MenuEntry
+attr[seg001:2068]: type = MenuFence
+attr[seg001:206a]: type = MenuHeader; name = menu_globe_music
+attr[seg001:206c]: type = MenuEntry; comment = STANDARD ORDER
+attr[seg001:2070]: type = MenuEntry; comment = SHUFFLE
+attr[seg001:2074]: type = MenuEntry; comment =   Cancel
+attr[seg001:2078]: type = MenuFence
+attr[seg001:207a]: type = MenuHeader; name = menu_globe_save_game
+attr[seg001:207c]: type = MenuEntry; comment = Log 1: DAY  0 / 12.00 a.m.
+attr[seg001:2080]: type = MenuEntry; comment = Log 2: DAY  0 / 12.00 a.m.
+attr[seg001:2084]: type = MenuEntry; comment =   Cancel
+attr[seg001:2088]: type = MenuFence
+attr[seg001:208a]: type = MenuHeader; name = menu_globe_load_game
+attr[seg001:208c]: type = MenuEntry; comment = Log 1: DAY  0 / 12.00 a.m.
+attr[seg001:2090]: type = MenuEntry; comment = Log 2: DAY  0 / 12.00 a.m.
+attr[seg001:2094]: type = MenuEntry; comment = LAST ENTERING INTO A PLACE
+attr[seg001:2098]: type = MenuEntry; comment = LAST ENTERING NEW SIETCH
+attr[seg001:209c]: type = MenuEntry; comment =   Cancel
+attr[seg001:20a0]: type = MenuFence
+attr[seg001:20a2]: type = MenuHeader; name = menu_restart_load_exit_game
+attr[seg001:20a4]: type = MenuEntry; comment = RESTART GAME
+attr[seg001:20a8]: type = MenuEntry; comment = LOAD GAME
+attr[seg001:20ac]: type = MenuEntry; comment = EXIT GAME
+attr[seg001:20b0]: type = MenuEntry
+attr[seg001:20b4]: type = MenuFence
+attr[seg001:20b6]: type = MenuHeader; name = menu_exit_game_confirmation
+attr[seg001:20b8]: type = MenuEntry; comment = YES I WANT TO EXIT GAME
+attr[seg001:20bc]: type = MenuEntry; comment = NO I WISH TO CONTINUE
+attr[seg001:20c0]: type = MenuFence
+attr[seg001:20c2]: type = MenuHeader; name = menu_palace_mirror_room
+attr[seg001:20c4]: type = MenuEntry; comment = RESTART GAME
+attr[seg001:20c8]: type = MenuEntry; comment = LOAD GAME
+attr[seg001:20cc]: type = MenuEntry; comment = SAVE GAME
+attr[seg001:20d0]: type = MenuEntry; comment = EXIT GAME
+attr[seg001:20d4]: type = MenuEntry; comment = Look away from the mirror
+attr[seg001:20d8]: type = MenuFence
+attr[seg001:20da]: type = MenuHeader; name = menu_multiple_move_to_location_flying_an_orni
+attr[seg001:20dc]: type = MenuEntry; comment = GO THERE FLYING AN ORNI
+attr[seg001:20e0]: type = MenuEntry; comment = Cancel
+attr[seg001:20e4]: type = MenuFence
+attr[seg001:20e6]: type = MenuHeader; name = menu_multiple_move_to_location_riding_a_worm
+attr[seg001:20e8]: type = MenuEntry; comment = GO THERE RIDING A WORM
+attr[seg001:20ec]: type = MenuEntry; comment = Cancel
+attr[seg001:20f0]: type = MenuFence
+attr[seg001:20f2]: type = MenuHeader; name = menu_map_main
+attr[seg001:20f4]: type = MenuEntry; comment = EXIT MAPS
+attr[seg001:20f8]: type = MenuEntry; comment = CONTACT FREMEN TROOPS
+attr[seg001:20fc]: type = MenuEntry; comment = SEE SPICE DENSITY
+attr[seg001:2100]: type = MenuEntry; comment = TAKE AN ORNITOPTHER
+attr[seg001:2104]: type = MenuEntry; comment = FIND PROSPECTORS
+attr[seg001:2108]: type = MenuFence
+attr[seg001:210a]: type = MenuHeader; name = menu_map_troop_dialog
+attr[seg001:210c]: type = MenuEntry; comment = ASK FOR MORE INFORMATION
+attr[seg001:2110]: type = MenuEntry; comment = CHANGE TROOP OCCUPATION
+attr[seg001:2114]: type = MenuEntry; comment = MODIFY EQUIPMENT
+attr[seg001:2118]: type = MenuEntry; comment = MOVE TROOP
+attr[seg001:211c]: type = MenuEntry; comment = NO MORE ORDERS
+attr[seg001:2120]: type = MenuFence
+attr[seg001:2122]: type = MenuHeader; name = menu_map_troop_contact_cycle_troops
+attr[seg001:2124]: type = MenuEntry; comment = NEXT TROOP
+attr[seg001:2128]: type = MenuEntry; comment = NO MORE ORDERS
+attr[seg001:212c]: type = MenuFence
+attr[seg001:212e]: type = MenuHeader; name = menu_multiple_cancel
+attr[seg001:2130]: type = MenuEntry; comment = Cancel
+attr[seg001:2134]: type = MenuFence
+attr[seg001:2136]: type = MenuHeader; name = menu_map_move_prospectors
+attr[seg001:2138]: type = MenuEntry; comment = ADD A DESTINATION
+attr[seg001:213c]: type = MenuEntry; comment = GIVE NEW DESTINATIONS
+attr[seg001:2140]: type = MenuEntry; comment = Done
+attr[seg001:2144]: type = MenuEntry; comment =   Cancel
+attr[seg001:2148]: type = MenuFence
+attr[seg001:214a]: type = MenuHeader; name = menu_map_troop_moving_change_destination_next_troop
+attr[seg001:214c]: type = MenuEntry; comment = CHANGE DESTINATION
+attr[seg001:2150]: type = MenuEntry; comment = NEXT TROOP
+attr[seg001:2154]: type = MenuEntry; comment =   Cancel
+attr[seg001:2158]: type = MenuFence
+attr[seg001:215a]: type = MenuHeader; name = menu_map_select_troop_occupation
+attr[seg001:215c]: type = MenuEntry; comment = SPECIALIZE IN SPICE
+attr[seg001:2160]: type = MenuEntry; comment = SPECIALIZE IN ARMY
+attr[seg001:2164]: type = MenuEntry; comment = SPECIALIZE IN ECOLOGY (+ flags)
+attr[seg001:2168]: type = MenuEntry; comment =   Cancel
+attr[seg001:216c]: type = MenuFence
+attr[seg001:216e]: type = MenuHeader; name = menu_map_troop_change_troop_occupation_for_spice_troop
+attr[seg001:2170]: type = MenuEntry; comment = GO & SEARCH FOR EQUIPMENT
+attr[seg001:2174]: type = MenuEntry; comment = SPECIALIZE IN ARMY
+attr[seg001:2178]: type = MenuEntry; comment = SPECIALIZE IN ECOLOGY
+attr[seg001:217c]: type = MenuEntry; comment =   Cancel
+attr[seg001:2180]: type = MenuFence
+attr[seg001:2182]: type = MenuHeader; name = menu_map_troop_change_troop_occupation_for_army_troop
+attr[seg001:2184]: type = MenuEntry; comment = GO & SEARCH FOR EQUIPMENT
+attr[seg001:2188]: type = MenuEntry; comment = ESPIONAGE (+ flags)
+attr[seg001:218c]: type = MenuEntry; comment = SPECIALIZE IN SPICE
+attr[seg001:2190]: type = MenuEntry; comment = SPECIALIZE IN ECOLOGY
+attr[seg001:2194]: type = MenuEntry; comment =   Cancel
+attr[seg001:2198]: type = MenuFence
+attr[seg001:219a]: type = MenuHeader; name = menu_map_troop_change_troop_occupation_for_army_troop_doing_espionage_at_harkonnen_fortress
+attr[seg001:219c]: type = MenuEntry; comment = ATTACK
+attr[seg001:21a0]: type = MenuEntry; comment =   Cancel
+attr[seg001:21a4]: type = MenuFence
+attr[seg001:21a6]: type = MenuHeader; name = menu_map_troop_change_troop_occupation_for_ecology_troop
+attr[seg001:21a8]: type = MenuEntry; comment = GO & SEARCH FOR EQUIPMENT
+attr[seg001:21ac]: type = MenuEntry; comment = ASSEMBLY WIND-TRAP
+attr[seg001:21b0]: type = MenuEntry; comment = SPECIALIZE IN SPICE
+attr[seg001:21b4]: type = MenuEntry; comment = SPECIALIZE IN ARMY
+attr[seg001:21b8]: type = MenuEntry; comment =   Cancel
+attr[seg001:21bc]: type = MenuFence
 attr[seg001:21be]: type = u16
+attr[seg001:21c0]: ofs_seg = seg000
 attr[seg001:21da]: name = screen_element_stack_ptr; ofs_seg = seg001; comment = [[[Top-of-stack pointer (a data-segment offset) for the z-ordered active screen-element stack (room at the bottom, menus/dialogue on top). Slots are 4-byte [record_buf_ptr:u16, render_func:u16] at 21be..21d6; 21be = empty. get_active_screen_element (loc_0d41b) returns *top.]]]
 attr[seg001:21fd]: type = u8
 attr[seg001:2220]: type = u16
