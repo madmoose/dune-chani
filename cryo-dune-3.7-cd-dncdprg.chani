@@ -126,7 +126,7 @@ struct[Smuggler]:
     krys_knives_price        = dec(u8)
     laser_guns_price         = dec(u8)
     weirding_modules_price   = dec(u8)
-    not_just_padding         = [u8; 4]
+    not_just_padding         = [u8; 3]
 end
 
 struct[Troop]:
@@ -393,13 +393,14 @@ attr[seg000:0e3e]: type = code
 attr[seg000:0e47]: type = code
 attr[seg000:0e80]: comment = DEAD3.HNM
 attr[seg000:0ea6]: type = code
-attr[seg000:0eb9]: type = code
-attr[seg000:0ed0]: type = code
+attr[seg000:0eb9]: type = code; name = menu_callback_choice_palace_look_away_from_mirror
+attr[seg000:0ed0]: type = code; name = callback_transition_look_at_mirror
 attr[seg000:0ee1]: comment = MIRROR.HSQ
-attr[seg000:0f48]: type = code
+attr[seg000:0f48]: type = code; name = callback_wait_for_evening
 attr[seg000:0f66]: type = code
-attr[seg000:0f67]: type = code
-attr[seg000:0fc5]: type = code
+attr[seg000:0f67]: type = code; name = callback_wait_for_morning
+attr[seg000:0fc5]: type = code; name = callback_fight_for_a_whole_day
+attr[seg000:0fd9]: type = code; name = run_events_for_n_time_periods
 attr[seg000:100b]: type = code
 attr[seg000:1011]: type = code; name = callback_game_phase_change_04_Tuono_Tabr_1
 attr[seg000:1015]: ofs_seg = seg000
@@ -443,8 +444,18 @@ attr[seg000:11e6]: type = code; name = callback_game_phase_change_64
 attr[seg000:11e9]: type = [ofs16(seg000); 27]; name = array_callbacks_for_game_phase_change
 attr[seg000:121f]: type = code; name = set_game_phase
 attr[seg000:123d]: targets = seg000:1011, seg000:1027, seg000:102f, seg000:1045, seg000:1053, seg000:10a4, seg000:10b2, seg000:10b7, seg000:10b8, seg000:10be, seg000:1103, seg000:110f, seg000:1127, seg000:112d, seg000:1133, seg000:1139, seg000:1166, seg000:117b, seg000:1188, seg000:1196, seg000:11b3, seg000:11cb, seg000:11e6
-attr[seg000:1269]: type = code
-attr[seg000:1290]: type = [u8; 258]
+attr[seg000:1243]: type = code; name = increase_final_attack_stage_if_more_than_10K_Fremen_near_Harkonnen_palace
+attr[seg000:1258]: type = code; name = count_atomics_equipped_army_troop_population_in_3_locations_closest_to_Harkonnen_Palace; ofs_seg = seg001
+attr[seg000:1269]: type = code; name = callback_troop_accumulate_atomics_equipped_army_troop_population
+attr[seg000:1290]: type = [u8; 75]; name = cutscene_game_phase_C8_dialogue
+attr[seg000:12db]: type = [u8; 29]; name = cutscene_game_phase_30_dialogue
+attr[seg000:12f8]: type = [u8; 3]; name = cutscene_game_phase_below_14_dialogue
+attr[seg000:12fb]: type = [u8; 24]; name = cutscene_game_phase_58_dialogue
+attr[seg000:1313]: type = [u8; 14]; name = cutscene_game_phase_48_dialogue
+attr[seg000:1321]: type = [u8; 46]; name = cutscene_game_phase_0c_dialogue
+attr[seg000:134f]: type = [u8; 33]; name = cutscene_game_phase_14_dialogue
+attr[seg000:1370]: type = [u8; 34]; name = cutscene_game_phase_18_dialogue
+attr[seg000:1392]: type = code
 attr[seg000:1399]: type = code
 attr[seg000:13a0]: type = code
 attr[seg000:13aa]: type = code
@@ -564,6 +575,7 @@ attr[seg000:1ad1]: type = code; name = get_ingame_day_in_ax
 attr[seg000:1ae0]: type = code; name = get_ingame_time_of_day
 attr[seg000:1ae7]: type = code
 attr[seg000:1b0c]: type = code
+attr[seg000:1b23]: type = code; name = run_events_for_current_time_period
 attr[seg000:1b7d]: targets = seg000:1dd3, seg000:1dd4, seg000:1dd7, seg000:1dda, seg000:1dfe
 attr[seg000:1d10]: type = code
 attr[seg000:1d35]: type = [u8; 48]
@@ -1874,7 +1886,14 @@ attr[seg001:0004]: type = u16; name = location_and_room
 attr[seg001:0006]: type = u16; name = location_idx_dist
 attr[seg001:0008]: type = u8; name = current_scene
 attr[seg001:0009]: type = u8
-attr[seg001:000a]: type = u8; name = bitfield_Paul_events
+attr[seg001:000a]: type = u8; name = bitfield_Paul_events; comment = [[[
+    Bit 6: ridden a worm.
+    Bit 5: met Liet Kynes.
+    Bit 4: met Stilgar.
+    Bit 3: has drunk the Water of life: set by Stilgar's dialog when drinking the Water of Life.
+    Bit 1: has obtained large charisma: set by Stilgar's dialog when Paul's charisma is >= 100, read by Jessica's dialog.
+    Bit 0: has had a vision: set at game stage 14.
+]]]
 attr[seg001:000b]: type = u8; name = current_room
 attr[seg001:000c]: type = u8
 attr[seg001:000d]: type = u8; name = previous_room
@@ -2170,7 +2189,7 @@ attr[seg001:0fd8]: type = [RoomPerson; 16]; name = room_persons; comment = [[[
 ]]]
 attr[seg001:10d8]: type = [Smuggler; 6]; name = smugglers
 attr[seg001:113f]: type = u16
-attr[seg001:1141]: type = u8
+attr[seg001:1141]: type = u8; name = array_likelihood_of_worm_related_spice_mining_troop_events_by_region
 attr[seg001:114e]: type = u16; name = command_list_ptr; comment = Offset of the active command (verb) list in the data segment. Header is [x:u8, y:u8] giving the menu pixel origin (read by set_command_menu_origin), followed by the records build_room_command_records assembles. Its value also tags the list identity (e.g. 100h, 7c8h).
 attr[seg001:1150]: type = u16
 attr[seg001:1152]: type = u16
