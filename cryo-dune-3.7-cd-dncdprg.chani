@@ -94,7 +94,7 @@ end
 
 struct[PalaceRoom]:
     background = hex(u8)
-    npcs       = [u8; 4]
+    exits      = [u8; 4]
 end
 
 struct[ResTableEntry]:
@@ -112,21 +112,21 @@ struct[RoomPerson]:
 end
 
 struct[Smuggler]:
-    region                   = dec(u8)
-    willingness_to_haggle    = dec(u8)
-    field_2                  = u8
-    field_3                  = u8
-    harvesters               = dec(u8)
-    ornithopters             = dec(u8)
-    krys_knives              = dec(u8)
-    laser_guns               = dec(u8)
-    weirding_modules         = dec(u8)
-    harvesters_price         = dec(u8)
-    ornithopters_price       = dec(u8)
-    krys_knives_price        = dec(u8)
-    laser_guns_price         = dec(u8)
-    weirding_modules_price   = dec(u8)
-    not_just_padding         = [u8; 3]
+    region                 = dec(u8)
+    willingness_to_haggle  = dec(u8)
+    field_2                = u8
+    field_3                = u8
+    harvesters             = dec(u8)
+    ornithopters           = dec(u8)
+    krys_knives            = dec(u8)
+    laser_guns             = dec(u8)
+    weirding_modules       = dec(u8)
+    harvesters_price       = dec(u8)
+    ornithopters_price     = dec(u8)
+    krys_knives_price      = dec(u8)
+    laser_guns_price       = dec(u8)
+    weirding_modules_price = dec(u8)
+    not_just_padding       = [u8; 3]
 end
 
 struct[Troop]:
@@ -589,6 +589,7 @@ attr[seg000:1dfe]: type = code
 attr[seg000:1ea1]: type = code
 attr[seg000:1ea9]: type = code
 attr[seg000:1eb1]: type = code
+attr[seg000:1fe9]: ofs_seg = seg001
 attr[seg000:2017]: type = code; name = ui_comm
 attr[seg000:2165]: type = [u8; 11]
 attr[seg000:2239]: type = code
@@ -645,7 +646,7 @@ attr[seg000:2ccf]: type = code
 attr[seg000:2d2c]: type = code
 attr[seg000:2d62]: type = code
 attr[seg000:2d74]: type = code; name = open_SAL_resource
-attr[seg000:2db1]: type = code; name = draw_room_game_screen
+attr[seg000:2db1]: type = code; name = draw_room_game_screen; ofs_seg = seg000
 attr[seg000:2e98]: name = set_command_menu_origin; comment = [[[
     Compute the verb-menu draw origin from the command_list header at di (= command_list_ptr) and save the list.
     command_menu_list = di; command_menu_x = header[0]; command_menu_y = header[1] + 0ch.
@@ -665,6 +666,7 @@ attr[seg000:2ffb]: name = rebuild_and_draw_room_nav_panel; comment = [[[
     Rebuild the bottom-right navigation/compass HUD records (12..18) for the current room context, then draw them (falls into loc_0d735).
     Night-attack / map / book modes pick alternate templates; the plain room uses the move-direction set keyed off command_list_ptr and location_and_room.
 ]]]
+attr[seg000:3010]: ofs_seg = seg001
 attr[seg000:3090]: name = build_persons_in_room_records; comment = [[[
     Append the people-present command records to the verb-menu list (called after build_room_command_records when game_screen_mode_flags == 0).
     Reset the per-scene lip-sync state, run init_room_persons to reset the four scene-person slots, clear persons_in_room, then walk the room-person table twice with scan_matching_room_person_entries: first with bp = build_room_person_record_a (entries whose flags bit 0x40 is clear), then with bp = build_room_person_record_b (entries whose flags bit 0x40 is set). Both templates share the body at build_room_person_record_body.
@@ -694,8 +696,8 @@ attr[seg000:3310]: type = code; name = get_command_string_index_from_troop_skill
 attr[seg000:331e]: type = code; name = prepare_location_data_for_condit
 attr[seg000:3385]: type = code; name = prepare_location_data_for_condit_sub_3385
 attr[seg000:3406]: type = code
-attr[seg000:34a5]: type = code; name = prepare_location_data_for_condit_sub_34a5
 attr[seg000:348a]: type = code
+attr[seg000:34a5]: type = code; name = prepare_location_data_for_condit_sub_34a5
 attr[seg000:34d0]: type = code
 attr[seg000:351a]: type = code
 attr[seg000:3520]: type = code
@@ -806,7 +808,7 @@ attr[seg000:42cc]: targets = segvga:0160
 attr[seg000:42d1]: type = code
 attr[seg000:42d9]: type = code
 attr[seg000:42f2]: comment = RES_ORNYPAN_HSQ
-attr[seg000:4328]: comment = Right-side map navigation buttons
+attr[seg000:4328]: ofs_seg = seg001; comment = Right-side map navigation buttons
 attr[seg000:4362]: comment = RES_ORNYPAN_HSQ
 attr[seg000:4377]: type = code
 attr[seg000:4390]: comment = RES_ORNYPAN_HSQ
@@ -1611,7 +1613,8 @@ attr[seg000:d506]: targets = segvga:011e
 attr[seg000:d50f]: type = code; name = highlight_hovered_text_action_item
 attr[seg000:d677]: type = code
 attr[seg000:d694]: type = code; name = set_di_to_ui_elements_ptr_based_on_cursor_image
-attr[seg000:d717]: name = ui_setup_room_hud_strip; comment = [[[
+attr[seg000:d712]: ofs_seg = seg001
+attr[seg000:d717]: name = ui_setup_nav_panel; comment = [[[
     Set up and draw the bottom-right navigation panel (HUD records 12..17,
     the move/travel compass): pick the view template (room 1c76, alt/travel
     1cca when data_046eb set, map/book 1d72 when game_screen_mode_flags&3),
@@ -1619,6 +1622,8 @@ attr[seg000:d717]: name = ui_setup_room_hud_strip; comment = [[[
     Run via gfx_call_bp_with_front_buffer_as_screen. (Named "strip" but it is
     the nav panel.)
 ]]]
+attr[seg000:d71e]: ofs_seg = seg001
+attr[seg000:d728]: ofs_seg = seg001
 attr[seg000:d755]: targets = segvga:011e
 attr[seg000:d75a]: type = code; name = ui_set_and_draw_frieze_sides_closed_book; ofs_seg = seg001
 attr[seg000:d792]: type = code; name = ui_set_and_draw_frieze_sides_map
@@ -1883,7 +1888,7 @@ attr[seg000:f417]: comment = di = start + unpacked len + 64
 attr[seg001:0000]: type = u16; name = rand_bits
 attr[seg001:0002]: type = u16; name = game_time
 attr[seg001:0004]: type = u16; name = location_and_room
-attr[seg001:0006]: type = u16; name = location_idx_dist
+attr[seg001:0006]: type = u16; name = location_appearance
 attr[seg001:0008]: type = u8; name = current_scene
 attr[seg001:0009]: type = u8
 attr[seg001:000a]: type = u8; name = bitfield_Paul_events; comment = [[[
@@ -2259,8 +2264,17 @@ attr[seg001:1225]: type = [PalaceRoom; 12]; name = palace_rooms; comment = [[[
     calc_SAL_index. e.g. the intro equipment room (dx=0x2002, dl=2) reads
     palace_rooms[1].background = 0x3a -> PALACE.SAL room 9 + RES_EQUI_HSQ.
     
-    npc_0..npc_3 are the scene's character/object slots (seg000:305c reads four
-    bytes after the room byte; 0 = empty).
+    exits[0..3] are the four direction exits, indexed by compass direction:
+    0 = UP/N, 1 = RIGHT/E, 2 = DOWN/S, 3 = LEFT/W (the same indices the
+    bottom-right HUD compass buttons ui_elements[13..17] use). Encoding:
+        0x00        no exit in this direction.
+        0x01..0x7F  destination room number — ui_click_move_room (seg000:3f27)
+                    stores it as the new location_and_room low byte at
+                    seg000:3faa after the `js` non-special branch is not taken.
+        0x80..0xFF  special-exit dispatch via the jump table at cs:1454h
+                    (seg000:3fd2..3ff7). The 0xFB..0xFF subrange is what
+                    rebuild_and_draw_room_nav_panel (seg000:305c) shows as a
+                    visible HUD arrow; the rest are in-scene/scripted exits.
 ]]]
 attr[seg001:1261]: name = sietch_rooms
 attr[seg001:13c4]: type = u16
@@ -2416,6 +2430,9 @@ attr[seg001:1c6e]: type = u16
 attr[seg001:1c70]: type = u16
 attr[seg001:1c72]: type = u16
 attr[seg001:1c74]: type = u16
+attr[seg001:1c76]: type = [UIElement; 6]
+attr[seg001:1cca]: type = [UIElement; 6]
+attr[seg001:1d72]: type = [UIElement; 6]
 attr[seg001:1dc6]: type = [UIElement; 13]; name = ui_globe_rotation_controls
 attr[seg001:1e7e]: type = [XY; 32]; name = ui_draw_date_and_time_indicator
 attr[seg001:1efe]: type = u16
@@ -3550,6 +3567,8 @@ attr[seg001:cee9]: type = u8; name = _byte_2C399_kb_esc_was_hit
 attr[seg001:ceea]: type = u8; name = _byte_2C39A_reset_keyboard_counter
 attr[seg001:ceeb]: type = u8; name = _byte_2C39B_language_setting
 attr[seg001:ceec]: type = [u8; 2304]; name = DNCHARx_BIN
+attr[seg001:d717]: name = ui_setup_and_draw_nav_panel
+attr[seg001:d735]: name = ui_draw_nav_panel
 attr[seg001:d7f4]: type = u16
 attr[seg001:d810]: type = u16
 attr[seg001:d814]: type = u16
@@ -3715,7 +3734,7 @@ attr[seg001:dc6c]: type = [FrameTask; 20]; name = frame_tasks; comment = [[[
 attr[seg001:dce4]: type = u8
 attr[seg001:dce5]: type = u8
 attr[seg001:dce6]: type = u8; name = _byte_2D196_in_transition?
-attr[seg001:dce7]: type = u8; name = _byte_2D197_index_of_last_hovered_slot
+attr[seg001:dce7]: type = u8; name = index_of_last_hovered_action_item
 attr[seg001:dce8]: type = u8
 attr[seg001:dcf1]: type = u8
 attr[seg001:dcf2]: type = u16
