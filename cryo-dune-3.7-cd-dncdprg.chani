@@ -261,7 +261,7 @@ attr[seg000:0337]: type = [IntroPart; 48]; name = intro_script; ofs_seg = seg000
     load       = function pointer called to set up the stage (e.g. load_VIRGIN_HNM).
     midi       = midi sync target consumed by midi_wait_until AFTER the load function.
     transition = palette transition type, or 0xffff to skip the transition step.
-    play       = function pointer called to drive the stage (e.g. play_VIRGIN_HNM, loc_00f66 = no-op).
+    play       = function pointer called to drive the stage (e.g. play_VIRGIN_HNM, nullsub_00f66 = no-op).
     wait       = passed to wait_for_pcm_voice_interruptable after play; 0 skips the wait entirely.
 ]]]
 attr[seg000:0577]: type = signed(u16); name = intro_script_end
@@ -411,7 +411,7 @@ attr[seg000:0eb9]: type = code; name = menu_callback_choice_palace_look_away_fro
 attr[seg000:0ed0]: type = code; name = callback_transition_look_at_mirror
 attr[seg000:0ee1]: comment = MIRROR.HSQ
 attr[seg000:0f48]: type = code; name = callback_wait_for_evening
-attr[seg000:0f66]: type = code
+attr[seg000:0f66]: type = code; name = nullsub_00f66
 attr[seg000:0f67]: type = code; name = callback_wait_for_morning
 attr[seg000:0fc5]: type = code; name = callback_fight_for_a_whole_day
 attr[seg000:0fd9]: type = code; name = run_events_for_n_time_periods
@@ -867,8 +867,8 @@ attr[seg000:497a]: type = code; name = menu_callback_choice_change_destination
 attr[seg000:49e6]: targets = seg000:4377, seg000:49a0
 attr[seg000:4ab8]: type = code; name = frame_task_callback_04ab8
 attr[seg000:4aad]: type = code
-attr[seg000:4ad0]: type = code
-attr[seg000:4ad7]: type = code
+attr[seg000:4ad0]: type = code; name = callback_ui_element_04ad0
+attr[seg000:4ad7]: type = code; name = callback_ui_element_04ad7
 attr[seg000:4aee]: comment = RES_VER_HSQ
 attr[seg000:4b0f]: targets = segvga:0136
 attr[seg000:4b16]: name = hnm_blit_frame_to_screen; comment = [[[
@@ -1168,6 +1168,7 @@ attr[seg000:9123]: type = code; name = character_id_to_sprite; comment = [[[
 attr[seg000:9197]: type = code; name = setup_lip_sync_data_from_current
 attr[seg000:91a0]: type = code; name = setup_lip_sync_data_from_sprite_sheet
 attr[seg000:920f]: type = code; name = open_talking_head_resource
+attr[seg000:9215]: type = code; name = callback_main_ui_element_21_22
 attr[seg000:92f2]: type = code
 attr[seg000:92f7]: type = code
 attr[seg000:92fc]: type = code
@@ -1184,7 +1185,8 @@ attr[seg000:932e]: type = code
 attr[seg000:936f]: type = code
 attr[seg000:9373]: type = code
 attr[seg000:937e]: type = code
-attr[seg000:941d]: type = code
+attr[seg000:941d]: type = code; name = callback_main_ui_element_20
+attr[seg000:945b]: type = code; name = callback_main_ui_element_19
 attr[seg000:9472]: type = code; name = menu_callback_choice_talk_to_me
 attr[seg000:9533]: type = code; name = menu_callback_choice_stay_here
 attr[seg000:9584]: type = code
@@ -1201,6 +1203,7 @@ attr[seg000:98e6]: name = reset_scene_lip_sync_state; comment = [[[
     Reset the per-scene speaker / lip-sync / dialogue-bubble indices: data_047c8 = 0, data_047aa = 0, current_bubble_layout_ptr = 0; then jmp loc_09b8b.
     Called at the head of build_persons_in_room_records, draw_room_scene, ui_draw_room_command_panel (dialogue branch), and several scene-change sites.
 ]]]
+attr[seg000:98f5]: type = code; name = main_ui_elements_clear_flags_18_19_20
 attr[seg000:9945]: ofs_seg = seg000
 attr[seg000:99b2]: type = code; name = swap_byte_arrays
 attr[seg000:99be]: type = code; name = frame_task_callback_099be
@@ -1340,27 +1343,28 @@ attr[seg000:aeb7]: type = code; name = midi_reset; comment = [[[
     Clears [_byte_2D07B_current_song_index] to 0 and calls the driver-supplied MIDI_Reset (ADLReset for DNADL: silences all OPL voices and clears the driver status byte). The driver returns 0 in al, which is stored in [_byte_2D07D_midi_status], disabling subsequent midi_wait_until calls.
     Called before each play_music_* (to silence the previous song) and again from per-stage play loops like play_VIRGIN_HNM once the music reaches a target measure (one-shot termination — the song-index check prevents it from re-firing).
 ]]]
-attr[seg000:aed6]: type = code
+attr[seg000:aed6]: type = code; name = callback_main_ui_element_03
 attr[seg000:af00]: type = code
 attr[seg000:af26]: type = code
 attr[seg000:af58]: type = code; name = menu_callback_choice_book_all_topics
 attr[seg000:af60]: type = code; name = menu_callback_choice_book_politics
 attr[seg000:af68]: type = code; name = menu_callback_choice_book_paul_on_dune
 attr[seg000:af70]: type = code; name = menu_callback_choice_book_spice
-attr[seg000:afb5]: type = code
-attr[seg000:afc7]: type = code
+attr[seg000:afb5]: type = code; name = callback_ui_element_0afb5
+attr[seg000:afc7]: type = code; name = callback_ui_element_0afc7
 attr[seg000:b031]: comment = Play SN2.VOC - Papers ruffle
 attr[seg000:b039]: type = code
 attr[seg000:b0ac]: comment = RES_BOOK_HSQ
 attr[seg000:b0d1]: comment = "SEE SPICE DENSITY"
-attr[seg000:b18b]: type = code
+attr[seg000:b18b]: type = code; name = callback_ui_element_0b18b
 attr[seg000:b1a9]: comment = RES_PERS_HSQ
 attr[seg000:b1af]: type = code; name = ui_draw_book_turning_page
 attr[seg000:b1b6]: comment = turning page sprite id
-attr[seg000:b1ee]: type = code; targets = segvga:017b
+attr[seg000:b1ee]: type = code; name = callback_main_ui_element_23; targets = segvga:017b
 attr[seg000:b224]: targets = segvga:0187
 attr[seg000:b236]: type = code
 attr[seg000:b23f]: type = code
+attr[seg000:b245]: ofs_seg = seg001
 attr[seg000:b270]: type = code; name = handle_ctrl_v_once
 attr[seg000:b285]: comment = replace first instruction with ret
 attr[seg000:b28c]: type = code; name = menu_callback_choice_mirror_room_save_game
@@ -1403,7 +1407,7 @@ attr[seg000:b87e]: type = code; name = draw_globe_side_decorations
 attr[seg000:b884]: comment = RES_FRESK_HSQ
 attr[seg000:b8a7]: type = code; name = setup_globe_draw
 attr[seg000:b8c0]: comment = RES_FRESK_HSQ
-attr[seg000:b8c6]: type = code
+attr[seg000:b8c6]: type = code; name = callback_main_ui_element_00
 attr[seg000:b8ea]: ofs_seg = seg000
 attr[seg000:b8f3]: type = code; name = globe_slide_decorations_open
 attr[seg000:b915]: type = code; name = globe_slide_decorations_close
@@ -1416,16 +1420,17 @@ attr[seg000:b977]: type = code; name = map_func_gfx
 attr[seg000:b985]: targets = segvga:0145
 attr[seg000:b9ae]: type = code; name = frame_task_callback_0b9ae
 attr[seg000:b9b2]: targets = segvga:0148
-attr[seg000:b9b9]: type = code
-attr[seg000:b9c0]: type = code
-attr[seg000:b9cc]: type = code
-attr[seg000:b9d3]: type = code
+attr[seg000:b9b9]: type = code; name = callback_ui_element_0b9b9
+attr[seg000:b9c0]: type = code; name = callback_ui_element_0b9c0
+attr[seg000:b9cc]: type = code; name = callback_ui_element_0b9cc
+attr[seg000:b9d3]: type = code; name = callback_ui_element_0b9d3
 attr[seg000:b9e0]: type = code; name = globe_rotation_increment_ax
 attr[seg000:b9f6]: type = code; name = recalculate_globe_rotation_table
 attr[seg000:ba15]: type = code; name = globe_increment_tilt_by_ax
 attr[seg000:ba20]: comment = ax = min(ax + ds:word_21910, 98)
 attr[seg000:ba28]: comment = ax = max(-98, ax)
 attr[seg000:ba75]: type = code; name = set_globe_tilt_and_rotation
+attr[seg000:ba9e]: type = code; name = callback_ui_element_0ba9e
 attr[seg000:baf1]: type = code
 attr[seg000:bc0c]: type = code; name = draw_globe_cursor_at_dx_bx
 attr[seg000:bc1f]: type = code
@@ -1436,7 +1441,7 @@ attr[seg000:bc3c]: ofs_seg = seg001
 attr[seg000:bc42]: ofs_seg = seg001
 attr[seg000:bc45]: ofs_seg = seg000
 attr[seg000:bc64]: type = code
-attr[seg000:bc81]: type = code
+attr[seg000:bc81]: type = code; name = callback_ui_element_0bc81
 attr[seg000:bdfa]: type = code; name = ui_stats_draw_ingame_day_and_charisma
 attr[seg000:be01]: comment = "  2nd day on DUNE"
 attr[seg000:be11]: comment = "CHARISMA = 129"
@@ -1636,11 +1641,11 @@ attr[seg000:d397]: name = redraw_active_command_menu; comment = [[[Repaint the a
 attr[seg000:d41b]: name = get_active_screen_element; comment = Return bp = *screen_element_stack_ptr = the top screen-element record buffer (the room buffer at the bottom starts with location_and_room).
 attr[seg000:d423]: type = code
 attr[seg000:d429]: type = code
-attr[seg000:d42f]: type = code
-attr[seg000:d434]: type = code
-attr[seg000:d439]: type = code
-attr[seg000:d43e]: type = code
-attr[seg000:d443]: type = code
+attr[seg000:d42f]: type = code; name = callback_main_ui_element_11
+attr[seg000:d434]: type = code; name = callback_main_ui_element_10
+attr[seg000:d439]: type = code; name = callback_main_ui_element_09
+attr[seg000:d43e]: type = code; name = callback_main_ui_element_08
+attr[seg000:d443]: type = code; name = callback_main_ui_element_07
 attr[seg000:d48a]: name = draw_command_menu_item; comment = [[[
     Draw one verb-menu slot (cl = slot 0..4, ax = text_id with state bits) into ui_elements[7+cl].
     Pen x = 5dh, y = ui_elements[7+cl].y0 + 1, small font. text_id & 3fffh = the COMMAND/PHRASE id (0 = blank slot).
@@ -1667,6 +1672,7 @@ attr[seg000:d755]: targets = segvga:011e
 attr[seg000:d75a]: type = code; name = ui_set_and_draw_frieze_sides_closed_book; ofs_seg = seg001
 attr[seg000:d792]: type = code; name = ui_set_and_draw_frieze_sides_map
 attr[seg000:d795]: type = code; name = ui_set_and_draw_frieze_sides
+attr[seg000:d7a4]: ofs_seg = seg001
 attr[seg000:d7ad]: type = code; name = ui_set_and_draw_frieze_sides_open_book
 attr[seg000:d7b2]: type = code; name = ui_set_and_draw_frieze_sides_globe
 attr[seg000:d815]: type = code; name = game_loop
@@ -2437,7 +2443,7 @@ attr[seg001:1adc]: ofs_seg = seg000
 attr[seg001:1ade]: type = u16
 attr[seg001:1ae0]: ofs_seg = seg000
 attr[seg001:1ae2]: type = u16
-attr[seg001:1ae4]: type = dec(u16); name = _word_20F94_ui_elements
+attr[seg001:1ae4]: type = dec(u16); name = _word_20F94_ui_elements_count
 attr[seg001:1ae6]: type = [UIElement; 24]; name = _1ae6_ui_elements
 attr[seg001:1c36]: type = u16
 attr[seg001:1c38]: type = u16
