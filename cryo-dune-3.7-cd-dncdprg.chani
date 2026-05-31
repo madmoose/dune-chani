@@ -655,7 +655,13 @@ attr[seg000:290b]: type = code
 attr[seg000:2993]: type = code; name = menu_callback_choice_comms_room_message_viewed
 attr[seg000:2997]: type = code
 attr[seg000:29d4]: type = code
-attr[seg000:2aaf]: type = code
+attr[seg000:29ee]: type = code; name = queue_vision_message_without_location
+attr[seg000:29f0]: type = code; name = queue_vision_message_with_location
+attr[seg000:2a34]: type = code; name = dequeue_vision_message
+attr[seg000:2a51]: type = code; name = messages_02a51
+attr[seg000:2a7f]: type = code; name = messages_02a7f
+attr[seg000:2aaf]: type = code; name = messages_02aaf
+attr[seg000:2ad8]: type = code; name = messages_02ad8
 attr[seg000:2c69]: ofs_seg = seg000
 attr[seg000:2c9a]: type = code
 attr[seg000:2cb8]: ofs_seg = seg000
@@ -1038,6 +1044,7 @@ attr[seg000:6f93]: type = code; name = decrease_troop_motivation
 attr[seg000:6fe5]: type = code
 attr[seg000:70cc]: type = code
 attr[seg000:7148]: type = u8
+attr[seg000:71b2]: type = code; name = or_message_ID_with_F00_and_queue_vision_message_with_location
 attr[seg000:71ef]: type = code
 attr[seg000:7289]: type = code
 attr[seg000:72a2]: type = code
@@ -1045,6 +1052,7 @@ attr[seg000:72b0]: type = code
 attr[seg000:7317]: type = code; name = menu_callback_choice_massive_attack
 attr[seg000:7399]: type = code
 attr[seg000:739e]: type = code; name = map_func
+attr[seg000:73d3]: ofs_seg = seg001
 attr[seg000:7419]: type = code
 attr[seg000:7506]: type = code
 attr[seg000:7516]: type = code
@@ -1180,22 +1188,23 @@ attr[seg000:9197]: type = code; name = setup_lip_sync_data_from_current
 attr[seg000:91a0]: type = code; name = setup_lip_sync_data_from_sprite_sheet
 attr[seg000:920f]: type = code; name = open_talking_head_resource
 attr[seg000:9215]: type = code; name = callback_main_ui_element_21_22
-attr[seg000:92f2]: type = code
-attr[seg000:92f7]: type = code
-attr[seg000:92fc]: type = code
-attr[seg000:9301]: type = code
-attr[seg000:9306]: type = code
-attr[seg000:930b]: type = code
-attr[seg000:9310]: type = code
-attr[seg000:9315]: type = code
-attr[seg000:931a]: type = code
-attr[seg000:931f]: type = code
-attr[seg000:9324]: type = code
-attr[seg000:9329]: type = code
-attr[seg000:932e]: type = code
-attr[seg000:936f]: type = code
-attr[seg000:9373]: type = code
-attr[seg000:937e]: type = code
+attr[seg000:92f2]: type = code; name = ui_dialogue_offset_base_for_funcs_and_code_related_to_DukeLetoAtreides
+attr[seg000:92f7]: type = code; name = ui_dialogue_related_to_JessicaAtreides
+attr[seg000:92fc]: type = code; name = ui_dialogue_related_to_ThufirHawat
+attr[seg000:9301]: type = code; name = ui_dialogue_related_to_DuncanIdaho
+attr[seg000:9306]: type = code; name = ui_dialogue_related_to_GurneyHalleck
+attr[seg000:930b]: type = code; name = ui_dialogue_related_to_Stilgar
+attr[seg000:9310]: type = code; name = ui_dialogue_related_to_LietKynes
+attr[seg000:9315]: type = code; name = ui_dialogue_related_to_Chani
+attr[seg000:931a]: type = code; name = ui_dialogue_related_to_Harah
+attr[seg000:931f]: type = code; name = ui_dialogue_related_to_BaronVladimirHarkonnen
+attr[seg000:9324]: type = code; name = ui_dialogue_related_to_FeydRauthaHarkonnen
+attr[seg000:9329]: type = code; name = ui_dialogue_related_to_EmperorShaddamIV
+attr[seg000:932e]: type = code; name = ui_dialogue_related_to_HarkonnenCaptains
+attr[seg000:936f]: type = code; name = ui_dialogue_related_to_Smugglers
+attr[seg000:9373]: type = code; name = ui_dialogue_related_to_Fremen1
+attr[seg000:937e]: type = code; name = ui_dialogue_related_to_Fremen2
+attr[seg000:93aa]: type = code; name = common_code_for_ui_dialogue_related_functions
 attr[seg000:941d]: type = code; name = callback_main_ui_element_20
 attr[seg000:945b]: type = code; name = callback_main_ui_element_19
 attr[seg000:9472]: type = code; name = menu_callback_choice_talk_to_me
