@@ -595,6 +595,7 @@ attr[seg000:1ad1]: type = code; name = get_ingame_day_in_ax
 attr[seg000:1ae0]: type = code; name = get_ingame_time_of_day
 attr[seg000:1ae7]: type = code
 attr[seg000:1b0c]: type = code
+attr[seg000:1b0d]: type = code; name = game_loop_sub_01b0d
 attr[seg000:1b23]: type = code; name = run_events_for_current_time_period
 attr[seg000:1b7d]: targets = seg000:1dd3, seg000:1dd4, seg000:1dd7, seg000:1dda, seg000:1dfe
 attr[seg000:1cab]: ofs_seg = seg001
@@ -605,17 +606,20 @@ attr[seg000:1d35]: type = [u8; 48]
 attr[seg000:1d65]: type = u8
 attr[seg000:1d66]: type = code; name = iterate_over_named_NPCs_and_location_appearances_to_modify_NPCs
 attr[seg000:1d66]: ofs_seg = seg001
+attr[seg000:1d9f]: type = code; name = test_for_Chani_in_room_and_do_stuff_if_true
 attr[seg000:1db3]: type = [ofs16(seg000); 16]
 attr[seg000:1dd3]: type = code; name = actions_time_in_day_0_1_2_5_6_7_9_a_b_c_d_e
 attr[seg000:1dd4]: type = code; name = actions_time_in_day_3
 attr[seg000:1dd7]: type = code; name = actions_time_in_day_4
 attr[seg000:1dda]: type = code; name = actions_time_in_day_8
 attr[seg000:1dfe]: type = code; name = actions_time_in_day_f
+attr[seg000:1e01]: type = code; name = npc_is_Chani_during_stage_5d_find_ill_troops_at_her_location
 attr[seg000:1e74]: ofs_seg = seg000
 attr[seg000:1e96]: ofs_seg = seg000
 attr[seg000:1ea1]: type = code
 attr[seg000:1ea9]: type = code
 attr[seg000:1eb1]: type = code
+attr[seg000:1eda]: type = code; name = chani_troop_cure_progress_step
 attr[seg000:1ee3]: ofs_seg = seg000
 attr[seg000:1fd5]: ofs_seg = seg001
 attr[seg000:1fe9]: ofs_seg = seg001
@@ -623,6 +627,9 @@ attr[seg000:2017]: type = code; name = ui_comm
 attr[seg000:2165]: type = [u8; 11]
 attr[seg000:2170]: type = code; name = iterate_over_allied_NPCs_and_locations
 attr[seg000:2173]: ofs_seg = seg001
+attr[seg000:2184]: ofs_seg = seg001
+attr[seg000:21ad]: ofs_seg = seg001
+attr[seg000:21dc]: ofs_seg = seg001
 attr[seg000:2239]: type = code
 attr[seg000:2253]: ofs_seg = seg001
 attr[seg000:2296]: ofs_seg = seg001
@@ -702,15 +709,32 @@ attr[seg000:2efb]: name = build_room_command_records; comment = [[[
     Format: a leading 0 byte, then 4-byte [text_id:u16, handler_ofs:u16] records, then a 0 terminator word.
     The records are copied from the seg001 command-record templates (21dc..221c), gated by the room type (command_slot/data_00006 low byte 80h = special room), location_and_room, game_phase, orni_count, the smuggler flag, and time-of-day.
 ]]]
+attr[seg000:2f13]: ofs_seg = seg001
+attr[seg000:2f24]: ofs_seg = seg001
+attr[seg000:2f2b]: ofs_seg = seg001
+attr[seg000:2f46]: ofs_seg = seg001
+attr[seg000:2f69]: ofs_seg = seg001
+attr[seg000:2f9e]: ofs_seg = seg001
+attr[seg000:2fa3]: ofs_seg = seg001
+attr[seg000:2fb1]: ofs_seg = seg001
+attr[seg000:2fb6]: ofs_seg = seg001
+attr[seg000:2fc9]: ofs_seg = seg001
+attr[seg000:2fd7]: ofs_seg = seg001
+attr[seg000:2fe1]: ofs_seg = seg001
+attr[seg000:2fed]: ofs_seg = seg001
+attr[seg000:2ff2]: ofs_seg = seg001
 attr[seg000:2ffb]: name = rebuild_and_draw_room_nav_panel; comment = [[[
     Rebuild the bottom-right navigation/compass HUD records (12..18) for the current room context, then draw them (falls into loc_0d735).
     Night-attack / map / book modes pick alternate templates; the plain room uses the move-direction set keyed off command_list_ptr and location_and_room.
 ]]]
 attr[seg000:3010]: ofs_seg = seg001
+attr[seg000:3073]: ofs_seg = seg001
 attr[seg000:3090]: name = build_persons_in_room_records; comment = [[[
     Append the people-present command records to the verb-menu list (called after build_room_command_records when game_screen_mode_flags == 0).
     Reset the per-scene lip-sync state, run init_room_persons to reset the four scene-person slots, clear persons_in_room, then walk the room-person table twice with scan_matching_room_person_entries: first with bp = build_room_person_record_a (entries whose flags bit 0x40 is clear), then with bp = build_room_person_record_b (entries whose flags bit 0x40 is set). Both templates share the body at build_room_person_record_body.
 ]]]
+attr[seg000:3096]: ofs_seg = seg001
+attr[seg000:30a9]: ofs_seg = seg000
 attr[seg000:30b9]: type = code; name = build_room_person_record_a; comment = [[[
     bp template A for scan_matching_room_person_entries (called from build_persons_in_room_records).
     Skip when entry flags [si+0fh] & 0x40 is set; on the first match (data_047aa == 0) record si into data_047aa so the room-screen tail picks it as the lip-sync speaker; then fall through to the shared body at loc_030ca.
@@ -729,7 +753,7 @@ attr[seg000:3127]: name = init_room_persons; comment = [[[
     Zero data_0476a and data_0476b, init the four person-state words at data_109a/10aa/10ba/10ca to 0x7f80, then (only when location_slot low byte == 0x80) classify entries by iterating the room-person table via loc_06603 with bp = loc_0316e, and run loc_0331e.
 ]]]
 attr[seg000:3151]: ofs_seg = seg000
-attr[seg000:316e]: type = code
+attr[seg000:316e]: type = code; name = callback_troop_location_0316e
 attr[seg000:31f6]: type = code; name = troop_prepare_troop_data_for_condit
 attr[seg000:329d]: type = code; name = troop_prepare_troop_data_for_condit_sub_329d
 attr[seg000:32c7]: type = code; name = troop_prepare_troop_data_for_condit_sub_32c7
@@ -925,6 +949,7 @@ attr[seg000:4def]: ofs_seg = seg000
 attr[seg000:4e04]: type = code
 attr[seg000:4e8d]: type = code
 attr[seg000:4f09]: type = code; name = menu_callback_choice_resume_flight
+attr[seg000:4f0c]: type = code; name = game_loop_sub_04f0c
 attr[seg000:4ffb]: type = code; name = menu_callback_choice_skip_to_destination
 attr[seg000:5082]: type = code
 attr[seg000:5098]: ofs_seg = seg000
@@ -1058,7 +1083,7 @@ attr[seg000:6bd7]: type = code
 attr[seg000:6bf5]: type = [ofs16(seg000); 16]
 attr[seg000:6c15]: type = code; name = troop_call_callback_according_to_occupation
 attr[seg000:6c21]: targets = seg000:0f66, seg000:6b8a, seg000:6b96, seg000:6bd7
-attr[seg000:6c26]: type = [ofs16(seg000); 16]
+attr[seg000:6c26]: type = [ofs16(seg000); 16]; name = array_callbacks_for_troop_occupation
 attr[seg000:6c8f]: ofs_seg = seg001
 attr[seg000:6cba]: targets = seg000:0f66, seg000:6fe5, seg000:70cc, seg000:71ef, seg000:72b0, seg000:739e, seg000:767d, seg000:7693, seg000:7711
 attr[seg000:6cfc]: type = code
@@ -1077,25 +1102,32 @@ attr[seg000:6e82]: type = code
 attr[seg000:6ea8]: type = code
 attr[seg000:6ec3]: ofs_seg = seg000
 attr[seg000:6ecb]: type = code
-attr[seg000:6edb]: type = code
-attr[seg000:6f48]: type = code
+attr[seg000:6edb]: type = code; name = troop_clamp_army_skill_and_do_something_else
+attr[seg000:6edd]: type = code; name = troop_clamp_skill_and_do_something_else
+attr[seg000:6efd]: type = code; name = troop_compute_motivation_modifiers
+attr[seg000:6f48]: type = code; name = troop_increase_motivation
+attr[seg000:6f56]: type = code; name = increase_motivation_for_all_active_troops
 attr[seg000:6f57]: ofs_seg = seg001
-attr[seg000:6f78]: type = code; name = increase_charisma_by_al
-attr[seg000:6f93]: type = code; name = decrease_troop_motivation
+attr[seg000:6f78]: type = code; name = increase_charisma_and_increase_troop_motivation_accordingly
+attr[seg000:6f93]: type = code; name = troop_decrease_motivation
+attr[seg000:6fb0]: type = code; name = decrease_charisma_and_decrease_troop_motivation_accordingly
 attr[seg000:6fce]: ofs_seg = seg001
-attr[seg000:6fe5]: type = code
-attr[seg000:70cc]: type = code
+attr[seg000:6fe5]: type = code; name = callback_troop_location_for_troop_occupation_spice_mining
+attr[seg000:7085]: type = code; name = callback_troop_make_troop_stop_working
+attr[seg000:70cc]: type = code; name = callback_troop_location_for_troop_occupation_spice_prospecting
 attr[seg000:7148]: type = u8
+attr[seg000:714c]: type = code; name = troop_location_events_for_spice_mining_troops_with_harvesters
 attr[seg000:71b2]: type = code; name = or_message_ID_with_F00_and_queue_vision_message_with_location
-attr[seg000:71ef]: type = code
+attr[seg000:71ef]: type = code; name = callback_troop_location_for_troop_occupation_military_training
 attr[seg000:7281]: ofs_seg = seg000
 attr[seg000:7289]: type = code
 attr[seg000:7298]: ofs_seg = seg000
 attr[seg000:72a2]: type = code
-attr[seg000:72b0]: type = code
+attr[seg000:72b0]: type = code; name = callback_troop_location_for_troop_occupation_espionage
 attr[seg000:7317]: type = code; name = menu_callback_choice_massive_attack
-attr[seg000:7399]: type = code
-attr[seg000:739e]: type = code; name = map_func
+attr[seg000:7399]: type = code; name = troop_make_occupation_military_training
+attr[seg000:739e]: type = code; name = callback_troop_location_for_troop_occupation_attacking
+attr[seg000:73a3]: ofs_seg = seg001
 attr[seg000:73ad]: ofs_seg = seg000
 attr[seg000:73d3]: ofs_seg = seg001
 attr[seg000:740b]: ofs_seg = seg000
@@ -1113,9 +1145,9 @@ attr[seg000:75af]: type = code
 attr[seg000:75ea]: type = code
 attr[seg000:762a]: type = code
 attr[seg000:764d]: type = code
-attr[seg000:767d]: type = code
-attr[seg000:7693]: type = code
-attr[seg000:7711]: type = code
+attr[seg000:767d]: type = code; name = callback_troop_location_for_troop_occupation_bulb_growing_spawn_16_bulbs_if_growing_progress_over
+attr[seg000:7693]: type = code; name = callback_troop_location_for_troop_occupation_irrigation_and_tree_care_possibly_spawn_first_vegetation_in_location
+attr[seg000:7711]: type = code; name = callback_troop_location_for_troop_occupation_wind_trap_assembly_possibly_create_first_wind_trap
 attr[seg000:7734]: type = code; name = menu_callback_choice_troop_occupation_army_troop_go_search_for_equipment
 attr[seg000:775c]: type = code; name = menu_callback_choice_troop_occupation_ecology_troop_go_search_for_equipment
 attr[seg000:776d]: type = code; name = menu_callback_choice_troop_occupation_spice_troop_go_search_for_equipment
@@ -1735,8 +1767,10 @@ attr[seg000:d48a]: name = draw_command_menu_item; comment = [[[
 attr[seg000:d4e2]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:d506]: targets = segvga:011e
 attr[seg000:d50f]: type = code; name = highlight_hovered_text_action_item
+attr[seg000:d65a]: type = code; name = game_loop_sub_0d65a
 attr[seg000:d677]: type = code
 attr[seg000:d694]: type = code; name = set_di_to_ui_elements_ptr_based_on_cursor_image
+attr[seg000:d6b7]: type = code; name = game_loop_sub_0d6b7
 attr[seg000:d712]: ofs_seg = seg001
 attr[seg000:d717]: name = ui_setup_nav_panel; comment = [[[
     Set up and draw the bottom-right navigation panel (HUD records 12..17,
@@ -1755,6 +1789,7 @@ attr[seg000:d795]: type = code; name = ui_set_and_draw_frieze_sides
 attr[seg000:d7a4]: ofs_seg = seg001
 attr[seg000:d7ad]: type = code; name = ui_set_and_draw_frieze_sides_open_book
 attr[seg000:d7b2]: type = code; name = ui_set_and_draw_frieze_sides_globe
+attr[seg000:d7b7]: type = code; name = game_loop_sub_0d7b7
 attr[seg000:d815]: type = code; name = game_loop
 attr[seg000:d820]: comment = Test for scan-code for 'v'
 attr[seg000:d827]: comment = Test for ctrl
@@ -3629,7 +3664,7 @@ attr[seg001:46d9]: type = u8; name = pending_room_screen_request; comment = [[[
 ]]]
 attr[seg001:46da]: type = u8
 attr[seg001:46db]: type = u16
-attr[seg001:46dd]: type = u8
+attr[seg001:46dd]: type = u8; name = new_hour_flag
 attr[seg001:46de]: type = u8
 attr[seg001:46df]: type = u8; name = sky_fade_active
 attr[seg001:46e0]: type = u8
