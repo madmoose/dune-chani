@@ -582,6 +582,7 @@ attr[seg000:18ba]: name = ui_teardown_room_view; comment = [[[
 attr[seg000:18ee]: type = code; name = ui_draw_palace_plan
 attr[seg000:191b]: targets = segvga:011e
 attr[seg000:192a]: comment = PALPLAN.HSQ
+attr[seg000:1948]: type = code; name = iterate_over_all_NPCs_and_do_quite_a_bit_more
 attr[seg000:1956]: ofs_seg = seg001
 attr[seg000:19fc]: type = code
 attr[seg000:1a34]: type = code; name = ui_draw_date_and_time_indicator
@@ -597,10 +598,12 @@ attr[seg000:1b0c]: type = code
 attr[seg000:1b23]: type = code; name = run_events_for_current_time_period
 attr[seg000:1b7d]: targets = seg000:1dd3, seg000:1dd4, seg000:1dd7, seg000:1dda, seg000:1dfe
 attr[seg000:1cab]: ofs_seg = seg001
+attr[seg000:1cda]: type = code; name = iterate_over_locations_and_accumulate_number_of_Atreides_locations_and_value_related_to_spice_density
 attr[seg000:1d10]: type = code
 attr[seg000:1d16]: ofs_seg = seg001
 attr[seg000:1d35]: type = [u8; 48]
 attr[seg000:1d65]: type = u8
+attr[seg000:1d66]: type = code; name = iterate_over_named_NPCs_and_location_appearances_to_modify_NPCs
 attr[seg000:1d66]: ofs_seg = seg001
 attr[seg000:1db3]: type = [ofs16(seg000); 16]
 attr[seg000:1dd3]: type = code; name = actions_time_in_day_0_1_2_5_6_7_9_a_b_c_d_e
@@ -608,13 +611,17 @@ attr[seg000:1dd4]: type = code; name = actions_time_in_day_3
 attr[seg000:1dd7]: type = code; name = actions_time_in_day_4
 attr[seg000:1dda]: type = code; name = actions_time_in_day_8
 attr[seg000:1dfe]: type = code; name = actions_time_in_day_f
+attr[seg000:1e74]: ofs_seg = seg000
+attr[seg000:1e96]: ofs_seg = seg000
 attr[seg000:1ea1]: type = code
 attr[seg000:1ea9]: type = code
 attr[seg000:1eb1]: type = code
+attr[seg000:1ee3]: ofs_seg = seg000
 attr[seg000:1fd5]: ofs_seg = seg001
 attr[seg000:1fe9]: ofs_seg = seg001
 attr[seg000:2017]: type = code; name = ui_comm
 attr[seg000:2165]: type = [u8; 11]
+attr[seg000:2170]: type = code; name = iterate_over_allied_NPCs_and_locations
 attr[seg000:2173]: ofs_seg = seg001
 attr[seg000:2239]: type = code
 attr[seg000:2253]: ofs_seg = seg001
@@ -721,6 +728,7 @@ attr[seg000:3127]: name = init_room_persons; comment = [[[
     Reset the four scene person slots before build_persons_in_room_records scans the room-person table.
     Zero data_0476a and data_0476b, init the four person-state words at data_109a/10aa/10ba/10ca to 0x7f80, then (only when location_slot low byte == 0x80) classify entries by iterating the room-person table via loc_06603 with bp = loc_0316e, and run loc_0331e.
 ]]]
+attr[seg000:3151]: ofs_seg = seg000
 attr[seg000:316e]: type = code
 attr[seg000:31f6]: type = code; name = troop_prepare_troop_data_for_condit
 attr[seg000:329d]: type = code; name = troop_prepare_troop_data_for_condit_sub_329d
@@ -728,6 +736,7 @@ attr[seg000:32c7]: type = code; name = troop_prepare_troop_data_for_condit_sub_3
 attr[seg000:3310]: type = code; name = get_command_string_index_from_troop_skill
 attr[seg000:331e]: type = code; name = prepare_location_data_for_condit
 attr[seg000:3385]: type = code; name = prepare_location_data_for_condit_sub_3385
+attr[seg000:33cc]: ofs_seg = seg000
 attr[seg000:3406]: type = code
 attr[seg000:348a]: type = code
 attr[seg000:34a5]: type = code; name = prepare_location_data_for_condit_sub_34a5
@@ -912,17 +921,20 @@ attr[seg000:4d00]: ofs_seg = seg000
 attr[seg000:4d45]: comment = Play SN5.VOC
 attr[seg000:4d4d]: ofs_seg = seg000
 attr[seg000:4de3]: targets = segvga:0112
+attr[seg000:4def]: ofs_seg = seg000
 attr[seg000:4e04]: type = code
 attr[seg000:4e8d]: type = code
 attr[seg000:4f09]: type = code; name = menu_callback_choice_resume_flight
 attr[seg000:4ffb]: type = code; name = menu_callback_choice_skip_to_destination
 attr[seg000:5082]: type = code
+attr[seg000:5098]: ofs_seg = seg000
 attr[seg000:50a2]: type = code
 attr[seg000:50a5]: type = code; name = menu_callback_choice_back_to_starting_point
 attr[seg000:50c4]: type = code; name = menu_callback_choice_towards_nearest_place
 attr[seg000:50db]: type = code; name = menu_callback_choice_move_to_location_orni
 attr[seg000:50ea]: type = code; name = menu_callback_choice_move_to_location_worm
 attr[seg000:5274]: type = code; name = prepare_location_data_for_condit_sub_5274
+attr[seg000:5344]: type = code; name = iterate_over_locations_and_coordinates
 attr[seg000:5381]: type = code
 attr[seg000:53b6]: type = code
 attr[seg000:53f1]: type = code; name = menu_callback_choice_map_main_see_spice_density
@@ -997,6 +1009,7 @@ attr[seg000:5e6b]: type = code
 attr[seg000:606e]: comment = "water: "
 attr[seg000:60c6]: comment = "Equipment:"
 attr[seg000:60d9]: comment = "Battle:"
+attr[seg000:6102]: ofs_seg = seg000
 attr[seg000:6155]: type = code
 attr[seg000:6231]: type = code; name = get_location_type_string_offset
 attr[seg000:629d]: type = code; name = draw_string_location_type
@@ -1005,7 +1018,7 @@ attr[seg000:62a6]: type = code; name = draw_location_name
 attr[seg000:62ad]: comment = Draw first name
 attr[seg000:62ba]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:62c6]: comment = Draw last name
-attr[seg000:63f0]: type = code; name = map_func_qq
+attr[seg000:63f0]: type = code; name = iterate_over_all_locations
 attr[seg000:646f]: type = code
 attr[seg000:64ed]: type = u16
 attr[seg000:6500]: targets = seg000:646f, seg000:653a
@@ -1013,13 +1026,18 @@ attr[seg000:6508]: targets = seg000:646f, seg000:653a
 attr[seg000:6515]: type = code
 attr[seg000:653a]: type = code
 attr[seg000:65b4]: type = u16
+attr[seg000:6603]: type = code; name = call_callback_on_all_troops_in_location
+attr[seg000:661d]: type = code; name = call_callback_on_hired_troops_in_location
 attr[seg000:663d]: ofs_seg = seg001
 attr[seg000:6670]: type = code
+attr[seg000:6678]: ofs_seg = seg000
 attr[seg000:667d]: type = code
 attr[seg000:66ce]: type = code
 attr[seg000:676e]: type = code
 attr[seg000:68d2]: type = code
+attr[seg000:68d4]: ofs_seg = seg000
 attr[seg000:68da]: type = code
+attr[seg000:6906]: type = code; name = get_address_of_troop_by_ID
 attr[seg000:690e]: ofs_seg = seg001
 attr[seg000:69b3]: type = code; name = menu_callback_choice_map_troop_dialog_change_troop_occupation
 attr[seg000:6a2b]: type = code; name = menu_callback_choice_troop_occupation_ecology_troop_assembly_wind_trap
@@ -1038,18 +1056,26 @@ attr[seg000:6b8a]: type = code
 attr[seg000:6b96]: type = code
 attr[seg000:6bd7]: type = code
 attr[seg000:6bf5]: type = [ofs16(seg000); 16]
+attr[seg000:6c15]: type = code; name = troop_call_callback_according_to_occupation
 attr[seg000:6c21]: targets = seg000:0f66, seg000:6b8a, seg000:6b96, seg000:6bd7
 attr[seg000:6c26]: type = [ofs16(seg000); 16]
 attr[seg000:6c8f]: ofs_seg = seg001
 attr[seg000:6cba]: targets = seg000:0f66, seg000:6fe5, seg000:70cc, seg000:71ef, seg000:72b0, seg000:739e, seg000:767d, seg000:7693, seg000:7711
 attr[seg000:6cfc]: type = code
+attr[seg000:6d37]: ofs_seg = seg000
 attr[seg000:6d5f]: type = code
+attr[seg000:6dbb]: type = code; name = iterate_over_all_named_NPCs_and_do_something_else
 attr[seg000:6dbf]: ofs_seg = seg001
 attr[seg000:6df5]: type = code
+attr[seg000:6dfc]: ofs_seg = seg000
+attr[seg000:6e04]: ofs_seg = seg000
 attr[seg000:6e0f]: type = code
 attr[seg000:6e20]: type = code
+attr[seg000:6e66]: ofs_seg = seg000
+attr[seg000:6e71]: ofs_seg = seg000
 attr[seg000:6e82]: type = code
 attr[seg000:6ea8]: type = code
+attr[seg000:6ec3]: ofs_seg = seg000
 attr[seg000:6ecb]: type = code
 attr[seg000:6edb]: type = code
 attr[seg000:6f48]: type = code
@@ -1062,15 +1088,24 @@ attr[seg000:70cc]: type = code
 attr[seg000:7148]: type = u8
 attr[seg000:71b2]: type = code; name = or_message_ID_with_F00_and_queue_vision_message_with_location
 attr[seg000:71ef]: type = code
+attr[seg000:7281]: ofs_seg = seg000
 attr[seg000:7289]: type = code
+attr[seg000:7298]: ofs_seg = seg000
 attr[seg000:72a2]: type = code
 attr[seg000:72b0]: type = code
 attr[seg000:7317]: type = code; name = menu_callback_choice_massive_attack
 attr[seg000:7399]: type = code
 attr[seg000:739e]: type = code; name = map_func
+attr[seg000:73ad]: ofs_seg = seg000
 attr[seg000:73d3]: ofs_seg = seg001
+attr[seg000:740b]: ofs_seg = seg000
 attr[seg000:7419]: type = code
+attr[seg000:7470]: ofs_seg = seg000
+attr[seg000:7476]: ofs_seg = seg000
+attr[seg000:7489]: ofs_seg = seg000
+attr[seg000:74b6]: type = code; name = location_battle_lost_iterate_over_allied_NPCs_and_do_something_else
 attr[seg000:74d8]: ofs_seg = seg001
+attr[seg000:74ee]: ofs_seg = seg000
 attr[seg000:7506]: type = code
 attr[seg000:7516]: type = code
 attr[seg000:7552]: type = code
@@ -1092,6 +1127,8 @@ attr[seg000:7cbb]: type = code; name = menu_callback_choice_map_troop_dialog_mod
 attr[seg000:7d68]: type = code
 attr[seg000:7e64]: comment = "none"
 attr[seg000:7ee1]: type = code
+attr[seg000:7f2a]: type = code; name = location_iterate_on_troops_in_location
+attr[seg000:8018]: type = code; name = location_iterate_on_troops_and_do_stuff_08018
 attr[seg000:8064]: type = code; name = menu_callback_choice_multiple_move_troop
 attr[seg000:80c7]: type = code; name = menu_callback_choice_map_move_prospectors_add_destination
 attr[seg000:80c8]: type = code; name = give_new_destinations_for_prospectors
@@ -1101,6 +1138,7 @@ attr[seg000:81ec]: type = code
 attr[seg000:8214]: type = code; name = menu_callback_choice_map_move_prospectors_done
 attr[seg000:821a]: ofs_seg = seg001
 attr[seg000:824d]: type = code
+attr[seg000:83fd]: ofs_seg = seg000
 attr[seg000:8403]: type = code
 attr[seg000:8454]: type = code
 attr[seg000:86c6]: targets = seg000:4377, seg000:49a0
@@ -1836,6 +1874,7 @@ attr[seg000:e387]: type = code; name = wait_a_bit
 attr[seg000:e3a0]: type = code; name = wait_processing_frame_tasks
 attr[seg000:e3b7]: type = code; name = rand_masked
 attr[seg000:e3cc]: type = code; name = rand
+attr[seg000:e3df]: type = code; name = rand_iterated
 attr[seg000:e40c]: type = [CmdArg; 23]; name = cmd_arg_list
 attr[seg000:e4ad]: type = code; name = parse_command_line; comment = PSP[80h] = Number of bytes on command-line
 attr[seg000:e4b5]: comment = ds:[bp] = End of Command-line tail (terminated by 0Dh)
