@@ -406,14 +406,14 @@ attr[seg000:0e3e]: type = code; name = menu_callback_choice_exit_game; ofs_seg =
 attr[seg000:0e41]: ofs_seg = seg001
 attr[seg000:0e47]: type = code; name = menu_callback_choice_multiple_restart_game
 attr[seg000:0e80]: comment = DEAD3.HNM
-attr[seg000:0ea6]: type = code
+attr[seg000:0ea6]: type = code; name = menu_callback_choice_palace_look_at_mirror
 attr[seg000:0eb9]: type = code; name = menu_callback_choice_palace_look_away_from_mirror
 attr[seg000:0ed0]: type = code; name = callback_transition_look_at_mirror
 attr[seg000:0ee1]: comment = MIRROR.HSQ
-attr[seg000:0f48]: type = code; name = callback_wait_for_evening
+attr[seg000:0f48]: type = code; name = menu_callback_choice_wait_for_evening
 attr[seg000:0f66]: type = code; name = nullsub_00f66
-attr[seg000:0f67]: type = code; name = callback_wait_for_morning
-attr[seg000:0fc5]: type = code; name = callback_fight_for_a_whole_day
+attr[seg000:0f67]: type = code; name = menu_callback_choice_wait_for_morning
+attr[seg000:0fc5]: type = code; name = menu_callback_choice_fight_for_a_whole_day
 attr[seg000:0fd9]: type = code; name = run_events_for_n_time_periods
 attr[seg000:100b]: type = code
 attr[seg000:1011]: type = code; name = callback_game_phase_change_04_Tuono_Tabr_1
@@ -644,8 +644,8 @@ attr[seg000:27b6]: type = code; name = comm_draw_glow_index
 attr[seg000:27c9]: type = code; name = comm_draw_flicker
 attr[seg000:281c]: type = code; name = comm_animate_incoming_call
 attr[seg000:281f]: comment = COMM.HSQ
-attr[seg000:283a]: type = code
-attr[seg000:283e]: type = code
+attr[seg000:283a]: type = code; name = menu_callback_choice_comms_coom_view_new_messages
+attr[seg000:283e]: type = code; name = menu_callback_choice_comms_coom_messages_already_seen
 attr[seg000:28a1]: type = code
 attr[seg000:28b5]: type = code
 attr[seg000:28b8]: comment = COMM.HSQ
@@ -824,15 +824,24 @@ attr[seg000:40d5]: type = code
 attr[seg000:4285]: type = code
 attr[seg000:42c9]: comment = RES_VER_HSQ
 attr[seg000:42cc]: targets = segvga:0160
-attr[seg000:42d1]: type = code
+attr[seg000:42d1]: type = code; name = menu_callback_choice_call_a_worm
 attr[seg000:42d9]: type = code; name = menu_callback_choice_map_main_take_an_ornithopter
+attr[seg000:42e9]: type = code; name = menu_callback_choice_map_main_take_an_ornithopter_notransition
 attr[seg000:42f2]: comment = RES_ORNYPAN_HSQ
+attr[seg000:4305]: ofs_seg = seg001
+attr[seg000:430b]: ofs_seg = seg000
+attr[seg000:4311]: ofs_seg = seg001
 attr[seg000:4328]: ofs_seg = seg001; comment = Right-side map navigation buttons
+attr[seg000:432e]: ofs_seg = seg001
+attr[seg000:4331]: ofs_seg = seg001
 attr[seg000:4362]: comment = RES_ORNYPAN_HSQ
+attr[seg000:4365]: ofs_seg = seg001
 attr[seg000:4377]: type = code
 attr[seg000:4390]: comment = RES_ORNYPAN_HSQ
+attr[seg000:4393]: ofs_seg = seg001
 attr[seg000:43ac]: comment = RES_ORNYPAN_HSQ
 attr[seg000:43b5]: targets = segvga:0160
+attr[seg000:43bc]: ofs_seg = seg001
 attr[seg000:43c5]: targets = segvga:011e
 attr[seg000:43d9]: comment = RES_ORNYPAN_HSQ
 attr[seg000:43e3]: type = code
@@ -850,6 +859,7 @@ attr[seg000:4665]: comment = "SELECT DESTINATION ON MAP"
 attr[seg000:468e]: ofs_seg = seg000
 attr[seg000:46ab]: ofs_seg = seg000
 attr[seg000:46b5]: type = code; name = frame_task_callback_046b5
+attr[seg000:46c4]: ofs_seg = seg001
 attr[seg000:47f6]: comment = Play SN6.VOC
 attr[seg000:4821]: type = code
 attr[seg000:4828]: comment = RES_ORNYTK_HSQ
@@ -888,11 +898,12 @@ attr[seg000:4d4d]: ofs_seg = seg000
 attr[seg000:4de3]: targets = segvga:0112
 attr[seg000:4e04]: type = code
 attr[seg000:4e8d]: type = code
-attr[seg000:4f09]: type = code
-attr[seg000:4ffb]: type = code
+attr[seg000:4f09]: type = code; name = menu_callback_choice_resume_flight
+attr[seg000:4ffb]: type = code; name = menu_callback_choice_skip_to_destination
 attr[seg000:5082]: type = code
 attr[seg000:50a2]: type = code
-attr[seg000:50c4]: type = code
+attr[seg000:50a5]: type = code; name = menu_callback_choice_back_to_starting_point
+attr[seg000:50c4]: type = code; name = menu_callback_choice_towards_nearest_place
 attr[seg000:50db]: type = code; name = menu_callback_choice_move_to_location_orni
 attr[seg000:50ea]: type = code; name = menu_callback_choice_move_to_location_worm
 attr[seg000:5274]: type = code; name = prepare_location_data_for_condit_sub_5274
@@ -1031,7 +1042,7 @@ attr[seg000:71ef]: type = code
 attr[seg000:7289]: type = code
 attr[seg000:72a2]: type = code
 attr[seg000:72b0]: type = code
-attr[seg000:7317]: type = code
+attr[seg000:7317]: type = code; name = menu_callback_choice_massive_attack
 attr[seg000:7399]: type = code
 attr[seg000:739e]: type = code; name = map_func
 attr[seg000:7419]: type = code
@@ -1248,7 +1259,7 @@ attr[seg000:a36b]: type = code; name = callback_condit_operator_05_cmpgt
 attr[seg000:a36f]: type = code; name = condit_operator_return_0
 attr[seg000:a376]: type = [ofs16(seg000); 16]; name = array_ptrs_callback_condit_operators
 attr[seg000:a396]: type = code; name = evaluate_condition_ax
-attr[seg000:a3f0]: type = code
+attr[seg000:a3f0]: type = code; name = menu_callback_choice_mixer_panel
 attr[seg000:a3f9]: type = code; name = settings_ui_draw
 attr[seg000:a403]: comment = RES_MIXR_HSQ
 attr[seg000:a42c]: type = code; name = settings_ui_draw_language_buttons
@@ -2653,10 +2664,26 @@ attr[seg001:21b4]: type = MenuEntry; comment = SPECIALIZE IN ARMY
 attr[seg001:21b8]: type = MenuEntry; comment =   Cancel
 attr[seg001:21bc]: type = MenuFence
 attr[seg001:21be]: type = u16
-attr[seg001:21c0]: ofs_seg = seg000
-attr[seg001:21da]: name = screen_element_stack_ptr; ofs_seg = seg001; comment = [[[Top-of-stack pointer (a data-segment offset) for the z-ordered active screen-element stack (room at the bottom, menus/dialogue on top). Slots are 4-byte [record_buf_ptr:u16, render_func:u16] at 21be..21d6; 21be = empty. get_active_screen_element (loc_0d41b) returns *top.]]]
-attr[seg001:21fd]: type = u8
-attr[seg001:2220]: type = u16
+attr[seg001:21c0]: type = ofs16(seg000)
+attr[seg001:21da]: type = ofs16(seg001); name = screen_element_stack_ptr; ofs_seg = seg001; comment = [[[Top-of-stack pointer (a data-segment offset) for the z-ordered active screen-element stack (room at the bottom, menus/dialogue on top). Slots are 4-byte [record_buf_ptr:u16, render_func:u16] at 21be..21d6; 21be = empty. get_active_screen_element (loc_0d41b) returns *top.]]]
+attr[seg001:21dc]: type = MenuEntry; comment = TAKE AN ORNITHOPTER
+attr[seg001:21e0]: type = MenuEntry; comment = WAIT FOR EVENING
+attr[seg001:21e4]: type = MenuEntry; comment = WAIT FOR MORNING
+attr[seg001:21e8]: type = MenuEntry; comment = VIEW NEW MESSAGES
+attr[seg001:21ec]: type = MenuEntry; comment = Messages already seen
+attr[seg001:21f0]: type = MenuEntry; comment = LOOK AT MIRROR
+attr[seg001:21f4]: type = MenuEntry; comment = Mixer Panel
+attr[seg001:21f8]: type = MenuEntry; comment = CHANGE DESTINATION
+attr[seg001:21fc]: type = MenuEntry; comment = SKIP TO DESTINATION
+attr[seg001:2200]: type = MenuEntry; comment = BACK TO STARTING POINT
+attr[seg001:2204]: type = MenuEntry; comment = TOWARDS NEAREST PLACE
+attr[seg001:2208]: type = MenuEntry; comment = RESUME FLIGHT
+attr[seg001:220c]: type = MenuEntry; comment = SEE DUNE MAP
+attr[seg001:2210]: type = MenuEntry; comment = " WHAT ? "
+attr[seg001:2214]: type = MenuEntry; comment = CALL A WORM
+attr[seg001:2218]: type = MenuEntry; comment = MASSIVE ATTACK
+attr[seg001:221c]: type = MenuEntry; comment = FIGHT FOR A WHOLE DAY
+attr[seg001:2220]: type = ofs16(seg001)
 attr[seg001:2222]: type = u16
 attr[seg001:2224]: type = u16
 attr[seg001:222c]: type = u16
