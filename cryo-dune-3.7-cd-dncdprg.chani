@@ -447,6 +447,7 @@ attr[seg000:1053]: type = code; name = make_null_terminated_array_of_location_pt
 attr[seg000:1058]: ofs_seg = seg000
 attr[seg000:1069]: type = [ofs16(seg001); 3]; name = array_offsets_locations_found_by_meeting_Harah
 attr[seg000:106f]: type = u16
+attr[seg000:109e]: comment = Send message type 1 = "A message has arrived in the palace."
 attr[seg000:10a4]: type = code; name = callback_game_phase_change_1c
 attr[seg000:10b2]: type = code; name = callback_game_phase_change_20_make_Thufir_Hawat_visible
 attr[seg000:10b7]: type = code; name = callback_game_phase_change_18_24_3c_68_6c
@@ -455,7 +456,7 @@ attr[seg000:10be]: type = code; name = callback_game_phase_change_2c_met_Stilgar
 attr[seg000:10f1]: ofs_seg = seg000
 attr[seg000:10f7]: type = [ofs16(seg001); 5]; name = array_offsets_locations_found_by_meeting_Stilgar
 attr[seg000:1101]: type = u16
-attr[seg000:1103]: type = code; name = callback_game_phase_change_30_Baron_Harkonnen_pretends_sietch_devastated
+attr[seg000:1103]: type = code; name = callback_game_phase_change_30_Baron_Harkonnen_pretends_sietch_devastated; comment = Send message type 4 = "Something terrible has happened in the palace!"
 attr[seg000:110f]: type = code; name = callback_game_phase_change_34
 attr[seg000:1127]: type = code; name = callback_game_phase_change_38
 attr[seg000:112d]: type = code; name = callback_game_phase_change_40
@@ -465,6 +466,7 @@ attr[seg000:1156]: ofs_seg = seg000
 attr[seg000:115c]: type = [ofs16(seg001); 4]; name = array_offsets_locations_found_by_meeting_Chani
 attr[seg000:1164]: type = u16
 attr[seg000:1166]: type = code; name = callback_game_phase_change_4c_leto_killed
+attr[seg000:1175]: comment = Send message type 5 = "Oh Paul, how I would like you to be here at a time like this!"
 attr[seg000:117b]: type = code; name = callback_game_phase_change_50_after_riding_worm
 attr[seg000:1188]: type = code; name = callback_game_phase_change_54_greenhouse
 attr[seg000:1196]: type = code; name = callback_game_phase_change_58_met_Liet_Kynes
@@ -631,16 +633,22 @@ attr[seg000:1dd3]: type = code; name = actions_time_in_day_0_1_2_5_6_7_9_a_b_c_d
 attr[seg000:1dd4]: type = code; name = actions_time_in_day_3
 attr[seg000:1dd7]: type = code; name = actions_time_in_day_4
 attr[seg000:1dda]: type = code; name = actions_time_in_day_8
+attr[seg000:1df7]: comment = Send message type B = "Paul! Don't forget the spice shipments for the Emperor."
 attr[seg000:1dfe]: type = code; name = actions_time_in_day_f
 attr[seg000:1e01]: type = code; name = npc_is_Chani_during_stage_5d_find_ill_troops_at_her_location
+attr[seg000:1e43]: type = code; name = if_game_stage_5c_find_nonfortress_with_the_most_rallied_troops_and_make_them_ill
 attr[seg000:1e74]: ofs_seg = seg000
 attr[seg000:1e96]: ofs_seg = seg000
+attr[seg000:1e9c]: comment = Send message type 8 = "There is a strange disease here in .... We all are ill... very ill."
 attr[seg000:1ea1]: type = code
 attr[seg000:1ea9]: type = code
 attr[seg000:1eb1]: type = code
 attr[seg000:1eda]: type = code; name = chani_troop_cure_progress_step
 attr[seg000:1ee3]: ofs_seg = seg000
+attr[seg000:1ee9]: comment = Send message type 9 = "Paul, I'm so happy! I've managed to cure everybody, here in ...."
 attr[seg000:1fd5]: ofs_seg = seg001
+attr[seg000:1fe7]: comment = Send message type C = "The Harkonnens are attacking ...!"
+attr[seg000:1ff1]: comment = Send message type D = "The Harkonnens are attacking ...! Be careful Muad'Dib, the prospecting troop might be involved in the fight."
 attr[seg000:1fe9]: ofs_seg = seg001
 attr[seg000:2017]: type = code; name = ui_comm
 attr[seg000:2165]: type = [u8; 11]
@@ -673,6 +681,7 @@ attr[seg000:2685]: comment = STARS.HSQ
 attr[seg000:2690]: ofs_seg = seg000
 attr[seg000:26a6]: type = code
 attr[seg000:26b7]: targets = segvga:014e
+attr[seg000:2725]: comment = Send message type 1 = "A message has arrived in the palace."
 attr[seg000:274e]: type = code; name = comm_draw_panels
 attr[seg000:2754]: comment = COMM.HSQ
 attr[seg000:275f]: type = code; name = comm_draw_glow
@@ -773,6 +782,7 @@ attr[seg000:3127]: name = init_room_persons; comment = [[[
 ]]]
 attr[seg000:3151]: ofs_seg = seg000
 attr[seg000:316e]: type = code; name = callback_troop_location_0316e
+attr[seg000:31b8]: ofs_seg = seg001
 attr[seg000:31f6]: type = code; name = troop_prepare_troop_data_for_condit
 attr[seg000:329d]: type = code; name = troop_prepare_troop_data_for_condit_sub_329d
 attr[seg000:32c7]: type = code; name = troop_prepare_troop_data_for_condit_sub_32c7
@@ -1053,6 +1063,7 @@ attr[seg000:5adf]: name = reset_room_scene_state; comment = [[[
 attr[seg000:5aff]: ofs_seg = seg000
 attr[seg000:5b05]: type = code
 attr[seg000:5b1e]: type = code; name = menu_callback_choice_map_main_find_prospectors
+attr[seg000:5b23]: ofs_seg = seg001
 attr[seg000:5b99]: type = code; name = copy_rect_at_si_to_di
 attr[seg000:5ba0]: type = code; name = copy_game_area_rect_to_unknown_rect; ofs_seg = seg001
 attr[seg000:5ba3]: ofs_seg = seg001
@@ -1079,6 +1090,7 @@ attr[seg000:62ad]: comment = Draw first name
 attr[seg000:62ba]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:62c6]: comment = Draw last name
 attr[seg000:63f0]: type = code; name = iterate_over_all_locations
+attr[seg000:642e]: type = code
 attr[seg000:646f]: type = code
 attr[seg000:64ed]: type = u16
 attr[seg000:6500]: targets = seg000:646f, seg000:653a
@@ -1096,7 +1108,8 @@ attr[seg000:66ce]: type = code
 attr[seg000:676e]: type = code
 attr[seg000:68d2]: type = code
 attr[seg000:68d4]: ofs_seg = seg000
-attr[seg000:68da]: type = code
+attr[seg000:68d2]: type = code; name = location_callback_troop_location_for_troop_occupation_espionage_sub_068d2
+attr[seg000:68da]: type = code; name = callback_troop_068da
 attr[seg000:6906]: type = code; name = get_address_of_troop_by_ID
 attr[seg000:690e]: ofs_seg = seg001
 attr[seg000:69b3]: type = code; name = menu_callback_choice_map_troop_dialog_change_troop_occupation
@@ -1106,37 +1119,50 @@ attr[seg000:6a33]: type = code
 attr[seg000:6a35]: type = code; name = choice_troop_occupation_common_code
 attr[seg000:6a44]: type = u8
 attr[seg000:6a45]: type = code; name = menu_callback_choice_troop_occupation_army_troop_espionage
-attr[seg000:6a6b]: type = code
+attr[seg000:6a6b]: type = code; comment = May be unreferenced
 attr[seg000:6a70]: type = code
 attr[seg000:6a71]: type = code; name = menu_callback_choice_troop_occupation_specialize_in_spice
+attr[seg000:6a76]: ofs_seg = seg001
 attr[seg000:6a83]: type = code; name = menu_callback_choice_troop_occupation_specialize_in_army
 attr[seg000:6a87]: type = code; name = menu_callback_choice_troop_occupation_specialize_in_ecology
 attr[seg000:6b34]: type = code; name = frame_task_callback_06b34
-attr[seg000:6b8a]: type = code
-attr[seg000:6b96]: type = code
-attr[seg000:6bd7]: type = code
+attr[seg000:6b8a]: type = code; name = troop_location_test_for_location_area_prospected
+attr[seg000:6b96]: type = code; name = troop_location_06b96
+attr[seg000:6bd7]: type = code; name = troop_location_06bd7
 attr[seg000:6bf5]: type = [ofs16(seg000); 16]
 attr[seg000:6c15]: type = code; name = troop_call_callback_according_to_occupation
 attr[seg000:6c21]: targets = seg000:0f66, seg000:6b8a, seg000:6b96, seg000:6bd7
 attr[seg000:6c26]: type = [ofs16(seg000); 16]; name = array_callbacks_for_troop_occupation
 attr[seg000:6c8f]: ofs_seg = seg001
 attr[seg000:6cba]: targets = seg000:0f66, seg000:6fe5, seg000:70cc, seg000:71ef, seg000:72b0, seg000:739e, seg000:767d, seg000:7693, seg000:7711
-attr[seg000:6cfc]: type = code
+attr[seg000:6cfc]: type = code; name = troop_location_increase_stage_by_1_for_TuonoTabr_CarthagTabr_TuonoTuek_06cfc; comment = Sietch
+attr[seg000:6d02]: comment = [[[
+    Selects the following sietches with stage < 0xC:
+    00: 3 first sietches
+    02: Tuono-Tabr
+    04: Carthag-Tabr, Tuono-Tuek
+]]]
+attr[seg000:6d19]: type = code; name = troop_06d19
+attr[seg000:6d25]: ofs_seg = seg001
 attr[seg000:6d37]: ofs_seg = seg000
-attr[seg000:6d5f]: type = code
+attr[seg000:6d5f]: type = code; name = callback_troop_leaf_fn_06d5f
+attr[seg000:6d65]: ofs_seg = seg001
+attr[seg000:6d7b]: type = code; name = troop_usually_decrease_skills_every_4_days
 attr[seg000:6dbb]: type = code; name = iterate_over_all_named_NPCs_and_do_something_else
 attr[seg000:6dbf]: ofs_seg = seg001
-attr[seg000:6df5]: type = code
 attr[seg000:6dfc]: ofs_seg = seg000
+attr[seg000:6e02]: type = code; name = location_Arrakeen_Harkonnen_palace_06e02
 attr[seg000:6e04]: ofs_seg = seg000
-attr[seg000:6e0f]: type = code
-attr[seg000:6e20]: type = code
+attr[seg000:6e0f]: type = code; name = callback_troop_06e0f
+attr[seg000:6e20]: type = code; name = troop_location_06e20
 attr[seg000:6e66]: ofs_seg = seg000
 attr[seg000:6e71]: ofs_seg = seg000
-attr[seg000:6e82]: type = code
-attr[seg000:6ea8]: type = code
+attr[seg000:6e77]: comment = Send message type 2 = "Nothing coming from .... I wonder what's going on there!"
+attr[seg000:6e82]: type = code; name = callback_troop_location_06e82
+attr[seg000:6ea8]: type = code; name = callback_troop_06ea8
+attr[seg000:6ebf]: type = code; name = troop_06ebf
 attr[seg000:6ec3]: ofs_seg = seg000
-attr[seg000:6ecb]: type = code
+attr[seg000:6ecb]: type = code; name = callback_troop_06ecb
 attr[seg000:6edb]: type = code; name = troop_clamp_army_skill_and_do_something_else
 attr[seg000:6edd]: type = code; name = troop_clamp_skill_and_do_something_else
 attr[seg000:6efd]: type = code; name = troop_compute_motivation_modifiers
@@ -1151,35 +1177,68 @@ attr[seg000:6fe5]: type = code; name = callback_troop_location_for_troop_occupat
 attr[seg000:7085]: type = code; name = callback_troop_make_troop_stop_working
 attr[seg000:70cc]: type = code; name = callback_troop_location_for_troop_occupation_spice_prospecting
 attr[seg000:7148]: type = u8
+attr[seg000:7144]: comment = Send message type E = "We have finished our prospecting job, here in ...."
 attr[seg000:714c]: type = code; name = troop_location_events_for_spice_mining_troops_with_harvesters
+attr[seg000:7151]: comment = Do nothing if Paul hasn't had a vision yet.
+attr[seg000:7157]: comment = Do nothing if the troop doesn't have a harvester.
+attr[seg000:7163]: comment = Event triggered at period in day (4 LSB of game time) = 4 LSB of troop ID...
+attr[seg000:716d]: ofs_seg = seg001
+attr[seg000:7175]: comment = Worm attacked.
+attr[seg000:717a]: comment = Ornithopter.
+attr[seg000:717e]: comment = No issue if the troop had an orni.
+attr[seg000:7183]: comment = 0: no harvester attack.
+attr[seg000:718a]: comment = 2: harvester damaged.
+attr[seg000:718c]: comment = 1: harvester not eaten by worm.
+attr[seg000:7191]: comment = Worm ate 20 Fremen.
+attr[seg000:719c]: type = code; name = troop_location_make_harvester_damaged; comment = Harvester took a lot of damage and needs repairing.
+attr[seg000:71a4]: comment = 3: worm ate a harvester.
+attr[seg000:71a9]: comment = Remove harvester from troop equipment.
+attr[seg000:71ad]: comment = Remove harvester from location equipment.
+attr[seg000:71b0]: comment = [[[
+    Send message type 6 = "A worm has swallowed our harvester here in ..."; fallthrough.
+]]]
 attr[seg000:71b2]: type = code; name = or_message_ID_with_F00_and_queue_vision_message_with_location
+attr[seg000:71bc]: type = code; name = troop_location_spice_mining_troop_events_randomize_saboteurs
+attr[seg000:71e1]: comment = Troop has saboteurs.
+attr[seg000:71e6]: comment = Location has saboteurs.
+attr[seg000:71ea]: comment = Send message type 3 = "There are saboteurs here in ..."
 attr[seg000:71ef]: type = code; name = callback_troop_location_for_troop_occupation_military_training
+attr[seg000:727d]: type = code; name = troop_location_clear_saboteurs_in_location_and_spice_mining_troops
 attr[seg000:7281]: ofs_seg = seg000
-attr[seg000:7289]: type = code
-attr[seg000:7298]: ofs_seg = seg000
-attr[seg000:72a2]: type = code
+attr[seg000:7289]: type = code; name = callback_troop_remove_saboteurs_in_spice_mining_troop
+attr[seg000:7298]: type = code; name = troop_location_accumulate_army_military_training_troops_and_army_skill; ofs_seg = seg000
+attr[seg000:72a2]: type = code; name = callback_troop_accumulate_army_military_training_troops_and_army_skill
 attr[seg000:72b0]: type = code; name = callback_troop_location_for_troop_occupation_espionage
 attr[seg000:7317]: type = code; name = menu_callback_choice_massive_attack
 attr[seg000:7399]: type = code; name = troop_make_occupation_military_training
 attr[seg000:739e]: type = code; name = callback_troop_location_for_troop_occupation_attacking
 attr[seg000:73a3]: ofs_seg = seg001
 attr[seg000:73ad]: ofs_seg = seg000
+attr[seg000:73d1]: comment = Send message type A = "The shield is down, the Harkonnen troops here have surrendered!"
 attr[seg000:73d3]: ofs_seg = seg001
 attr[seg000:740b]: ofs_seg = seg000
-attr[seg000:7419]: type = code
+attr[seg000:7419]: type = code; name = callback_troop_07419
+attr[seg000:7429]: type = code; name = troop_location_07429
+attr[seg000:742f]: comment = Send message type 7 = "We won the battle Muad'Dib, here in ...! Yaoouuuh!"
+attr[seg000:7443]: type = code; name = location_battle_won_07443
 attr[seg000:7470]: ofs_seg = seg000
 attr[seg000:7476]: ofs_seg = seg000
 attr[seg000:7489]: ofs_seg = seg000
-attr[seg000:74b6]: type = code; name = location_battle_lost_iterate_over_allied_NPCs_and_do_something_else
+attr[seg000:74b6]: type = code; name = location_battle_lost_iterate_over_allied_NPCs_and_do_something_else; comment = Clear in battle bit
+attr[seg000:74c9]: comment = Make appearance that of a fortress
 attr[seg000:74d8]: ofs_seg = seg001
 attr[seg000:74ee]: ofs_seg = seg000
-attr[seg000:7506]: type = code
-attr[seg000:7516]: type = code
-attr[seg000:7552]: type = code
-attr[seg000:75af]: type = code
-attr[seg000:75ea]: type = code
-attr[seg000:762a]: type = code
-attr[seg000:764d]: type = code
+attr[seg000:7500]: comment = Winning a battle, a captain captured...
+attr[seg000:7506]: type = code; name = callback_troop_make_slaved_after_battle_lost_07506
+attr[seg000:7516]: type = code; name = callback_troop_07516
+attr[seg000:751d]: type = code; name = troop_0751d
+attr[seg000:7552]: type = code; name = callback_troop_07552
+attr[seg000:758d]: type = code; name = troop_leaf_fn_0758d
+attr[seg000:75af]: type = code; name = callback_troop_location_after_battle_won_075af
+attr[seg000:75b1]: ofs_seg = seg001
+attr[seg000:75ea]: type = code; name = callback_troop_location_after_battle_won_randomize_slaved_troop_parameters_075ea
+attr[seg000:762a]: type = code; name = callback_troop_location_make_slaved_by_Hakonnen_if_conditions_met_0762a
+attr[seg000:764d]: type = code; name = callback_troop_location_Arrakeen_Harkonnen_palace_0764d
 attr[seg000:767d]: type = code; name = callback_troop_location_for_troop_occupation_bulb_growing_spawn_16_bulbs_if_growing_progress_over
 attr[seg000:7693]: type = code; name = callback_troop_location_for_troop_occupation_irrigation_and_tree_care_possibly_spawn_first_vegetation_in_location
 attr[seg000:7711]: type = code; name = callback_troop_location_for_troop_occupation_wind_trap_assembly_possibly_create_first_wind_trap
@@ -1197,17 +1256,23 @@ attr[seg000:7ee1]: type = code
 attr[seg000:7f2a]: type = code; name = location_iterate_on_troops_in_location
 attr[seg000:8018]: type = code; name = location_iterate_on_troops_and_do_stuff_08018
 attr[seg000:8064]: type = code; name = menu_callback_choice_multiple_move_troop
+attr[seg000:806d]: ofs_seg = seg001
 attr[seg000:80c7]: type = code; name = menu_callback_choice_map_move_prospectors_add_destination
 attr[seg000:80c8]: type = code; name = give_new_destinations_for_prospectors
 attr[seg000:80d9]: type = code; name = menu_callback_choice_map_move_prospectors_give_new_destinations
+attr[seg000:814f]: ofs_seg = seg001
 attr[seg000:81cc]: targets = segvga:0139
 attr[seg000:81ec]: type = code
 attr[seg000:8214]: type = code; name = menu_callback_choice_map_move_prospectors_done
 attr[seg000:821a]: ofs_seg = seg001
 attr[seg000:824d]: type = code
+attr[seg000:8259]: ofs_seg = seg001
+attr[seg000:82df]: ofs_seg = seg001
+attr[seg000:8357]: ofs_seg = seg001
 attr[seg000:83fd]: ofs_seg = seg000
 attr[seg000:8403]: type = code
 attr[seg000:8454]: type = code
+attr[seg000:84a6]: ofs_seg = seg001
 attr[seg000:86c6]: targets = seg000:4377, seg000:49a0
 attr[seg000:86cc]: type = code; name = menu_callback_choice_map_main_contact_fremen_troops
 attr[seg000:86fa]: type = code; name = menu_callback_choice_map_troop_contact_next_troop
@@ -1342,6 +1407,7 @@ attr[seg000:9584]: type = code
 attr[seg000:95c1]: type = code
 attr[seg000:95e2]: type = code; name = menu_callback_choice_come_with_me
 attr[seg000:961a]: type = code
+attr[seg000:962a]: ofs_seg = seg001
 attr[seg000:9694]: ofs_seg = seg001
 attr[seg000:978e]: name = start_room_lip_sync; comment = [[[
     Start the talking-head lip-sync for the current speaker: when
