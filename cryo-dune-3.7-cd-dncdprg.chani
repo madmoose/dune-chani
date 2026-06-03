@@ -1484,10 +1484,13 @@ attr[seg000:a396]: type = code; name = evaluate_condition_ax
 attr[seg000:a3f0]: type = code; name = menu_callback_choice_mixer_panel
 attr[seg000:a3f9]: type = code; name = settings_ui_draw
 attr[seg000:a403]: comment = RES_MIXR_HSQ
+attr[seg000:a426]: ofs_seg = seg000
 attr[seg000:a42c]: type = code; name = settings_ui_draw_language_buttons
 attr[seg000:a42f]: comment = RES_MIXR_HSQ
+attr[seg000:a44c]: name = settings_ui_draw_voice_mode_button
 attr[seg000:a453]: type = code; name = settings_ui_sub_global_offset
 attr[seg000:a45c]: type = code; name = settings_ui_add_global_offset
+attr[seg000:a47d]: name = settings_ui_draw_subtitle_indicators
 attr[seg000:a4a6]: comment = RES_MIXR_HSQ
 attr[seg000:a4c6]: type = code; name = settings_ui_draw_volume_sliders
 attr[seg000:a502]: type = code; name = settings_ui_draw_slider
@@ -1538,6 +1541,7 @@ attr[seg000:ac14]: type = code; name = pcm_stop_voc
 attr[seg000:ac1b]: ofs_seg = seg000
 attr[seg000:ac30]: type = code; name = call_pcm_vtable_end_loop; comment = Thin wrapper: call pcm_vtable_end_loop (dnsdb_end_loop).
 attr[seg000:ac35]: type = code
+attr[seg000:ac3a]: name = settings_ui_update_music_playlist_flags
 attr[seg000:ac6e]: type = code
 attr[seg000:ac7e]: type = code
 attr[seg000:ac90]: type = code; name = menu_callback_choice_music_cd_order_shuffle
@@ -1876,6 +1880,11 @@ attr[seg000:d2bd]: name = run_pending_ui_tasks; comment = [[[
 ]]]
 attr[seg000:d2df]: type = code; name = menu_callback_choice_music_cd_order_cancel
 attr[seg000:d2e2]: type = code; name = menu_callback_choice_exit_menu
+attr[seg000:d338]: name = screen_element_stack_push; comment = [[[
+    Public entry to screen_element_stack_insert: set cl=0ffh and fall in.
+    cl is the slot draw_command_menu pre-highlights at d388; 0ffh (>= 5) highlights none.
+    bp = the command-record buffer to insert, bx = its per-frame render/cleanup func.
+]]]
 attr[seg000:d33a]: name = screen_element_stack_insert; comment = Insert (bp = record buffer, bx = per-frame render func) into the z-ordered screen-element stack (screen_element_stack_ptr / data_021da), sorted by the buffers leading priority byte. Higher-priority entries already on the stack are popped and their render func called as it inserts. loc_0d338 enters with cl = 0ffh.
 attr[seg000:d36d]: name = draw_command_menu; comment = Set the top screen-element-stack slot to bp (the menu record buffer), mark the menu records, then fall into redraw_active_command_menu to paint it.
 attr[seg000:d397]: name = redraw_active_command_menu; comment = [[[Repaint the active (top-of-stack) verb menu: walk its record buffer (skip header byte, then 4-byte [text_id,handler] records) and draw up to 5 slots via draw_command_menu_item; the 5th slot shows the 0a0h "more" arrow when records overflow. Remaining slots are filled blank. Falls into highlight_hovered_text_action_item (loc_0d410).]]]
@@ -2569,14 +2578,14 @@ attr[seg001:1225]: type = [PalaceRoom; 12]; name = palace_rooms; comment = [[[
     exits[0..3] are the four direction exits, indexed by compass direction:
     0 = UP/N, 1 = RIGHT/E, 2 = DOWN/S, 3 = LEFT/W (the same indices the
     bottom-right HUD compass buttons ui_elements[13..17] use). Encoding:
-        0x00        no exit in this direction.
-        0x01..0x7F  destination room number — ui_click_move_room (seg000:3f27)
-                    stores it as the new location_and_room low byte at
-                    seg000:3faa after the `js` non-special branch is not taken.
-        0x80..0xFF  special-exit dispatch via the jump table at cs:1454h
-                    (seg000:3fd2..3ff7). The 0xFB..0xFF subrange is what
-                    rebuild_and_draw_room_nav_panel (seg000:305c) shows as a
-                    visible HUD arrow; the rest are in-scene/scripted exits.
+    0x00        no exit in this direction.
+    0x01..0x7F  destination room number — ui_click_move_room (seg000:3f27)
+    stores it as the new location_and_room low byte at
+    seg000:3faa after the `js` non-special branch is not taken.
+    0x80..0xFF  special-exit dispatch via the jump table at cs:1454h
+    (seg000:3fd2..3ff7). The 0xFB..0xFF subrange is what
+    rebuild_and_draw_room_nav_panel (seg000:305c) shows as a
+    visible HUD arrow; the rest are in-scene/scripted exits.
 ]]]
 attr[seg001:1261]: name = sietch_rooms
 attr[seg001:13c4]: type = u16
@@ -2703,7 +2712,11 @@ attr[seg001:197c]: type = u16; name = _word_20E2C_zoomed_globe_longitude
 attr[seg001:197e]: type = u16; name = _word_20E2E_zoomed_globe_latitude
 attr[seg001:1980]: type = u16; name = _word_20E30_globe_param_3
 attr[seg001:1982]: type = u16; name = _word_20E32_globe_param_4
-attr[seg001:1ad6]: type = u16
+attr[seg001:1ad6]: type = u16; name = settings_ui_mouse_handlers; comment = [[[
+    MouseHandlers record for the in-game mixer/settings panel.
+    idle=loc_00f66 (no-op), LMB=loc_0a576, RMB=loc_00f66.
+    menu_callback_choice_mixer_panel installs it via active_mouse_handlers.
+]]]
 attr[seg001:1ad8]: ofs_seg = seg000
 attr[seg001:1ada]: type = u16
 attr[seg001:1adc]: ofs_seg = seg000
@@ -3127,17 +3140,44 @@ attr[seg001:2882]: type = u16; name = _word_21D32_audio_time_to_play_28224_sampl
 attr[seg001:2884]: type = u16; name = _word_21D34_audio_time_to_play_28224_samples_lo
 attr[seg001:2886]: type = u16; name = _word_21D36_settings_ui_global_x_offset
 attr[seg001:2888]: type = u16; name = _word_21D38_settings_ui_global_y_offset
-attr[seg001:288e]: type = u8
-attr[seg001:2896]: type = u8
+attr[seg001:288e]: type = u8; name = settings_slider_voices; comment = [[[
+    Mixer panel "VOICES" (digital PCM voice) volume slider record (8 bytes):
+    [value:u8, drawn_flag:u8, dx:u16, screen_y:u16, apply_ofs:u16].
+    apply_ofs=loc_0a637 (PCM set_volume). Drawn by settings_ui_draw_slider.
+]]]
+attr[seg001:2896]: type = u8; name = settings_slider_music; comment = [[[
+    Mixer panel music (MIDI) volume slider record; layout as settings_slider_pcm.
+    apply_ofs=loc_0a650 (MIDI_SetVolume).
+]]]
 attr[seg001:2897]: type = u8
-attr[seg001:289e]: type = u8
+attr[seg001:289e]: type = u8; name = settings_slider_music_during_voices; comment = [[[
+    Mixer panel "MUSIC during voices" slider record; layout as settings_slider_voices.
+    apply_ofs=loc_0d917 (a no-op ret); the value is the MIDI duck target read by
+    midi_duck_music_volume (the music level while a voice clip plays).
+]]]
 attr[seg001:289f]: type = u8
-attr[seg001:28a6]: type = u8
+attr[seg001:28a6]: type = u8; name = settings_subtitle_indicator_0; comment = [[[
+    Mixer panel subtitle-mode indicator records (28a6/28ae/28b6), same 8-byte
+    layout as the volume sliders. Drawn by loc_0a47d via loc_0a49c, gated by
+    settings_flags bits 8 / 0x800.
+]]]
 attr[seg001:28ae]: type = u8
 attr[seg001:28b6]: type = u8
-attr[seg001:28be]: type = u8
-attr[seg001:28c7]: type = u16
+attr[seg001:28be]: type = u8; name = settings_drag_target; comment = [[[
+    Active mixer-panel drag target (data_028be): 0=none, 1=volume slider group,
+    2=subtitle indicator group. Set by loc_0a594; read by loc_0a5df during drag.
+]]]
+attr[seg001:28c7]: type = u16; name = settings_button_grid_rect; comment = [[[
+    Mixer panel button-grid hit rect [x0,y0,x1,y1] (loc_0a5b0). A hit maps the
+    row via the xlat table at settings_button_grid_xlat (28cf) to a
+    voice_subtitle_mode or language_setting selection.
+]]]
 attr[seg001:28c9]: type = u16
+attr[seg001:28cf]: name = settings_button_grid_xlat; comment = [[[
+    Row->action xlat table for the mixer button grid (loc_0a5b0).
+    <7: language select; ==7: no-op; >7: voice_subtitle_mode = val-8.
+]]]
+attr[seg001:28dc]: name = settings_language_sprite_xlat; comment = language/voice-mode -> sprite-position xlat table (loc_0a465).
 attr[seg001:28e7]: type = u8; name = voice_subtitle_mode; comment = [[[
     Active voice/subtitle output mode (0/1/2). Reset from voice_subtitle_mode_default
     on room entry; forced to 1 by ui_show_globe_map_view.
@@ -4097,7 +4137,11 @@ attr[seg001:dbc0]: type = u16
 attr[seg001:dbc2]: type = u16
 attr[seg001:dbc4]: type = u16
 attr[seg001:dbc6]: type = u16
-attr[seg001:dbc8]: type = u16
+attr[seg001:dbc8]: type = u16; name = settings_flags; comment = [[[
+    Mixer/settings flags word (data_0dbc8). bit 0x1=PCM enabled (check_pcm_enabled),
+    bit 0x100=music/MIDI enabled (loc_0ae28), bits 0x8/0x800=subtitle indicators
+    available, bits 0x4/0x400=slider drawn-flag preserve.
+]]]
 attr[seg001:dbca]: type = u8; name = _byte_2D07A_midi_current_loaded
 attr[seg001:dbcb]: type = u8; name = _byte_2D07B_current_song_index; comment = [[[
     Index of the currently loaded music song (0 = none).
