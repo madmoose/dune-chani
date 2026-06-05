@@ -58,12 +58,12 @@ struct[FrameTask]:
 end
 
 struct[IntroPart]:
-    unk0       = dec(u16)
-    load       = ofs16
-    midi       = dec(u16)
+    wait_init  = u16
+    init       = ofs16
+    wait_play  = u16
     transition = u16
     play       = ofs16
-    wait       = dec(u16)
+    wait_pcm   = dec(u16)
 end
 
 struct[Location]:
@@ -271,12 +271,12 @@ attr[seg000:031b]: ofs_seg = seg000
 attr[seg000:0337]: type = [IntroPart; 48]; name = intro_script; ofs_seg = seg000; comment = [[[
     Intro script table: array of IntroPart entries terminated by unk0 = -1.
     Processed by play_intro (seg000:0580). Each entry:
-    unk0       = midi sync target consumed by midi_wait_until BEFORE the load function (and -1 = end-of-script terminator).
-    load       = function pointer called to set up the stage (e.g. load_VIRGIN_HNM).
-    midi       = midi sync target consumed by midi_wait_until AFTER the load function.
+    wait_init  = midi sync target consumed by midi_wait_until BEFORE the load function (and -1 = end-of-script terminator).
+    init       = function pointer called to set up the stage (e.g. load_VIRGIN_HNM).
+    wait_play  = midi sync target consumed by midi_wait_until AFTER the load function.
     transition = palette transition type, or 0xffff to skip the transition step.
     play       = function pointer called to drive the stage (e.g. play_VIRGIN_HNM, nullsub_00f66 = no-op).
-    wait       = passed to wait_for_pcm_voice_interruptable after play; 0 skips the wait entirely.
+    wait_pcm   = passed to wait_for_pcm_voice_interruptable after play; 0 skips the wait entirely.
 ]]]
 attr[seg000:0577]: type = signed(u16); name = intro_script_end
 attr[seg000:0579]: type = code; name = clear_global_y_offset
@@ -721,14 +721,19 @@ attr[seg000:281f]: comment = COMM.HSQ
 attr[seg000:283a]: type = code; name = menu_callback_choice_comms_coom_view_new_messages
 attr[seg000:283e]: type = code; name = menu_callback_choice_comms_coom_messages_already_seen
 attr[seg000:28a1]: type = code
+attr[seg000:28ad]: ofs_seg = seg000
 attr[seg000:28b5]: type = code
 attr[seg000:28b8]: comment = COMM.HSQ
 attr[seg000:28bd]: comment = Play SNA.VOC
 attr[seg000:28e1]: type = code
+attr[seg000:28fc]: ofs_seg = seg000
 attr[seg000:290b]: type = code
+attr[seg000:2985]: ofs_seg = seg001
+attr[seg000:2988]: ofs_seg = seg000
 attr[seg000:2993]: type = code; name = menu_callback_choice_comms_room_message_viewed
 attr[seg000:2997]: type = code
 attr[seg000:29d4]: type = code
+attr[seg000:29df]: ofs_seg = seg000
 attr[seg000:29ee]: type = code; name = queue_vision_message_without_location; fn = in message_id: u16 @ax
 attr[seg000:29f0]: type = code; name = queue_vision_message_with_location; fn = in location: *Location @si, in message_id: u16 @ax
 attr[seg000:29f5]: comment = Do nothing if Paul hasn't had a vision yet.
@@ -747,6 +752,7 @@ attr[seg000:2d2c]: type = code
 attr[seg000:2d62]: type = code
 attr[seg000:2d74]: type = code; name = open_SAL_resource
 attr[seg000:2db1]: type = code; name = draw_room_game_screen; ofs_seg = seg000
+attr[seg000:2dcd]: ofs_seg = seg000
 attr[seg000:2e98]: name = set_command_menu_origin; comment = [[[
     Compute the verb-menu draw origin from the command_list header at di (= command_list_ptr) and save the list.
     command_menu_list = di; command_menu_x = header[0]; command_menu_y = header[1] + 0ch.
@@ -826,6 +832,8 @@ attr[seg000:3653]: comment = "  ****  WARNING  ****\\n\\nENTERING HARKONNEN ZONE
 attr[seg000:36ee]: name = scan_matching_room_person_entries; comment = [[[Walk the 16-entry, 16-byte room-person table at 0fd8h; for each entry whose (location_and_room, command_slot/data_00006) matches the current room, call the builder in bp with si at the matched entry.]]]
 attr[seg000:36f0]: ofs_seg = seg001
 attr[seg000:3722]: type = code
+attr[seg000:376b]: ofs_seg = seg000
+attr[seg000:377a]: ofs_seg = seg000
 attr[seg000:37b2]: name = draw_room_scene; comment = [[[
     Render the current location/room scene into the game area: resets the clip rect
     and clears the game area, then draws the room sprites (calls into draw_SAL,
@@ -1446,7 +1454,9 @@ attr[seg000:978e]: name = start_room_lip_sync; comment = [[[
     current_lip_sync_resource_id != 0ffffh, load its data
     (setup_lip_sync_data_from_sprite_sheet) and prime the animation.
 ]]]
+attr[seg000:97f5]: ofs_seg = seg000
 attr[seg000:9840]: type = code
+attr[seg000:9898]: ofs_seg = seg000
 attr[seg000:98e6]: name = reset_scene_lip_sync_state; comment = [[[
     Reset the per-scene speaker / lip-sync / dialogue-bubble indices: data_047c8 = 0, data_047aa = 0, current_bubble_layout_ptr = 0; then jmp loc_09b8b.
     Called at the head of build_persons_in_room_records, draw_room_scene, ui_draw_room_command_panel (dialogue branch), and several scene-change sites.
@@ -1663,6 +1673,7 @@ attr[seg000:b8c0]: comment = RES_FRESK_HSQ
 attr[seg000:b8c6]: type = code; name = callback_main_ui_element_00
 attr[seg000:b8ea]: ofs_seg = seg000
 attr[seg000:b8f3]: type = code; name = globe_slide_decorations_open
+attr[seg000:b8f6]: ofs_seg = seg000
 attr[seg000:b915]: type = code; name = globe_slide_decorations_close
 attr[seg000:b930]: type = code; name = remove_globe_frame_tasks
 attr[seg000:b935]: ofs_seg = seg000
