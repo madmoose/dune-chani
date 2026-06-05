@@ -223,6 +223,7 @@ attr[seg000:024d]: comment = run scene
 attr[seg000:0264]: ofs_seg = seg000
 attr[seg000:026f]: comment = fade to night
 attr[seg000:027f]: comment = fade night to day
+attr[seg000:028a]: ofs_seg = seg000
 attr[seg000:0296]: targets = segvga:0118
 attr[seg000:02c1]: type = code; name = transition_callback_intro2_002c1
 attr[seg000:02de]: type = code; name = intro2_scene_stars; comment = [[[
@@ -287,6 +288,7 @@ attr[seg000:0595]: targets = segvga:0163
 attr[seg000:05a3]: comment = Per-stage entry: invoke midi_wait_until(unk0) to wait for the pre-load music sync point. Aborts the intro on user input (CF=1).
 attr[seg000:05ab]: targets = segvga:017b
 attr[seg000:05c9]: comment = Get transition type
+attr[seg000:05d0]: ofs_seg = seg000
 attr[seg000:05d3]: comment = fade out
 attr[seg000:05d6]: comment = load and fade in
 attr[seg000:05ed]: comment = play video
@@ -414,11 +416,16 @@ attr[seg000:0bc1]: comment = _word_2316E_particle_system_particle_count
 attr[seg000:0d1e]: targets = segvga:0175
 attr[seg000:0d30]: targets = segvga:0106
 attr[seg000:0d40]: targets = segvga:0172
+attr[seg000:0d66]: ofs_seg = seg000
+attr[seg000:0d79]: ofs_seg = seg000
 attr[seg000:0e1b]: targets = segvga:0160
+attr[seg000:0e35]: ofs_seg = seg000
 attr[seg000:0e3e]: type = code; name = menu_callback_choice_exit_game; ofs_seg = seg000
 attr[seg000:0e41]: ofs_seg = seg001
 attr[seg000:0e47]: type = code; name = menu_callback_choice_multiple_restart_game
+attr[seg000:0e71]: ofs_seg = seg000
 attr[seg000:0e80]: comment = DEAD3.HNM
+attr[seg000:0e94]: ofs_seg = seg000
 attr[seg000:0ea6]: type = code; name = menu_callback_choice_palace_look_at_mirror; comment = [[[
     Verb handler for the LOOK AT MIRROR command in the palace bedroom
     (location_and_room 0x2009, command record [text 0x99, handler 0x0ea6] built by
@@ -427,9 +434,11 @@ attr[seg000:0ea6]: type = code; name = menu_callback_choice_palace_look_at_mirro
     and runs the mirror still through transition(al=4, bp=callback_transition_look_
     at_mirror).
 ]]]
+attr[seg000:0eb3]: ofs_seg = seg000
 attr[seg000:0eb9]: type = code; name = menu_callback_choice_palace_look_away_from_mirror
 attr[seg000:0ed0]: type = code; name = callback_transition_look_at_mirror
 attr[seg000:0ee1]: comment = MIRROR.HSQ
+attr[seg000:0f02]: ofs_seg = seg000
 attr[seg000:0f48]: type = code; name = menu_callback_choice_wait_for_evening
 attr[seg000:0f66]: type = code; name = nullsub_00f66
 attr[seg000:0f67]: type = code; name = menu_callback_choice_wait_for_morning
@@ -506,18 +515,22 @@ attr[seg000:1465]: comment = CHANKISS.HSQ
 attr[seg000:1474]: type = code
 attr[seg000:1475]: type = [ofs16(seg000); 12]
 attr[seg000:148d]: type = code
+attr[seg000:1492]: ofs_seg = seg000
 attr[seg000:1498]: type = code
 attr[seg000:14ac]: type = code
 attr[seg000:14af]: comment = FINAL.HSQ
 attr[seg000:14c9]: type = code; ofs_seg = seg000
+attr[seg000:14e0]: ofs_seg = seg000
 attr[seg000:14e6]: targets = segvga:017b
 attr[seg000:14f7]: targets = segvga:0160
 attr[seg000:1504]: ofs_seg = seg001
 attr[seg000:150d]: targets = segvga:011e
 attr[seg000:1514]: comment = FINAL.HSQ
+attr[seg000:1524]: ofs_seg = seg000
 attr[seg000:1549]: targets = segvga:0160
 attr[seg000:1556]: type = code
 attr[seg000:1561]: targets = segvga:0175
+attr[seg000:156a]: ofs_seg = seg000
 attr[seg000:159b]: targets = segvga:0106
 attr[seg000:15a1]: targets = segvga:0172
 attr[seg000:15a8]: type = code
@@ -540,6 +553,7 @@ attr[seg000:167c]: type = code
 attr[seg000:169d]: targets = segvga:0163
 attr[seg000:16aa]: ofs_seg = seg001
 attr[seg000:16c1]: targets = segvga:017b
+attr[seg000:16d8]: ofs_seg = seg000
 attr[seg000:16fc]: type = code; name = game_phase_set_to_c8_game_ending
 attr[seg000:1701]: ofs_seg = seg000
 attr[seg000:170f]: ofs_seg = seg001
@@ -611,11 +625,13 @@ attr[seg000:1a34]: type = code; name = ui_draw_date_and_time_indicator
 attr[seg000:1a4e]: ofs_seg = seg001
 attr[seg000:1a92]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:1a9b]: type = code; name = draw_sun_and_moon
+attr[seg000:1aba]: ofs_seg = seg001
 attr[seg000:1abd]: targets = segvga:0112
 attr[seg000:1ac5]: type = code; name = get_ingame_day_q
 attr[seg000:1ad1]: type = code; name = get_ingame_day_in_ax
 attr[seg000:1ae0]: type = code; name = get_ingame_time_of_day
 attr[seg000:1ae7]: type = code
+attr[seg000:1aea]: ofs_seg = seg001
 attr[seg000:1b0c]: type = code
 attr[seg000:1b0d]: type = code; name = game_loop_sub_01b0d
 attr[seg000:1b23]: type = code; name = run_events_for_current_time_period
@@ -1917,6 +1933,7 @@ attr[seg000:d48a]: name = draw_command_menu_item; comment = [[[
 attr[seg000:d4e2]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:d506]: targets = segvga:011e
 attr[seg000:d50f]: type = code; name = highlight_hovered_text_action_item
+attr[seg000:d627]: ofs_seg = seg001
 attr[seg000:d65a]: type = code; name = game_loop_sub_0d65a
 attr[seg000:d677]: type = code
 attr[seg000:d694]: type = code; name = set_di_to_ui_elements_ptr_based_on_cursor_image
