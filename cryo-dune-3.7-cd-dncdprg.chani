@@ -445,7 +445,7 @@ attr[seg000:0f66]: type = code; name = nullsub_00f66
 attr[seg000:0f67]: type = code; name = menu_callback_choice_wait_for_morning
 attr[seg000:0fc5]: type = code; name = menu_callback_choice_fight_for_a_whole_day
 attr[seg000:0fd9]: type = code; name = run_events_for_n_time_periods
-attr[seg000:100b]: type = code
+attr[seg000:100b]: type = code; name = callback_event_dialogue_line_0b_game_stage_01_make_Duncan_Idaho_visible
 attr[seg000:1011]: type = code; name = callback_game_phase_change_04_Tuono_Tabr_1
 attr[seg000:1015]: ofs_seg = seg000
 attr[seg000:1021]: type = [ofs16(seg001); 2]; name = array_offsets_locations_found_by_meeting_stillsuit_maker
@@ -681,21 +681,25 @@ attr[seg000:2170]: type = code; name = iterate_over_allied_NPCs_and_locations
 attr[seg000:2173]: ofs_seg = seg001
 attr[seg000:2184]: ofs_seg = seg001
 attr[seg000:21ad]: ofs_seg = seg001
+attr[seg000:21bf]: ofs_seg = seg001
 attr[seg000:21dc]: ofs_seg = seg001
-attr[seg000:2239]: type = code
+attr[seg000:221d]: name = iterate_over_allied_NPCs_and_locations_sub_0221d
+attr[seg000:2239]: type = code; name = callback_event_dialogue_line_08_Duncan_Idaho
 attr[seg000:2253]: ofs_seg = seg001
 attr[seg000:2296]: ofs_seg = seg001
+attr[seg000:22b1]: name = related_to_arguing_about_spice_amounts_with_Duncan_Idaho
 attr[seg000:2318]: type = code
-attr[seg000:2388]: type = code
+attr[seg000:231a]: ofs_seg = seg001
+attr[seg000:2388]: type = code; name = callback_event_dialogue_line_08_Smugglers
 attr[seg000:23d5]: type = code
 attr[seg000:23e6]: type = code
-attr[seg000:2419]: type = code
+attr[seg000:2419]: type = code; name = null_callback_event_dialogue_line_09_Smugglers
 attr[seg000:241a]: type = code; name = menu_callback_choice_accept
 attr[seg000:2431]: type = code
 attr[seg000:2432]: type = code; name = menu_callback_choice_refuse
 attr[seg000:2453]: type = code; name = menu_callback_choice_argue
-attr[seg000:24a3]: type = code
-attr[seg000:24ee]: type = code
+attr[seg000:24a3]: type = code; name = callback_event_dialogue_line_0f_Duncan_Idaho
+attr[seg000:24ee]: type = code; name = callback_event_dialogue_line_09_Duncan_Idaho
 attr[seg000:2555]: type = code
 attr[seg000:2557]: comment = Play SNA.VOC
 attr[seg000:25e9]: comment = STARS.HSQ
@@ -748,8 +752,8 @@ attr[seg000:2c9a]: type = code
 attr[seg000:2cb8]: ofs_seg = seg000
 attr[seg000:2cbe]: ofs_seg = seg000
 attr[seg000:2cc7]: type = code; name = frame_task_callback_02cc7
-attr[seg000:2ccf]: type = code
-attr[seg000:2d2c]: type = code
+attr[seg000:2ccf]: type = code; name = callback_event_dialogue_line_08_Stilgar_drink_Water_of_Life
+attr[seg000:2d2c]: type = code; name = callback_event_dialogue_line_09_Stilgar_final_attack_select_troops
 attr[seg000:2d62]: type = code
 attr[seg000:2d74]: type = code; name = open_SAL_resource
 attr[seg000:2db1]: type = code; name = draw_room_game_screen; ofs_seg = seg000
@@ -989,6 +993,7 @@ attr[seg000:468e]: ofs_seg = seg000
 attr[seg000:46ab]: ofs_seg = seg000
 attr[seg000:46b5]: type = code; name = frame_task_callback_046b5
 attr[seg000:46c4]: ofs_seg = seg001
+attr[seg000:4795]: type = code; name = game_stage_set_to_50_if_conditions_met
 attr[seg000:47f6]: comment = Play SN6.VOC
 attr[seg000:4821]: type = code
 attr[seg000:4828]: comment = RES_ORNYTK_HSQ
@@ -1112,6 +1117,7 @@ attr[seg000:5ce4]: type = code
 attr[seg000:5d7e]: targets = seg000:4377, seg000:49a0
 attr[seg000:5e4f]: type = code; name = calc_SAL_index
 attr[seg000:5e6b]: type = code
+attr[seg000:5ed0]: type = code; name = location_leaf_fn_05ed0; fn = in location: *Location @di, out zero: bool @zf
 attr[seg000:606e]: comment = "water: "
 attr[seg000:60c6]: comment = "Equipment:"
 attr[seg000:60d9]: comment = "Battle:"
@@ -1140,16 +1146,30 @@ attr[seg000:6670]: type = code
 attr[seg000:6678]: ofs_seg = seg000
 attr[seg000:667d]: type = code
 attr[seg000:66ce]: type = code
+attr[seg000:6757]: type = code; fn = in id: u8 @al, out carry: bool @cf
 attr[seg000:676e]: type = code
+attr[seg000:6770]: type = code; name = troop_06770; fn = in troop: *Troop @si, out carry: bool @cf
+attr[seg000:678a]: ofs_seg = seg001
+attr[seg000:67b3]: ofs_seg = seg001
+attr[seg000:67ba]: ofs_seg = seg001
+attr[seg000:67c1]: ofs_seg = seg001
+attr[seg000:67d2]: ofs_seg = seg001
+attr[seg000:67d8]: ofs_seg = seg001
+attr[seg000:67e5]: ofs_seg = seg001
+attr[seg000:67ea]: ofs_seg = seg001
+attr[seg000:6815]: ofs_seg = seg001
+attr[seg000:681c]: ofs_seg = seg001
+attr[seg000:6823]: ofs_seg = seg001
+attr[seg000:686e]: type = code; name = troop_0686e; fn = in troop: *Troop @si, out carry: bool @cf
 attr[seg000:68d2]: type = code; name = location_callback_troop_location_for_troop_occupation_espionage_sub_068d2; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:68d4]: ofs_seg = seg000
-attr[seg000:68da]: type = code; name = callback_troop_068da; fn = out troop: *Troop @si, out carry: bool @cf, inout troop_count: u16 @cx
-attr[seg000:68e0]: type = code; name = callback_troop_068e0; fn = out troop: *Troop @si, out carry: bool @cf, inout troop_count: u16 @cx
+attr[seg000:68da]: type = code; name = callback_troop_068da; fn = in troop: *Troop @si, out carry: bool @cf, inout troop_count: u16 @cx
+attr[seg000:68e0]: type = code; name = callback_troop_068e0; fn = in troop: *Troop @si, out carry: bool @cf, inout troop_count: u16 @cx
 attr[seg000:68eb]: type = code; fn = out troop: *Troop @si, out carry: bool @cf
-attr[seg000:6906]: type = code; name = get_address_of_troop_by_ID; fn = in id: u16 @ax, out troop: *Troop @si, out carry: bool @cf
+attr[seg000:6906]: type = code; name = get_address_of_troop_by_ID; fn = in id: u8 @al, out troop: *Troop @si, out carry: bool @cf
 attr[seg000:690e]: ofs_seg = seg001
 attr[seg000:6912]: let = troop: *Troop @si
-attr[seg000:69b3]: type = code; name = menu_callback_choice_map_troop_dialog_change_troop_occupation
+attr[seg000:69b3]: type = code; name = menu_callback_choice_map_troop_dialogue_change_troop_occupation
 attr[seg000:6a2b]: type = code; name = menu_callback_choice_troop_occupation_ecology_troop_assembly_wind_trap
 attr[seg000:6a2f]: type = code; name = menu_callback_choice_troop_occupation_army_troop_doing_espionage_attack
 attr[seg000:6a33]: type = code
@@ -1283,8 +1303,8 @@ attr[seg000:776d]: type = code; name = menu_callback_choice_troop_occupation_spi
 attr[seg000:794f]: comment = "Average: {word_4Ah} kgs/h\\nCurrent: {word_48h} kgs/h"
 attr[seg000:79c4]: comment = "Equipment:"
 attr[seg000:7b23]: targets = segvga:011e
-attr[seg000:7bed]: type = code; name = menu_callback_choice_map_troop_dialog_ask_for_more_information
-attr[seg000:7cbb]: type = code; name = menu_callback_choice_map_troop_dialog_modify_equipment
+attr[seg000:7bed]: type = code; name = menu_callback_choice_map_troop_dialogue_ask_for_more_information
+attr[seg000:7cbb]: type = code; name = menu_callback_choice_map_troop_dialogue_modify_equipment
 attr[seg000:7d68]: type = code
 attr[seg000:7e64]: comment = "none"
 attr[seg000:7ee1]: type = code
@@ -1307,7 +1327,10 @@ attr[seg000:8357]: ofs_seg = seg001
 attr[seg000:83fd]: ofs_seg = seg000
 attr[seg000:8403]: type = code
 attr[seg000:8454]: type = code
-attr[seg000:84a6]: ofs_seg = seg001
+attr[seg000:846c]: type = code; name = troop_0846c; fn = in troop: *Troop @si
+attr[seg000:848f]: name = troop_0848f
+attr[seg000:84a6]: name = troop_location_084a6; ofs_seg = seg001
+attr[seg000:858c]: name = troop_location_related_to_troop_settlement_and_troop_linked_list_0858c
 attr[seg000:86c6]: targets = seg000:4377, seg000:49a0
 attr[seg000:86cc]: type = code; name = menu_callback_choice_map_main_contact_fremen_troops
 attr[seg000:86fa]: type = code; name = menu_callback_choice_map_troop_contact_next_troop
@@ -1475,7 +1498,8 @@ attr[seg000:9d2d]: type = code; name = draw_talking_head_at_si
 attr[seg000:9d5e]: targets = segvga:0112
 attr[seg000:9dda]: targets = segvga:0112
 attr[seg000:9f5a]: ofs_seg = seg001
-attr[seg000:a107]: type = [ofs16(seg000); 15]; name = array_ptrs_callback_for_event_fired_by_speaking_dialog_line
+attr[seg000:a03f]: type = code; name = fire_event_callbacks_from_spoken_dialogue_lines_and_more
+attr[seg000:a107]: type = [ofs16(seg000); 15]; name = array_ptrs_callback_for_event_fired_by_speaking_dialogue_line
 attr[seg000:a125]: type = code; name = callback_event_dialogue_line_08_speaker_dependent_effect_1
 attr[seg000:a157]: type = code; name = callback_event_dialogue_line_09_speaker_dependent_effect_2
 attr[seg000:a172]: type = code; name = callback_event_dialogue_line_0f_speaker_dependent_effect_3
@@ -1507,6 +1531,7 @@ attr[seg000:a35d]: type = code; name = callback_condit_operator_03_cmpne
 attr[seg000:a364]: type = code; name = callback_condit_operator_04_cmplt
 attr[seg000:a36b]: type = code; name = callback_condit_operator_05_cmpgt
 attr[seg000:a36f]: type = code; name = condit_operator_return_0
+attr[seg000:a372]: type = code; name = condit_operator_return_ffff
 attr[seg000:a376]: type = [ofs16(seg000); 16]; name = array_ptrs_callback_condit_operators
 attr[seg000:a396]: type = code; name = evaluate_condition_ax
 attr[seg000:a3f0]: type = code; name = menu_callback_choice_mixer_panel
