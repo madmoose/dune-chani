@@ -2578,14 +2578,14 @@ attr[seg001:1225]: type = [PalaceRoom; 12]; name = palace_rooms; comment = [[[
     exits[0..3] are the four direction exits, indexed by compass direction:
     0 = UP/N, 1 = RIGHT/E, 2 = DOWN/S, 3 = LEFT/W (the same indices the
     bottom-right HUD compass buttons ui_elements[13..17] use). Encoding:
-    0x00        no exit in this direction.
-    0x01..0x7F  destination room number — ui_click_move_room (seg000:3f27)
-    stores it as the new location_and_room low byte at
-    seg000:3faa after the `js` non-special branch is not taken.
-    0x80..0xFF  special-exit dispatch via the jump table at cs:1454h
-    (seg000:3fd2..3ff7). The 0xFB..0xFF subrange is what
-    rebuild_and_draw_room_nav_panel (seg000:305c) shows as a
-    visible HUD arrow; the rest are in-scene/scripted exits.
+        0x00        no exit in this direction.
+        0x01..0x7F  destination room number — ui_click_move_room (seg000:3f27)
+                    stores it as the new location_and_room low byte at
+                    seg000:3faa after the `js` non-special branch is not taken.
+        0x80..0xFF  special-exit dispatch via the jump table at cs:1454h
+                    (seg000:3fd2..3ff7). The 0xFB..0xFF subrange is what
+                    rebuild_and_draw_room_nav_panel (seg000:305c) shows as a
+                    visible HUD arrow; the rest are in-scene/scripted exits.
 ]]]
 attr[seg001:1261]: name = sietch_rooms
 attr[seg001:13c4]: type = u16
