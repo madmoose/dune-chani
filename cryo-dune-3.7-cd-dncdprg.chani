@@ -187,6 +187,12 @@ struct[UIElement]:
     func_ptr  = ofs16(seg000)
 end
 
+struct[UISprite]:
+    index = u16
+    y     = u16
+    x     = u16
+end
+
 struct[XY]:
     x = dec(u16)
     y = dec(u16)
@@ -205,7 +211,12 @@ attr[seg000:0098]: type = code; name = adjust_sub_resource_pointers
 attr[seg000:00b0]: type = code; name = initialize_resources
 attr[seg000:00d1]: type = code; name = initialize_resources2
 attr[seg000:00d3]: ofs_seg = seg001
+attr[seg000:00d6]: comment = TABLAT
+attr[seg000:00ed]: ofs_seg = seg001
 attr[seg000:010e]: comment = 62FCh = half MAP.BIN size
+attr[seg000:011a]: ofs_seg = seg001
+attr[seg000:011d]: comment = RESOURCE
+attr[seg000:0126]: comment = CONDIT
 attr[seg000:015f]: type = u16
 attr[seg000:0161]: type = u16
 attr[seg000:0163]: type = u16
@@ -408,6 +419,7 @@ attr[seg000:0a3e]: ofs_seg = seg000
 attr[seg000:0a47]: comment = STARS.HSQ
 attr[seg000:0acd]: type = code; name = intro_28_night_attack_start
 attr[seg000:0ad3]: comment = ATTACK.HSQ
+attr[seg000:0af5]: ofs_seg = seg001
 attr[seg000:0b0a]: ofs_seg = seg000
 attr[seg000:0b10]: ofs_seg = seg000
 attr[seg000:0b1e]: comment = Play SN3.VOC
@@ -1506,6 +1518,8 @@ attr[seg000:8fa3]: ofs_seg = seg001
 attr[seg000:8fa6]: ofs_seg = seg001
 attr[seg000:8fbb]: targets = segvga:014b
 attr[seg000:8fc2]: ofs_seg = seg001
+attr[seg000:8fd2]: ofs_seg = seg001
+attr[seg000:8fd5]: let = e: *UIElement @si
 attr[seg000:8fda]: ofs_seg = seg000
 attr[seg000:8fea]: targets = segvga:011e
 attr[seg000:8ff9]: comment = RES_BOOK_HSQ
@@ -2732,7 +2746,7 @@ attr[seg001:11cc]: type = u16
 attr[seg001:11ce]: type = u16
 attr[seg001:11d3]: type = u16
 attr[seg001:11db]: type = u16
-attr[seg001:11dd]: name = _stru_2068D_icon_list
+attr[seg001:11dd]: type = [UISprite; 2]; name = _stru_2068D_icon_list
 attr[seg001:11e9]: type = u16
 attr[seg001:11eb]: type = u16
 attr[seg001:11ed]: type = u16; name = command_menu_x; comment = Verb-menu draw origin x. = command_list header[0]. Set by set_command_menu_origin (seg000:2e98).
@@ -2845,13 +2859,14 @@ attr[seg001:14c0]: name = _stru_20970_icon_list_ornypan
 attr[seg001:14c6]: type = u16
 attr[seg001:14c8]: name = _stru_20978_icon_list
 attr[seg001:14da]: type = u16
-attr[seg001:1500]: name = _stru_209B0_icon_list
+attr[seg001:1500]: type = [UISprite; 6]; name = _stru_209B0_icon_list
 attr[seg001:1524]: type = u16
-attr[seg001:1526]: name = _stru_209D6_icon_list
+attr[seg001:1526]: type = [UISprite; 3]; name = _stru_209D6_icon_list
 attr[seg001:1538]: type = u16
-attr[seg001:153a]: name = _stru_209EA_icon_list
+attr[seg001:153a]: type = [UISprite; 3]; name = _stru_209EA_icon_list
 attr[seg001:154c]: type = u16
 attr[seg001:155a]: type = u16
+attr[seg001:155c]: type = [UISprite; 6]
 attr[seg001:1580]: type = u16
 attr[seg001:1592]: type = u16
 attr[seg001:1594]: type = u16
@@ -4249,8 +4264,8 @@ attr[seg001:a5c0]: type = u16
 attr[seg001:aa6e]: type = u16
 attr[seg001:aa72]: type = u16; name = _word_29F22_res_condit_ofs
 attr[seg001:aa74]: type = u16; name = _word_29F24_res_condit_seg
-attr[seg001:aa76]: type = u16; name = _word_29F26_res_dialogue_ofs
-attr[seg001:aa78]: type = u16; name = _word_29F28_res_dialogue_seg
+attr[seg001:aa76]: type = u32; name = DIALOGUE_ofs
+attr[seg001:aa78]: type = u16; name = DIALOGUE_seg
 attr[seg001:aad6]: type = u16
 attr[seg001:ab6a]: type = u16
 attr[seg001:ab84]: type = u16
@@ -4305,10 +4320,10 @@ attr[seg001:d820]: type = u16
 attr[seg001:d824]: type = u16; name = _unk_2CCD4_rand_seed
 attr[seg001:d826]: type = u16; name = _unk_2CCD6_rand_seed
 attr[seg001:d828]: type = u16; name = _unk_2CCD8_bios_timer_count_3
-attr[seg001:d82c]: type = u16; name = _word_2CCDC_font_draw_position_x
-attr[seg001:d82e]: type = u16; name = _word_2CCDE_font_draw_position_y
-attr[seg001:d830]: type = u16; name = _word_2CCE0_font_draw_position_x_start
-attr[seg001:d832]: type = u16; name = _word_2CCE2_font_draw_position_y_start
+attr[seg001:d82c]: type = u16; name = font_draw_position_x
+attr[seg001:d82e]: type = u16; name = font_draw_position_y
+attr[seg001:d830]: type = u16; name = draw_position_x_start
+attr[seg001:d832]: type = u16; name = font_draw_position_y_start
 attr[seg001:d834]: name = _unk_2CCE4_sprite_clip_rect
 attr[seg001:d83c]: name = _unk_2CCEC_rect
 attr[seg001:d844]: type = u32
