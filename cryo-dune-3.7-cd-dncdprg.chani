@@ -212,6 +212,7 @@ attr[seg000:00b0]: type = code; name = initialize_resources
 attr[seg000:00d1]: type = code; name = initialize_resources2
 attr[seg000:00d3]: ofs_seg = seg001
 attr[seg000:00d6]: comment = TABLAT
+attr[seg000:00e7]: ofs_seg = seg001
 attr[seg000:00ed]: ofs_seg = seg001
 attr[seg000:010e]: comment = 62FCh = half MAP.BIN size
 attr[seg000:011a]: ofs_seg = seg001
@@ -225,8 +226,12 @@ attr[seg000:0167]: type = u16
 attr[seg000:0169]: type = code; name = map2_resource_func
 attr[seg000:016c]: comment = MAP2.HSQ
 attr[seg000:0171]: ofs_seg = seg001
-attr[seg000:01cb]: ofs_seg = seg000
-attr[seg000:01e0]: type = code
+attr[seg000:0182]: ofs_seg = seg001
+attr[seg000:018f]: ofs_seg = seg001
+attr[seg000:0192]: let = location: *Location @si
+attr[seg000:01c8]: ofs_seg = seg001
+attr[seg000:01cb]: ofs_seg = seg000; let = location: *Location @di
+attr[seg000:01e0]: type = code; name = callback_troop_location_001e0; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:020c]: type = [ofs16; 8]; name = script_2; ofs_seg = seg000
 attr[seg000:021c]: type = code; name = play_intro2
 attr[seg000:0232]: ofs_seg = seg000
@@ -321,7 +326,9 @@ attr[seg000:0681]: comment = PRESENT.HNM
 attr[seg000:0684]: type = code; name = play_PRESENT_HNM
 attr[seg000:0686]: type = code
 attr[seg000:0687]: type = code
+attr[seg000:068a]: ofs_seg = seg001
 attr[seg000:068f]: type = code
+attr[seg000:0692]: ofs_seg = seg001
 attr[seg000:0698]: comment = libre
 attr[seg000:069e]: type = code; name = load_TITLE_HNM
 attr[seg000:06a7]: comment = TITLE.HNM
@@ -390,6 +397,7 @@ attr[seg000:08a2]: ofs_seg = seg001
 attr[seg000:08b6]: type = code; name = intro_27_baron_guards_play
 attr[seg000:08b9]: comment = BACK.HSQ
 attr[seg000:08e5]: type = code
+attr[seg000:0908]: ofs_seg = seg001
 attr[seg000:0911]: type = code; name = remove_all_frame_tasks
 attr[seg000:092a]: ofs_seg = seg000
 attr[seg000:0930]: ofs_seg = seg000
@@ -410,21 +418,26 @@ attr[seg000:098a]: type = code; name = intro_lady_jessica_1
 attr[seg000:0995]: type = code; name = intro_duke_leto
 attr[seg000:09a5]: type = code; name = intro_outside_of_palace
 attr[seg000:09ad]: type = code; name = intro_26_baron
+attr[seg000:09b3]: ofs_seg = seg001
+attr[seg000:09d5]: ofs_seg = seg001
 attr[seg000:09ef]: type = code; name = play_CREDITS_HNM2
 attr[seg000:09f2]: comment = CREDITS.HNM
-attr[seg000:09f5]: type = code
+attr[seg000:09f5]: type = code; name = play_credits
 attr[seg000:0a0c]: ofs_seg = seg000
 attr[seg000:0a16]: type = code; name = frame_task_callback_00a16
 attr[seg000:0a3e]: ofs_seg = seg000
 attr[seg000:0a47]: comment = STARS.HSQ
-attr[seg000:0acd]: type = code; name = intro_28_night_attack_start
+attr[seg000:0acd]: type = code; name = intro_28_night_attack_start; ofs_seg = seg000
 attr[seg000:0ad3]: comment = ATTACK.HSQ
+attr[seg000:0adf]: ofs_seg = seg001
+attr[seg000:0aec]: ofs_seg = seg001
 attr[seg000:0af5]: ofs_seg = seg001
+attr[seg000:0afe]: ofs_seg = seg001
 attr[seg000:0b0a]: ofs_seg = seg000
 attr[seg000:0b10]: ofs_seg = seg000
 attr[seg000:0b1e]: comment = Play SN3.VOC
 attr[seg000:0b2a]: ofs_seg = seg000
-attr[seg000:0b45]: type = code; name = frame_task_callback_00b45
+attr[seg000:0b45]: type = code; name = frame_task_callback_00b45; ofs_seg = seg001
 attr[seg000:0bc1]: comment = _word_2316E_particle_system_particle_count
 attr[seg000:0d1e]: targets = segvga:0175
 attr[seg000:0d30]: targets = segvga:0106
@@ -432,6 +445,7 @@ attr[seg000:0d40]: targets = segvga:0172
 attr[seg000:0d66]: ofs_seg = seg000
 attr[seg000:0d79]: ofs_seg = seg000
 attr[seg000:0e1b]: targets = segvga:0160
+attr[seg000:0e32]: ofs_seg = seg001
 attr[seg000:0e35]: ofs_seg = seg000
 attr[seg000:0e3e]: type = code; name = menu_callback_choice_exit_game; ofs_seg = seg000
 attr[seg000:0e41]: ofs_seg = seg001
@@ -452,6 +466,7 @@ attr[seg000:0eb9]: type = code; name = menu_callback_choice_palace_look_away_fro
 attr[seg000:0ed0]: type = code; name = callback_transition_look_at_mirror
 attr[seg000:0ee1]: comment = MIRROR.HSQ
 attr[seg000:0ef1]: ofs_seg = seg001
+attr[seg000:0eff]: ofs_seg = seg001
 attr[seg000:0f02]: ofs_seg = seg000
 attr[seg000:0f48]: type = code; name = menu_callback_choice_wait_for_evening
 attr[seg000:0f66]: type = code; name = nullsub_00f66
@@ -580,6 +595,7 @@ attr[seg000:1736]: ofs_seg = seg000
 attr[seg000:176b]: type = code; name = blink
 attr[seg000:1791]: ofs_seg = seg000
 attr[seg000:1797]: type = code; name = ui_hud_head_draw
+attr[seg000:17c1]: ofs_seg = seg001
 attr[seg000:17db]: targets = segvga:014e
 attr[seg000:17e6]: type = code; name = ui_hud_head_animate_up
 attr[seg000:1803]: type = code; name = ui_hud_head_animate_down
@@ -738,9 +754,12 @@ attr[seg000:2629]: targets = segvga:014b
 attr[seg000:2638]: comment = Play SN1.VOC
 attr[seg000:263f]: ofs_seg = seg001
 attr[seg000:2643]: ofs_seg = seg000
+attr[seg000:2668]: ofs_seg = seg000
 attr[seg000:267c]: ofs_seg = seg000
 attr[seg000:2685]: comment = STARS.HSQ
+attr[seg000:268a]: ofs_seg = seg000
 attr[seg000:2690]: ofs_seg = seg000
+attr[seg000:269b]: ofs_seg = seg000
 attr[seg000:26a6]: type = code
 attr[seg000:26ad]: ofs_seg = seg001
 attr[seg000:26b0]: ofs_seg = seg001
@@ -752,19 +771,27 @@ attr[seg000:2725]: comment = Send message type 1 = "A message has arrived in the
 attr[seg000:2737]: ofs_seg = seg001
 attr[seg000:274e]: type = code; name = comm_draw_panels
 attr[seg000:2754]: comment = COMM.HSQ
+attr[seg000:2757]: ofs_seg = seg001
 attr[seg000:275f]: type = code; name = comm_draw_glow
 attr[seg000:2773]: type = code; name = comm_fade_out_glow
 attr[seg000:2776]: comment = COMM.HSQ
 attr[seg000:277b]: comment = Play SN9.VOC - Computer beeps
+attr[seg000:2784]: ofs_seg = seg000
 attr[seg000:2795]: type = code; name = comm_fade_in_glow
 attr[seg000:2798]: comment = COMM.HSQ
+attr[seg000:27a1]: ofs_seg = seg000
 attr[seg000:27b6]: type = code; name = comm_draw_glow_index
 attr[seg000:27c9]: type = code; name = comm_draw_flicker
+attr[seg000:27f0]: ofs_seg = seg001
 attr[seg000:281c]: type = code; name = comm_animate_incoming_call
 attr[seg000:281f]: comment = COMM.HSQ
 attr[seg000:283a]: type = code; name = menu_callback_choice_comms_coom_view_new_messages
 attr[seg000:283e]: type = code; name = menu_callback_choice_comms_coom_messages_already_seen
 attr[seg000:2864]: ofs_seg = seg001
+attr[seg000:2887]: ofs_seg = seg000
+attr[seg000:2891]: ofs_seg = seg000
+attr[seg000:2898]: ofs_seg = seg001
+attr[seg000:289b]: ofs_seg = seg000
 attr[seg000:28a1]: type = code
 attr[seg000:28ad]: ofs_seg = seg000
 attr[seg000:28b5]: type = code
@@ -788,17 +815,23 @@ attr[seg000:2a51]: type = code; name = messages_02a51
 attr[seg000:2a7f]: type = code; name = messages_02a7f
 attr[seg000:2aaf]: type = code; name = messages_02aaf
 attr[seg000:2ad8]: type = code; name = messages_02ad8
+attr[seg000:2b98]: ofs_seg = seg000
 attr[seg000:2c69]: ofs_seg = seg000
+attr[seg000:2c94]: ofs_seg = seg000
 attr[seg000:2c9a]: type = code
 attr[seg000:2cb8]: ofs_seg = seg000
 attr[seg000:2cbe]: ofs_seg = seg000
 attr[seg000:2cc7]: type = code; name = frame_task_callback_02cc7
 attr[seg000:2ccf]: type = code; name = callback_event_dialogue_line_08_Stilgar_drink_Water_of_Life
+attr[seg000:2d01]: ofs_seg = seg000
+attr[seg000:2d12]: ofs_seg = seg000
 attr[seg000:2d2c]: type = code; name = callback_event_dialogue_line_09_Stilgar_final_attack_select_troops
+attr[seg000:2d35]: ofs_seg = seg000
 attr[seg000:2d62]: type = code
 attr[seg000:2d74]: type = code; name = open_SAL_resource
 attr[seg000:2db1]: type = code; name = draw_room_game_screen; ofs_seg = seg000
 attr[seg000:2dcd]: ofs_seg = seg000
+attr[seg000:2e41]: ofs_seg = seg000
 attr[seg000:2e98]: name = set_command_menu_origin; comment = [[[
     Compute the verb-menu draw origin from the command_list header at di (= command_list_ptr) and save the list.
     command_menu_list = di; command_menu_x = header[0]; command_menu_y = header[1] + 0ch.
@@ -809,6 +842,9 @@ attr[seg000:2eb2]: name = ui_draw_room_command_panel; comment = [[[
     set_command_menu_origin -> build_room_command_records -> (room mode) build_persons_in_room_records,
     then rebuild_and_draw_room_nav_panel and the book/companion buttons (loc_0d763), and enqueues the record list (bp=1f0eh) into the draw-task list.
 ]]]
+attr[seg000:2ec3]: ofs_seg = seg000
+attr[seg000:2ef2]: ofs_seg = seg001
+attr[seg000:2ef5]: ofs_seg = seg000
 attr[seg000:2efb]: name = build_room_command_records; comment = [[[
     Assemble the verb-menu record list for the current room into the buffer at 1f0fh.
     Format: a leading 0 byte, then 4-byte [text_id:u16, handler_ofs:u16] records, then a 0 terminator word.
@@ -841,6 +877,7 @@ attr[seg000:3090]: name = build_persons_in_room_records; comment = [[[
 ]]]
 attr[seg000:3096]: ofs_seg = seg001
 attr[seg000:30a9]: ofs_seg = seg000
+attr[seg000:30af]: ofs_seg = seg000
 attr[seg000:30b9]: type = code; name = build_room_person_record_a; comment = [[[
     bp template A for scan_matching_room_person_entries (called from build_persons_in_room_records).
     Skip when entry flags [si+0fh] & 0x40 is set; on the first match (data_047aa == 0) record si into data_047aa so the room-screen tail picks it as the lip-sync speaker; then fall through to the shared body at loc_030ca.
@@ -860,7 +897,13 @@ attr[seg000:3127]: name = init_room_persons; comment = [[[
 ]]]
 attr[seg000:3151]: ofs_seg = seg000
 attr[seg000:316e]: type = code; name = callback_troop_location_0316e
+attr[seg000:319a]: ofs_seg = seg001
+attr[seg000:319d]: ofs_seg = seg001
+attr[seg000:31a4]: ofs_seg = seg001
+attr[seg000:31a7]: ofs_seg = seg001
 attr[seg000:31b8]: ofs_seg = seg001
+attr[seg000:31c9]: ofs_seg = seg001
+attr[seg000:31cc]: ofs_seg = seg001
 attr[seg000:31f6]: type = code; name = troop_prepare_troop_data_for_condit
 attr[seg000:329d]: type = code; name = troop_prepare_troop_data_for_condit_sub_329d
 attr[seg000:32c7]: type = code; name = troop_prepare_troop_data_for_condit_sub_32c7
@@ -875,17 +918,27 @@ attr[seg000:3406]: type = code; name = callback_troop_03406; fn = in troop: *Tro
 attr[seg000:342d]: type = code; name = troop_probably_related_to_number_of_Harkonnen_killed_by_Fremen_troop_per_battle_turn_0342d; fn = in troop: *Troop @si, out retval: u8 @al
 attr[seg000:348a]: type = code
 attr[seg000:34a5]: type = code; name = prepare_location_data_for_condit_sub_34a5
+attr[seg000:34b4]: ofs_seg = seg000
 attr[seg000:34d0]: type = code; name = troop_034d0; fn = in troop: *Troop @si
 attr[seg000:351a]: type = code
 attr[seg000:3520]: type = code; name = NPC_03520; fn = in npc: *RoomPerson @si
+attr[seg000:355c]: ofs_seg = seg001
+attr[seg000:355f]: ofs_seg = seg000
+attr[seg000:3579]: ofs_seg = seg001
+attr[seg000:3580]: ofs_seg = seg000
+attr[seg000:35e3]: ofs_seg = seg000
 attr[seg000:362e]: ofs_seg = seg001
 attr[seg000:3653]: comment = "  ****  WARNING  ****\\n\\nENTERING HARKONNEN ZONE"
+attr[seg000:365f]: ofs_seg = seg001
+attr[seg000:3666]: ofs_seg = seg000
 attr[seg000:36e2]: ofs_seg = seg000
 attr[seg000:36ee]: name = scan_matching_room_person_entries; fn = in callback: ofs16(seg000) @bp; comment = [[[Walk the 16-entry, 16-byte room-person table at 0fd8h; for each entry whose (location_and_room, command_slot/data_00006) matches the current room, call the builder in bp with si at the matched entry.]]]
 attr[seg000:36f0]: ofs_seg = seg001
 attr[seg000:3722]: type = code
+attr[seg000:3760]: ofs_seg = seg000
 attr[seg000:376b]: ofs_seg = seg000
 attr[seg000:377a]: ofs_seg = seg000
+attr[seg000:3796]: ofs_seg = seg000
 attr[seg000:37b2]: name = draw_room_scene; comment = [[[
     Render the current location/room scene into the game area: resets the clip rect
     and clears the game area, then draws the room sprites (calls into draw_SAL,
@@ -1003,6 +1056,7 @@ attr[seg000:40ae]: name = location_leaf_fn_040ae; fn = in location: *Location @d
 attr[seg000:40c3]: type = code; name = move_all_NPCs_whose_bit_6_of_flags_is_set; ofs_seg = seg000
 attr[seg000:40c9]: type = code; name = NPC_move_if_flag_bit_6_set_040c9; fn = in npc: *RoomPerson @si, in location_and_room: u16 @dx, in location_slot: u16 @bx
 attr[seg000:40d5]: type = code
+attr[seg000:40e0]: ofs_seg = seg000
 attr[seg000:40e6]: type = code; name = NPC_040e6; fn = in npc: *RoomPerson @si
 attr[seg000:4285]: type = code
 attr[seg000:42c9]: comment = RES_VER_HSQ
@@ -1044,9 +1098,12 @@ attr[seg000:46ab]: ofs_seg = seg000
 attr[seg000:46b5]: type = code; name = frame_task_callback_046b5
 attr[seg000:46c4]: ofs_seg = seg001
 attr[seg000:4795]: type = code; name = game_phase_set_to_50_if_conditions_met
+attr[seg000:47b7]: ofs_seg = seg000
 attr[seg000:47f6]: comment = Play SN6.VOC
+attr[seg000:47fb]: ofs_seg = seg000
 attr[seg000:4821]: type = code
 attr[seg000:4828]: comment = RES_ORNYTK_HSQ
+attr[seg000:48dd]: ofs_seg = seg000
 attr[seg000:4904]: comment = Play SN7.VOC
 attr[seg000:4913]: type = code
 attr[seg000:4916]: comment = VER.HNM
@@ -1058,6 +1115,9 @@ attr[seg000:4937]: name = hnm_end_voc_loop_check_complete; comment = [[[
     frame by intro_41_play_VER_HNM (loc_0071d).
 ]]]
 attr[seg000:497a]: type = code; name = menu_callback_choice_change_destination
+attr[seg000:497d]: ofs_seg = seg001
+attr[seg000:4991]: ofs_seg = seg001
+attr[seg000:4994]: ofs_seg = seg001
 attr[seg000:49e6]: targets = seg000:4377, seg000:49a0
 attr[seg000:4aad]: type = code
 attr[seg000:4ab8]: type = code; name = frame_task_callback_04ab8
@@ -1107,6 +1167,7 @@ attr[seg000:5662]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:566d]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:568f]: comment = "  TROOP OCCUPATION  "
 attr[seg000:5692]: type = code
+attr[seg000:56c0]: ofs_seg = seg000
 attr[seg000:5709]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:5710]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:5725]: comment = "no troops"
@@ -1118,6 +1179,7 @@ attr[seg000:57a7]: targets = segvga:0181
 attr[seg000:57dd]: comment = "  TROOP OCCUPATION  "
 attr[seg000:57ec]: comment = RES_MAP2_HSQ
 attr[seg000:5817]: comment = Test cmd arg MON = Monotone
+attr[seg000:584e]: ofs_seg = seg000
 attr[seg000:5886]: targets = seg000:589b, seg000:589e, seg000:58a1, seg000:58a4, seg000:58b1, seg000:58b4, seg000:58c1, seg000:58ce
 attr[seg000:588b]: type = [ofs16(seg000); 8]
 attr[seg000:589b]: type = code
@@ -1140,10 +1202,14 @@ attr[seg000:5a1a]: name = ui_show_globe_map_view; comment = [[[
     lat/long and draws the DUNE MAP, fades out (transition dx=0ffffh), then
     tail-jumps ui_hud_head_animate_up. The else-branch of ui_toggle_room_view.
 ]]]
+attr[seg000:5a25]: ofs_seg = seg000
 attr[seg000:5a3d]: type = code; name = ui_transition_to_map_interface
 attr[seg000:5a45]: targets = segvga:0160
+attr[seg000:5a49]: ofs_seg = seg000
 attr[seg000:5a56]: type = code
 attr[seg000:5a66]: ofs_seg = seg000
+attr[seg000:5a6f]: ofs_seg = seg001
+attr[seg000:5a72]: ofs_seg = seg001
 attr[seg000:5a9a]: type = code; name = ui_main_view_map_interface
 attr[seg000:5adf]: name = reset_room_scene_state; comment = [[[
     Reset per-scene state before showing the room view: clears the active effects
@@ -1174,6 +1240,9 @@ attr[seg000:5e6b]: type = code
 attr[seg000:5ed0]: type = code; name = location_leaf_fn_05ed0; ofs_seg = seg001; fn = in location: *Location @di, out zero: bool @zf
 attr[seg000:5ee4]: name = location_05ee4; fn = in location: *Location @di
 attr[seg000:5ee9]: ofs_seg = seg001
+attr[seg000:5fe1]: ofs_seg = seg001
+attr[seg000:6000]: ofs_seg = seg001
+attr[seg000:6008]: ofs_seg = seg000
 attr[seg000:605c]: name = location_0605c; fn = in location: *Location @di
 attr[seg000:606e]: comment = "water: "
 attr[seg000:60c6]: comment = "Equipment:"
@@ -1212,6 +1281,7 @@ attr[seg000:6670]: type = code
 attr[seg000:6678]: ofs_seg = seg000
 attr[seg000:667d]: type = code
 attr[seg000:66ce]: type = code
+attr[seg000:6715]: ofs_seg = seg001
 attr[seg000:6757]: type = code; fn = in id: u8 @al, out carry: bool @cf
 attr[seg000:676e]: type = code
 attr[seg000:6770]: type = code; name = troop_06770; fn = in troop: *Troop @si, out carry: bool @cf
@@ -1235,7 +1305,13 @@ attr[seg000:68eb]: type = code; fn = out troop: *Troop @si, out carry: bool @cf
 attr[seg000:6906]: type = code; name = get_address_of_troop_by_ID; fn = in id: u8 @al, out troop: *Troop @si, out carry: bool @cf
 attr[seg000:690e]: ofs_seg = seg001
 attr[seg000:6912]: let = troop: *Troop @si
+attr[seg000:6994]: ofs_seg = seg001
 attr[seg000:69b3]: type = code; name = menu_callback_choice_map_troop_dialogue_change_troop_occupation
+attr[seg000:69b6]: ofs_seg = seg001
+attr[seg000:69c5]: ofs_seg = seg001
+attr[seg000:69cd]: ofs_seg = seg001
+attr[seg000:69d2]: ofs_seg = seg001
+attr[seg000:69f1]: ofs_seg = seg001
 attr[seg000:6a2b]: type = code; name = menu_callback_choice_troop_occupation_ecology_troop_assembly_wind_trap
 attr[seg000:6a2f]: type = code; name = menu_callback_choice_troop_occupation_army_troop_doing_espionage_attack
 attr[seg000:6a33]: type = code
@@ -1331,6 +1407,8 @@ attr[seg000:7298]: type = code; name = troop_location_accumulate_army_military_t
 attr[seg000:72a2]: type = code; name = callback_troop_accumulate_army_military_training_troops_and_army_skill; fn = in troop: *Troop @si, inout troop_count: u16 @cx, inout skill_sum: u16 @dx
 attr[seg000:72b0]: type = code; name = callback_troop_location_for_troop_occupation_espionage
 attr[seg000:7317]: type = code; name = menu_callback_choice_massive_attack
+attr[seg000:7336]: ofs_seg = seg000
+attr[seg000:733b]: ofs_seg = seg000
 attr[seg000:7399]: type = code; name = troop_make_occupation_military_training
 attr[seg000:739e]: type = code; name = callback_troop_location_for_troop_occupation_attacking
 attr[seg000:73a3]: ofs_seg = seg001
@@ -1341,6 +1419,7 @@ attr[seg000:740b]: ofs_seg = seg000
 attr[seg000:7419]: type = code; name = callback_troop_07419
 attr[seg000:7429]: type = code; name = troop_location_07429
 attr[seg000:742f]: comment = Send message type 7 = "We won the battle Muad'Dib, here in ...! Yaoouuuh!"
+attr[seg000:743e]: ofs_seg = seg000
 attr[seg000:7443]: type = code; name = location_battle_won_07443; fn = in location: *Location @di
 attr[seg000:7470]: ofs_seg = seg000
 attr[seg000:7476]: ofs_seg = seg000
@@ -1370,6 +1449,9 @@ attr[seg000:7711]: type = code; name = callback_troop_location_for_troop_occupat
 attr[seg000:7734]: type = code; name = menu_callback_choice_troop_occupation_army_troop_go_search_for_equipment
 attr[seg000:775c]: type = code; name = menu_callback_choice_troop_occupation_ecology_troop_go_search_for_equipment
 attr[seg000:776d]: type = code; name = menu_callback_choice_troop_occupation_spice_troop_go_search_for_equipment
+attr[seg000:780d]: ofs_seg = seg001
+attr[seg000:782a]: ofs_seg = seg001
+attr[seg000:783e]: ofs_seg = seg000
 attr[seg000:794f]: comment = "Average: {word_4Ah} kgs/h\\nCurrent: {word_48h} kgs/h"
 attr[seg000:79c4]: comment = "Equipment:"
 attr[seg000:7b23]: targets = segvga:011e
@@ -1403,10 +1485,16 @@ attr[seg000:8018]: type = code; name = location_iterate_on_troops_and_do_stuff_0
 attr[seg000:801e]: ofs_seg = seg001
 attr[seg000:8064]: type = code; name = menu_callback_choice_multiple_move_troop
 attr[seg000:806d]: ofs_seg = seg001
+attr[seg000:8079]: ofs_seg = seg001
+attr[seg000:807c]: ofs_seg = seg000
+attr[seg000:8084]: ofs_seg = seg001
+attr[seg000:8087]: ofs_seg = seg001
+attr[seg000:80ac]: ofs_seg = seg001
 attr[seg000:80c7]: type = code; name = menu_callback_choice_map_move_prospectors_add_destination
 attr[seg000:80c8]: type = code; name = give_new_destinations_for_prospectors
 attr[seg000:80d9]: type = code; name = menu_callback_choice_map_move_prospectors_give_new_destinations
 attr[seg000:814f]: ofs_seg = seg001
+attr[seg000:81c9]: ofs_seg = seg001
 attr[seg000:81cc]: targets = segvga:0139
 attr[seg000:81ec]: type = code
 attr[seg000:8214]: type = code; name = menu_callback_choice_map_move_prospectors_done
@@ -1429,6 +1517,7 @@ attr[seg000:86fa]: type = code; name = menu_callback_choice_map_troop_contact_ne
 attr[seg000:8751]: type = code
 attr[seg000:8763]: type = code; name = menu_callback_choice_multiple_no_more_orders
 attr[seg000:8770]: type = code; name = menu_callback_choice_map_troop_contact_no_more_orders
+attr[seg000:87c0]: ofs_seg = seg001
 attr[seg000:881f]: type = code; name = ui_click_map_left
 attr[seg000:8824]: type = code; name = ui_click_map_right
 attr[seg000:8829]: type = code; name = ui_click_map_up
@@ -1465,6 +1554,7 @@ attr[seg000:8b11]: name = draw_subtitle_body; comment = [[[
     loc_08df0: randomised text-decoration cleanup.
     Then vertical centring (if data_04799 & 0x0c == 0x08), per-line pen position, and the byte-by-byte glyph loop with colour-swap (0x01), color-spec (0x06), tab (0x08), space-wrap, and CR handling.
 ]]]
+attr[seg000:8b2c]: ofs_seg = seg001
 attr[seg000:8c0e]: type = u8
 attr[seg000:8c41]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:8c8a]: name = subtitle_restore_prior; comment = [[[
@@ -1489,6 +1579,12 @@ attr[seg000:8ccd]: name = subtitle_setup_layout; comment = [[[
     voice_subtitle_mode == 0: text mode, bp = seg001:223c, paddings 0x10,0x10,1,0, fg=0xf.
     Else (voice mode with lip-sync): scan a 3-entry table at seg001:2224 picking the first rect whose height fits the current line count.
 ]]]
+attr[seg000:8cf5]: ofs_seg = seg001
+attr[seg000:8d15]: ofs_seg = seg001
+attr[seg000:8d22]: ofs_seg = seg001
+attr[seg000:8d4f]: ofs_seg = seg001
+attr[seg000:8d73]: ofs_seg = seg001
+attr[seg000:8d8a]: ofs_seg = seg001
 attr[seg000:8e16]: name = layout_subtitle_lines; comment = [[[
     Word-wrap the formatted subtitle text (ds:si) into the per-line table at 0xa9d0.
     Walks bytes one at a time:
@@ -1525,6 +1621,7 @@ attr[seg000:8fea]: targets = segvga:011e
 attr[seg000:8ff9]: comment = RES_BOOK_HSQ
 attr[seg000:900b]: ofs_seg = seg001
 attr[seg000:9041]: targets = segvga:010f
+attr[seg000:90b5]: ofs_seg = seg001
 attr[seg000:90b8]: targets = segvga:0112
 attr[seg000:90bd]: name = NPC_090bd; fn = in npc: *RoomPerson @si
 attr[seg000:90c4]: comment = Harkonnen Captain
@@ -1532,6 +1629,10 @@ attr[seg000:90cc]: comment = " OVERPOWER THE PRISONER "
 attr[seg000:90cf]: ofs_seg = seg000
 attr[seg000:90de]: ofs_seg = seg000
 attr[seg000:90ea]: ofs_seg = seg000
+attr[seg000:9105]: ofs_seg = seg000
+attr[seg000:910e]: ofs_seg = seg000
+attr[seg000:9111]: ofs_seg = seg001
+attr[seg000:911d]: ofs_seg = seg000
 attr[seg000:9123]: type = code; name = character_id_to_sprite; comment = [[[
     = character_id_to_sprite. Map a person id to a PERS.HSQ sprite-pair index.
     For id < 0x0d returns id unchanged; higher ids and the player (0x2d) fold
@@ -1612,10 +1713,13 @@ attr[seg000:99ac]: ofs_seg = seg001
 attr[seg000:99b2]: type = code; name = swap_byte_arrays
 attr[seg000:99be]: type = code; name = frame_task_callback_099be
 attr[seg000:99c8]: comment = CHAN.HSQ
+attr[seg000:9b6f]: ofs_seg = seg000
 attr[seg000:9ba5]: ofs_seg = seg000
 attr[seg000:9bee]: type = code; name = setup_non_lip_sync_data_structure
+attr[seg000:9ce5]: ofs_seg = seg001
 attr[seg000:9d16]: type = code; name = copy_non_pcm_lip_sync_data_and_draw_talking_head
 attr[seg000:9d2d]: type = code; name = draw_talking_head_at_si
+attr[seg000:9d5b]: ofs_seg = seg001
 attr[seg000:9d5e]: targets = segvga:0112
 attr[seg000:9dda]: targets = segvga:0112
 attr[seg000:9f5a]: ofs_seg = seg001
@@ -1635,6 +1739,8 @@ attr[seg000:a219]: type = code; name = callback_event_dialogue_line_0b_increase_
 attr[seg000:a235]: type = code; name = callback_event_dialogue_line_0c_increase_game_phase_by_4_if_dialogue_bit_set
 attr[seg000:a244]: type = code; name = callback_event_dialogue_line_04_acceptrefuseargue
 attr[seg000:a248]: type = code; name = callback_event_dialogue_line_05_acceptrefuseargue
+attr[seg000:a252]: ofs_seg = seg001
+attr[seg000:a255]: ofs_seg = seg000
 attr[seg000:a25b]: type = code; name = callback_event_dialogue_line_0a_do_nothing
 attr[seg000:a28e]: type = code; name = callback_event_dialogue_line_0d_whatever
 attr[seg000:a2b8]: comment = RES_PALPLAN_HSQ
@@ -1724,12 +1830,16 @@ attr[seg000:ac14]: type = code; name = pcm_stop_voc
 attr[seg000:ac1b]: ofs_seg = seg000
 attr[seg000:ac30]: type = code; name = call_pcm_vtable_end_loop; comment = Thin wrapper: call pcm_vtable_end_loop (dnsdb_end_loop).
 attr[seg000:ac35]: type = code
-attr[seg000:ac3a]: name = settings_ui_update_music_playlist_flags
+attr[seg000:ac3a]: name = settings_ui_update_music_playlist_flags; ofs_seg = seg001
 attr[seg000:ac6e]: type = code
-attr[seg000:ac7e]: type = code
+attr[seg000:ac7e]: type = code; ofs_seg = seg001
+attr[seg000:ac81]: ofs_seg = seg000
 attr[seg000:ac90]: type = code; name = menu_callback_choice_music_cd_order_shuffle
 attr[seg000:ac97]: type = code; name = menu_callback_choice_music_cd_order_standard
+attr[seg000:aca3]: ofs_seg = seg001
+attr[seg000:aca6]: ofs_seg = seg001
 attr[seg000:acbe]: type = code
+attr[seg000:acbf]: ofs_seg = seg001
 attr[seg000:ad50]: type = code; name = play_music_WORMSUIT_HSQ
 attr[seg000:ad57]: type = code; name = play_music_MORNING_HSQ
 attr[seg000:ad5c]: comment = MORNING.HSQ
@@ -1764,14 +1874,21 @@ attr[seg000:aeb7]: type = code; name = midi_reset; comment = [[[
     Called before each play_music_* (to silence the previous song) and again from per-stage play loops like play_VIRGIN_HNM once the music reaches a target measure (one-shot termination — the song-index check prevents it from re-firing).
 ]]]
 attr[seg000:aed6]: type = code; name = callback_main_ui_element_03
+attr[seg000:aef7]: ofs_seg = seg000
 attr[seg000:af00]: type = code
+attr[seg000:af12]: ofs_seg = seg001
 attr[seg000:af26]: type = code
+attr[seg000:af38]: ofs_seg = seg001
+attr[seg000:af3b]: ofs_seg = seg000
 attr[seg000:af58]: type = code; name = menu_callback_choice_book_all_topics
 attr[seg000:af60]: type = code; name = menu_callback_choice_book_politics
 attr[seg000:af68]: type = code; name = menu_callback_choice_book_paul_on_dune
 attr[seg000:af70]: type = code; name = menu_callback_choice_book_spice
 attr[seg000:afb5]: type = code; name = callback_ui_element_0afb5
 attr[seg000:afc7]: type = code; name = callback_ui_element_0afc7
+attr[seg000:affa]: ofs_seg = seg000
+attr[seg000:b01e]: ofs_seg = seg000
+attr[seg000:b029]: ofs_seg = seg000
 attr[seg000:b031]: comment = Play SN2.VOC - Papers ruffle
 attr[seg000:b039]: type = code
 attr[seg000:b0ac]: comment = RES_BOOK_HSQ
@@ -1781,14 +1898,20 @@ attr[seg000:b1a9]: comment = RES_PERS_HSQ
 attr[seg000:b1af]: type = code; name = ui_draw_book_turning_page
 attr[seg000:b1b6]: comment = turning page sprite id
 attr[seg000:b1ee]: type = code; name = callback_main_ui_element_23; targets = segvga:017b
+attr[seg000:b1fc]: ofs_seg = seg000
 attr[seg000:b224]: targets = segvga:0187
+attr[seg000:b22a]: ofs_seg = seg000
 attr[seg000:b236]: type = code
 attr[seg000:b23f]: type = code
 attr[seg000:b245]: ofs_seg = seg001
 attr[seg000:b270]: type = code; name = handle_ctrl_v_once
 attr[seg000:b285]: comment = replace first instruction with ret
-attr[seg000:b28c]: type = code; name = menu_callback_choice_mirror_room_save_game
+attr[seg000:b28c]: type = code; name = menu_callback_choice_mirror_room_save_game; ofs_seg = seg001
+attr[seg000:b295]: ofs_seg = seg001
 attr[seg000:b29e]: type = code; name = menu_callback_choice_mirror_room_load_game
+attr[seg000:b2a1]: ofs_seg = seg001
+attr[seg000:b2a7]: ofs_seg = seg001
+attr[seg000:b2ad]: ofs_seg = seg000
 attr[seg000:b2b3]: name = resume_game_clock; comment = [[[
     dec game_suspend_count, clamped at 0 (falls into suspend_game_clock to re-inc
     when it would go negative) — resume one suspend level.
@@ -1815,9 +1938,11 @@ attr[seg000:b52a]: comment = Write output length
 attr[seg000:b58b]: type = code; name = map_func
 attr[seg000:b5a0]: type = code; name = tablat_lookup_from_bx_to_ax_bp
 attr[seg000:b6c3]: type = code; name = map_draw_zoomed_globe
+attr[seg000:b6f8]: ofs_seg = seg001
 attr[seg000:b708]: ofs_seg = seg001
 attr[seg000:b70f]: targets = segvga:0157
 attr[seg000:b714]: ofs_seg = seg001
+attr[seg000:b769]: ofs_seg = seg001
 attr[seg000:b7c2]: ofs_seg = seg001
 attr[seg000:b7cd]: targets = segvga:0142
 attr[seg000:b827]: type = code; name = draw_globe_and_ui_to_front_buffer
@@ -1834,6 +1959,7 @@ attr[seg000:b8a7]: type = code; name = setup_globe_draw
 attr[seg000:b8a9]: ofs_seg = seg001
 attr[seg000:b8c0]: comment = RES_FRESK_HSQ
 attr[seg000:b8c6]: type = code; name = callback_main_ui_element_00
+attr[seg000:b8d8]: ofs_seg = seg000
 attr[seg000:b8ea]: ofs_seg = seg000
 attr[seg000:b8f3]: type = code; name = globe_slide_decorations_open
 attr[seg000:b8f6]: ofs_seg = seg000
@@ -1841,9 +1967,13 @@ attr[seg000:b915]: type = code; name = globe_slide_decorations_close
 attr[seg000:b930]: type = code; name = remove_globe_frame_tasks
 attr[seg000:b935]: ofs_seg = seg000
 attr[seg000:b93b]: ofs_seg = seg000
+attr[seg000:b941]: ofs_seg = seg001
+attr[seg000:b947]: ofs_seg = seg000
+attr[seg000:b952]: ofs_seg = seg000
+attr[seg000:b95b]: ofs_seg = seg000
 attr[seg000:b961]: type = code; name = menu_callback_choice_globe_see_standard_vision
 attr[seg000:b96b]: type = code; name = menu_callback_choice_globe_see_results
-attr[seg000:b977]: type = code; name = map_func_gfx
+attr[seg000:b977]: type = code; name = map_func_gfx; ofs_seg = seg001
 attr[seg000:b985]: targets = segvga:0145
 attr[seg000:b9ae]: type = code; name = frame_task_callback_0b9ae
 attr[seg000:b9b2]: targets = segvga:0148
@@ -1879,6 +2009,8 @@ attr[seg000:be20]: comment = RES_FRESK_HSQ
 attr[seg000:be4e]: ofs_seg = seg000
 attr[seg000:be57]: type = code; name = frame_task_callback_0be57
 attr[seg000:be5a]: ofs_seg = seg001
+attr[seg000:bf26]: ofs_seg = seg001
+attr[seg000:bf29]: ofs_seg = seg001
 attr[seg000:bf2f]: comment = "  0%"
 attr[seg000:bf55]: type = code
 attr[seg000:bfa7]: type = code; name = string_update_ordinal_suffix
@@ -1892,12 +2024,15 @@ attr[seg000:c0ad]: type = code; name = gfx_clear_active_framebuffer
 attr[seg000:c0b1]: targets = segvga:0118
 attr[seg000:c0b6]: type = code; name = room_frame_task
 attr[seg000:c0d1]: comment = Play SN4.VOC - Drip in cave
+attr[seg000:c0de]: ofs_seg = seg001
 attr[seg000:c0e1]: targets = segvga:015a
+attr[seg000:c0ec]: ofs_seg = seg001
 attr[seg000:c0ef]: targets = segvga:015a
 attr[seg000:c0f4]: type = code; name = update_screen_palette
 attr[seg000:c0fd]: targets = segvga:0160
 attr[seg000:c102]: type = code; name = copy_pal_and_transition; targets = segvga:017b
 attr[seg000:c108]: type = code; name = transition
+attr[seg000:c121]: ofs_seg = seg001
 attr[seg000:c124]: targets = segvga:0151
 attr[seg000:c12d]: targets = segvga:0160
 attr[seg000:c137]: type = code; name = load_icones_sprites
@@ -1932,8 +2067,10 @@ attr[seg000:c2f2]: name = open_resource_and_draw_sprite0; comment = [[[
 attr[seg000:c2fd]: type = code; name = draw_sprite
 attr[seg000:c305]: type = code; name = draw_sprite_clipped
 attr[seg000:c30d]: type = code; name = draw_sprite_clipped_clobbering_bx_dx
+attr[seg000:c324]: ofs_seg = seg001
 attr[seg000:c327]: targets = segvga:0112
 attr[seg000:c32f]: type = code; name = draw_sprite_list
+attr[seg000:c365]: ofs_seg = seg001
 attr[seg000:c368]: targets = segvga:0112
 attr[seg000:c370]: type = code; name = blit_repeated_x
 attr[seg000:c374]: targets = segvga:011b
@@ -2187,6 +2324,14 @@ attr[seg000:dc20]: type = code; name = redraw_mouse
 attr[seg000:dc52]: targets = segvga:010c
 attr[seg000:dc5e]: targets = segvga:0109
 attr[seg000:dc6a]: type = code; name = get_mouse_cursor_image_addr
+attr[seg000:dc6f]: ofs_seg = seg001
+attr[seg000:dc74]: ofs_seg = seg001
+attr[seg000:dc8f]: ofs_seg = seg001
+attr[seg000:dc9e]: ofs_seg = seg001
+attr[seg000:dcaa]: ofs_seg = seg001
+attr[seg000:dcc2]: ofs_seg = seg001
+attr[seg000:dccf]: ofs_seg = seg001
+attr[seg000:dcdc]: ofs_seg = seg001
 attr[seg000:dce0]: type = code; name = read_game_port
 attr[seg000:dce5]: comment = [[[
     Game I/O port
@@ -2272,9 +2417,13 @@ attr[seg000:e5eb]: comment = Load DNVGA or DN386
 attr[seg000:e5ee]: targets = segvga:0103
 attr[seg000:e610]: targets = segvga:0100
 attr[seg000:e614]: comment = Check language arg
+attr[seg000:e63d]: ofs_seg = seg001
 attr[seg000:e640]: targets = segvga:0154
 attr[seg000:e674]: type = code
 attr[seg000:e675]: type = code; name = open_dune_dat
+attr[seg000:e68b]: ofs_seg = seg001
+attr[seg000:e692]: ofs_seg = seg001
+attr[seg000:e69c]: ofs_seg = seg001
 attr[seg000:e6a9]: comment = -> es:di
 attr[seg000:e6ae]: comment = toc in bp:si
 attr[seg000:e741]: type = code; name = read_dune_dat_toc
@@ -2368,6 +2517,10 @@ attr[seg000:f0ff]: type = code; name = bump_allocate_bump_cx_bytes
 attr[seg000:f11c]: type = code; name = alloc_check_cx_pages_available
 attr[seg000:f131]: type = code; name = out_of_memory_error
 attr[seg000:f13f]: type = code; name = allocator_attempt_to_free_space
+attr[seg000:f144]: ofs_seg = seg001
+attr[seg000:f147]: ofs_seg = seg001
+attr[seg000:f172]: ofs_seg = seg001
+attr[seg000:f18a]: ofs_seg = seg001
 attr[seg000:f1fb]: type = code; name = open_res_or_file_with_name_in_dx_size_ax
 attr[seg000:f229]: type = code; name = open_res_or_file_or_die
 attr[seg000:f244]: type = code; name = read_resource_to_esdi
@@ -2381,6 +2534,8 @@ attr[seg000:f2ea]: type = code; name = read_dune_dat_cx_to_esdi
 attr[seg000:f2fc]: type = code; name = strcpy_to_filename_buf
 attr[seg000:f314]: type = code; name = get_res_index_in_ax_by_name_dssi; comment = ds:si points to first file name in dune.dat index
 attr[seg000:f32e]: comment = cx = dune.dat entry filename length
+attr[seg000:f349]: ofs_seg = seg001
+attr[seg000:f354]: ofs_seg = seg001
 attr[seg000:f3a7]: type = code; name = res_locate_in_lookup_table
 attr[seg000:f3d3]: type = code; name = check_hsq_checksum
 attr[seg000:f3e3]: comment = header length
