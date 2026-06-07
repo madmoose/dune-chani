@@ -677,7 +677,7 @@ attr[seg000:1b7d]: targets = seg000:1dd3, seg000:1dd4, seg000:1dd7, seg000:1dda,
 attr[seg000:1c46]: type = code; name = run_events_for_current_time_period_sub_01b23
 attr[seg000:1cab]: ofs_seg = seg001
 attr[seg000:1cda]: type = code; name = iterate_over_locations_and_accumulate_number_of_Atreides_locations_and_value_related_to_spice_density
-attr[seg000:1d10]: type = code
+attr[seg000:1d10]: type = code; name = randomly_increase_all_harkonnen_troops_head_count_by_10
 attr[seg000:1d16]: ofs_seg = seg001
 attr[seg000:1d35]: type = [u8; 49]; name = array_related_to_location_appearances
 attr[seg000:1d66]: type = code; name = iterate_over_named_NPCs_and_location_appearances_to_modify_NPCs; ofs_seg = seg001
@@ -827,7 +827,8 @@ attr[seg000:2d01]: ofs_seg = seg000
 attr[seg000:2d12]: ofs_seg = seg000
 attr[seg000:2d2c]: type = code; name = callback_event_dialogue_line_09_Stilgar_final_attack_select_troops
 attr[seg000:2d35]: ofs_seg = seg000
-attr[seg000:2d62]: type = code
+attr[seg000:2d4a]: ofs_seg = seg001
+attr[seg000:2d62]: type = code; name = store_troop_to_array_of_troop_ptrs_if_army_and_atomics_equipped; fn = in temp_troops: **Troop @bx, troop: *Troop @si, out retval: **Troop @bx
 attr[seg000:2d74]: type = code; name = open_SAL_resource
 attr[seg000:2db1]: type = code; name = draw_room_game_screen; ofs_seg = seg000
 attr[seg000:2dcd]: ofs_seg = seg000
@@ -916,7 +917,7 @@ attr[seg000:33cc]: ofs_seg = seg000
 attr[seg000:33d9]: name = location_033be_sub_033d9; fn = out retval: u8 @al
 attr[seg000:3406]: type = code; name = callback_troop_03406; fn = in troop: *Troop @si, out retval: u16 @ax
 attr[seg000:342d]: type = code; name = troop_probably_related_to_number_of_Harkonnen_killed_by_Fremen_troop_per_battle_turn_0342d; fn = in troop: *Troop @si, out retval: u8 @al
-attr[seg000:348a]: type = code
+attr[seg000:348a]: type = code; name = troop_0348a
 attr[seg000:34a5]: type = code; name = prepare_location_data_for_condit_sub_34a5
 attr[seg000:34b4]: ofs_seg = seg000
 attr[seg000:34d0]: type = code; name = troop_034d0; fn = in troop: *Troop @si
@@ -1141,7 +1142,7 @@ attr[seg000:4d45]: comment = Play SN5.VOC
 attr[seg000:4d4d]: ofs_seg = seg000
 attr[seg000:4de3]: targets = segvga:0112
 attr[seg000:4def]: ofs_seg = seg000
-attr[seg000:4e04]: type = code
+attr[seg000:4e04]: type = code; name = callback_troop_accumulate_spice_mining_troops_with_harvesters_04e04
 attr[seg000:4e8d]: type = code
 attr[seg000:4f09]: type = code; name = menu_callback_choice_resume_flight
 attr[seg000:4f0c]: type = code; name = game_loop_sub_04f0c
@@ -1171,7 +1172,7 @@ attr[seg000:56c0]: ofs_seg = seg000
 attr[seg000:5709]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:5710]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:5725]: comment = "no troops"
-attr[seg000:5728]: type = code
+attr[seg000:5728]: type = code; name = troop_05728
 attr[seg000:5746]: type = code
 attr[seg000:5766]: targets = segvga:0184
 attr[seg000:578a]: type = code
@@ -1276,11 +1277,14 @@ attr[seg000:65b4]: type = u16
 attr[seg000:6603]: type = code; name = call_callback_on_all_troops_in_location; fn = in location: *Location @di, in callback: ofs16(seg000) @bp
 attr[seg000:6616]: let = troop: *Troop @si
 attr[seg000:661d]: type = code; name = call_callback_on_hired_troops_in_location
+attr[seg000:6639]: name = callback_troop_location_06639
 attr[seg000:663d]: ofs_seg = seg001
 attr[seg000:6670]: type = code
 attr[seg000:6678]: ofs_seg = seg000
-attr[seg000:667d]: type = code
-attr[seg000:66ce]: type = code
+attr[seg000:667d]: type = code; name = callback_troop_0667d
+attr[seg000:668f]: name = troop_possibly_part_of_making_troop_captured_0668f
+attr[seg000:66b1]: name = troop_location_066b1
+attr[seg000:66ce]: type = code; name = troop_rally_troop_066ce
 attr[seg000:6715]: ofs_seg = seg001
 attr[seg000:6757]: type = code; fn = in id: u8 @al, out carry: bool @cf
 attr[seg000:676e]: type = code
@@ -1296,6 +1300,7 @@ attr[seg000:67ea]: ofs_seg = seg001
 attr[seg000:6815]: ofs_seg = seg001
 attr[seg000:681c]: ofs_seg = seg001
 attr[seg000:6823]: ofs_seg = seg001
+attr[seg000:6827]: name = troop_06827
 attr[seg000:686e]: type = code; name = troop_0686e; fn = in troop: *Troop @si, out carry: bool @cf
 attr[seg000:68d2]: type = code; name = location_callback_troop_location_for_troop_occupation_espionage_sub_068d2; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:68d4]: ofs_seg = seg000
@@ -1305,6 +1310,10 @@ attr[seg000:68eb]: type = code; fn = out troop: *Troop @si, out carry: bool @cf
 attr[seg000:6906]: type = code; name = get_address_of_troop_by_ID; fn = in id: u8 @al, out troop: *Troop @si, out carry: bool @cf
 attr[seg000:690e]: ofs_seg = seg001
 attr[seg000:6912]: let = troop: *Troop @si
+attr[seg000:6917]: name = troop_leaf_fn_06917
+attr[seg000:693b]: name = troop_get_occupation_bits_2_and_3_0693b
+attr[seg000:6946]: ofs_seg = seg001
+attr[seg000:697c]: name = troop_0697c
 attr[seg000:6994]: ofs_seg = seg001
 attr[seg000:69b3]: type = code; name = menu_callback_choice_map_troop_dialogue_change_troop_occupation
 attr[seg000:69b6]: ofs_seg = seg001
@@ -1324,14 +1333,18 @@ attr[seg000:6a71]: type = code; name = menu_callback_choice_troop_occupation_spe
 attr[seg000:6a76]: ofs_seg = seg001
 attr[seg000:6a83]: type = code; name = menu_callback_choice_troop_occupation_specialize_in_army
 attr[seg000:6a87]: type = code; name = menu_callback_choice_troop_occupation_specialize_in_ecology
+attr[seg000:6ac5]: name = troop_06ac5
+attr[seg000:6acb]: name = troop_06acb
+attr[seg000:6ad4]: name = troop_06ad4
+attr[seg000:6b25]: name = troop_set_timePeriodOfRalliement_clear_field_C_clear_field_E_06b25
 attr[seg000:6b34]: type = code; name = frame_task_callback_06b34
 attr[seg000:6b8a]: type = code; name = troop_location_test_for_location_area_prospected; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:6b96]: type = code; name = troop_location_06b96; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:6bd7]: type = code; name = troop_location_06bd7; fn = in troop: *Troop @si, in location: *Location @di
-attr[seg000:6bf5]: type = [ofs16(seg000); 16]
+attr[seg000:6bf5]: type = [ofs16(seg000); 16]; name = array_callbacks_for_troop_occupation_06bf5
 attr[seg000:6c15]: type = code; name = troop_call_callback_according_to_occupation
 attr[seg000:6c21]: targets = seg000:0f66, seg000:6b8a, seg000:6b96, seg000:6bd7
-attr[seg000:6c26]: type = [ofs16(seg000); 16]; name = array_callbacks_for_troop_occupation
+attr[seg000:6c26]: type = [ofs16(seg000); 16]; name = array_callbacks_for_troop_occupation_06c26
 attr[seg000:6c8f]: ofs_seg = seg001
 attr[seg000:6cba]: targets = seg000:0f66, seg000:6fe5, seg000:70cc, seg000:71ef, seg000:72b0, seg000:739e, seg000:767d, seg000:7693, seg000:7711
 attr[seg000:6cfc]: type = code; name = troop_location_increase_phase_by_1_for_TuonoTabr_CarthagTabr_TuonoTuek_06cfc; comment = Sietch
@@ -1449,13 +1462,26 @@ attr[seg000:7711]: type = code; name = callback_troop_location_for_troop_occupat
 attr[seg000:7734]: type = code; name = menu_callback_choice_troop_occupation_army_troop_go_search_for_equipment
 attr[seg000:775c]: type = code; name = menu_callback_choice_troop_occupation_ecology_troop_go_search_for_equipment
 attr[seg000:776d]: type = code; name = menu_callback_choice_troop_occupation_spice_troop_go_search_for_equipment
+attr[seg000:77d7]: name = troop_077d7
+attr[seg000:780a]: name = troop_0780a
 attr[seg000:780d]: ofs_seg = seg001
+attr[seg000:7821]: ofs_seg = seg001
 attr[seg000:782a]: ofs_seg = seg001
 attr[seg000:783e]: ofs_seg = seg000
+attr[seg000:7847]: name = troop_07847
+attr[seg000:78bc]: name = troop_078bc
 attr[seg000:794f]: comment = "Average: {word_4Ah} kgs/h\\nCurrent: {word_48h} kgs/h"
 attr[seg000:79c4]: comment = "Equipment:"
+attr[seg000:79ee]: name = troop_079ee
+attr[seg000:79f5]: ofs_seg = seg001
+attr[seg000:7a27]: ofs_seg = seg001
+attr[seg000:7a2a]: ofs_seg = seg001
+attr[seg000:7ac1]: ofs_seg = seg001
 attr[seg000:7b23]: targets = segvga:011e
+attr[seg000:7ba3]: name = troop_07ba3
 attr[seg000:7bed]: type = code; name = menu_callback_choice_map_troop_dialogue_ask_for_more_information
+attr[seg000:7c02]: name = troop_07c02
+attr[seg000:7c63]: name = troop_07c63
 attr[seg000:7c8f]: name = location_07c8f; fn = in location: *Location @si
 attr[seg000:7cbb]: type = code; name = menu_callback_choice_map_troop_dialogue_modify_equipment
 attr[seg000:7cc0]: ofs_seg = seg001
@@ -1467,7 +1493,8 @@ attr[seg000:7d23]: ofs_seg = seg001
 attr[seg000:7d39]: ofs_seg = seg001
 attr[seg000:7d68]: type = code
 attr[seg000:7d75]: ofs_seg = seg001
-attr[seg000:7dd9]: ofs_seg = seg001
+attr[seg000:7d81]: name = troop_07d81
+attr[seg000:7dd9]: name = leaf_fn_7dd9; ofs_seg = seg001
 attr[seg000:7ddc]: ofs_seg = seg001
 attr[seg000:7ddf]: ofs_seg = seg001
 attr[seg000:7e21]: ofs_seg = seg001
@@ -1478,12 +1505,21 @@ attr[seg000:7ea6]: ofs_seg = seg001
 attr[seg000:7ebf]: ofs_seg = seg001
 attr[seg000:7ec7]: ofs_seg = seg001
 attr[seg000:7ee1]: type = code
+attr[seg000:7efb]: name = troop_leaf_fn_07efb
+attr[seg000:7efe]: ofs_seg = seg001
+attr[seg000:7f09]: ofs_seg = seg001
+attr[seg000:7f11]: name = troop_compute_troop_equipment_from_location_style_equipment_07f11
+attr[seg000:7f12]: ofs_seg = seg001
+attr[seg000:7f1b]: ofs_seg = seg001
 attr[seg000:7f2a]: type = code; name = location_iterate_on_troops_in_location; fn = in location: *Location @di
+attr[seg000:7f5f]: name = troop_location_register_troop_equipment_into_location_equipment_07f5f
+attr[seg000:7f75]: name = troop_location_unregister_troop_equipment_from_location_equipment_07f75
+attr[seg000:7f90]: name = troop_07f90
 attr[seg000:7fe8]: ofs_seg = seg001
 attr[seg000:7fef]: ofs_seg = seg001
 attr[seg000:8018]: type = code; name = location_iterate_on_troops_and_do_stuff_08018; ofs_seg = seg001; fn = in location: *Location @di
 attr[seg000:801e]: ofs_seg = seg001
-attr[seg000:8064]: type = code; name = menu_callback_choice_multiple_move_troop
+attr[seg000:8064]: type = code; name = menu_callback_choice_multiple_move_troop; ofs_seg = seg001
 attr[seg000:806d]: ofs_seg = seg001
 attr[seg000:8079]: ofs_seg = seg001
 attr[seg000:807c]: ofs_seg = seg000
@@ -1502,18 +1538,28 @@ attr[seg000:821a]: ofs_seg = seg001
 attr[seg000:824d]: type = code
 attr[seg000:8256]: type = code
 attr[seg000:8259]: ofs_seg = seg001
+attr[seg000:82da]: name = troop_location_082da
 attr[seg000:82df]: ofs_seg = seg001
-attr[seg000:8357]: ofs_seg = seg001
-attr[seg000:83fd]: ofs_seg = seg000
-attr[seg000:8403]: type = code
+attr[seg000:8308]: name = troop_08308
+attr[seg000:8347]: name = shift_prospector_troop_destinations_array_08347
+attr[seg000:8349]: ofs_seg = seg001
+attr[seg000:8357]: name = troop_08357; ofs_seg = seg001
+attr[seg000:83bc]: name = troop_location_finish_troop_motion_and_settle_it_into_location_083bc
+attr[seg000:83fd]: name = troop_location_083fd; ofs_seg = seg000
+attr[seg000:8403]: type = code; name = callback_troop_08403
 attr[seg000:8454]: type = code
+attr[seg000:8461]: name = troop_08461
 attr[seg000:846c]: type = code; name = troop_0846c; fn = in troop: *Troop @si
 attr[seg000:848f]: name = troop_0848f
 attr[seg000:84a6]: name = troop_location_084a6; ofs_seg = seg001
+attr[seg000:851f]: name = troop_location_related_to_troop_position_in_location_0851f
 attr[seg000:858c]: name = troop_location_related_to_troop_settlement_and_troop_linked_list_0858c
+attr[seg000:85cc]: name = troop_location_085cc
+attr[seg000:8604]: name = troop_leaf_fn_08604
 attr[seg000:86c6]: targets = seg000:4377, seg000:49a0
 attr[seg000:86cc]: type = code; name = menu_callback_choice_map_main_contact_fremen_troops
 attr[seg000:86fa]: type = code; name = menu_callback_choice_map_troop_contact_next_troop
+attr[seg000:872c]: name = troop_0872c
 attr[seg000:8751]: type = code
 attr[seg000:8763]: type = code; name = menu_callback_choice_multiple_no_more_orders
 attr[seg000:8770]: type = code; name = menu_callback_choice_map_troop_contact_no_more_orders
@@ -2899,8 +2945,8 @@ attr[seg001:11ca]: type = u8
 attr[seg001:11cb]: type = u8
 attr[seg001:11cc]: type = u16
 attr[seg001:11ce]: type = u16
-attr[seg001:11d3]: type = u16
-attr[seg001:11db]: type = u16
+attr[seg001:11d3]: type = [ofs16(seg001); 4]; name = ARRAY_PTR_Location_prospector_destinations
+attr[seg001:11db]: type = ofs16(seg001); name = PTR_Location_latest_location_with_illness
 attr[seg001:11dd]: type = [UISprite; 2]; name = _stru_2068D_icon_list
 attr[seg001:11e9]: type = u16
 attr[seg001:11eb]: type = u16
