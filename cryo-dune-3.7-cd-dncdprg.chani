@@ -235,7 +235,7 @@ attr[seg000:018f]: ofs_seg = seg001
 attr[seg000:0192]: let = location: *Location @si
 attr[seg000:01c8]: ofs_seg = seg001
 attr[seg000:01cb]: ofs_seg = seg000; let = location: *Location @di
-attr[seg000:01e0]: type = code; name = callback_troop_location_001e0; fn = in troop: *Troop @si, in location: *Location @di
+attr[seg000:01e0]: type = code; name = callback_troop_location_001e0; fn = in troop: *Troop @si, in location: *Location @di, in gps_coordinates_1: signed(u16) @dx, in gps_coordinates_1: signed(u16) @bx
 attr[seg000:020c]: type = [ofs16; 8]; name = script_2; ofs_seg = seg000
 attr[seg000:021c]: type = code; name = play_intro2
 attr[seg000:0232]: ofs_seg = seg000
@@ -684,7 +684,7 @@ attr[seg000:1b23]: type = code; name = run_events_for_current_time_period
 attr[seg000:1b7d]: targets = seg000:1dd3, seg000:1dd4, seg000:1dd7, seg000:1dda, seg000:1dfe
 attr[seg000:1c46]: type = code; name = run_events_for_current_time_period_sub_01c46
 attr[seg000:1cab]: ofs_seg = seg001
-attr[seg000:1cda]: type = code; name = iterate_over_locations_and_accumulate_number_of_Atreides_locations_and_value_related_to_spice_density
+attr[seg000:1cda]: type = code; name = iterate_over_locations_and_accumulate_number_of_Atreides_locations_and_value_related_to_spice_density; ofs_seg = seg001
 attr[seg000:1d10]: type = code; name = randomly_increase_all_harkonnen_troops_head_count_by_10
 attr[seg000:1d16]: ofs_seg = seg001
 attr[seg000:1d35]: type = [u8; 49]; name = array_related_to_location_appearances
@@ -719,12 +719,14 @@ attr[seg000:1ebe]: type = code; name = game_phase_set_to_64_if_conditions_met
 attr[seg000:1eda]: type = code; name = chani_troop_cure_progress_step
 attr[seg000:1ee3]: ofs_seg = seg000
 attr[seg000:1ee9]: comment = Send message type 9 = "Paul, I'm so happy! I've managed to cure everybody, here in ...."
+attr[seg000:1ef3]: ofs_seg = seg001
 attr[seg000:1f13]: name = callback_game_phase_change_64_main_code
+attr[seg000:1f44]: ofs_seg = seg001
 attr[seg000:1fd5]: ofs_seg = seg001
 attr[seg000:1fe7]: comment = Send message type C = "The Harkonnens are attacking ...!"
 attr[seg000:1fe9]: ofs_seg = seg001
 attr[seg000:1ff1]: comment = Send message type D = "The Harkonnens are attacking ...! Be careful Muad'Dib, the prospecting troop might be involved in the fight."
-attr[seg000:2017]: type = code; name = ui_comm
+attr[seg000:2017]: type = code; name = ui_comm; ofs_seg = seg001
 attr[seg000:2165]: type = [u8; 11]
 attr[seg000:2170]: type = code; name = iterate_over_allied_NPCs_and_locations
 attr[seg000:2173]: ofs_seg = seg001
@@ -905,19 +907,31 @@ attr[seg000:3127]: name = init_room_persons; comment = [[[
     Zero data_0476a and data_0476b, init the four person-state words at data_109a/10aa/10ba/10ca to 0x7f80, then (only when location_slot low byte == 0x80) classify entries by iterating the room-person table via loc_06603 with bp = loc_0316e, and run loc_0331e.
 ]]]
 attr[seg000:3151]: ofs_seg = seg000
-attr[seg000:316e]: type = code; name = callback_troop_location_0316e
-attr[seg000:319a]: ofs_seg = seg001
+attr[seg000:316e]: type = code; name = callback_troop_location_0316e; fn = in troop: *Troop @si, in location: *Location @di, in location_and_room: u16 @dx, in location_appearance: u16 @bx
+attr[seg000:3173]: comment = No more orders ?
+attr[seg000:3177]: comment = [[[
+    No more orders bit set.
+    Is this location a Harkonnen fortress ?
+]]]
+attr[seg000:317d]: comment = ah +1 if Harkonnen fortress / palace.
+attr[seg000:3181]: comment = Troop hired ?
+attr[seg000:318e]: comment = ah -1 if night attack.
+attr[seg000:319a]: ofs_seg = seg001; comment = Fremen 1.
 attr[seg000:319d]: ofs_seg = seg001
-attr[seg000:31a4]: ofs_seg = seg001
+attr[seg000:31a0]: comment = Troop hired ?
+attr[seg000:31a4]: ofs_seg = seg001; comment = Fremen 2.
 attr[seg000:31a7]: ofs_seg = seg001
-attr[seg000:31b8]: ofs_seg = seg001
-attr[seg000:31c9]: ofs_seg = seg001
+attr[seg000:31b8]: ofs_seg = seg001; comment = Prospector troop.
+attr[seg000:31c9]: ofs_seg = seg001; comment = Harkonnen captain.
 attr[seg000:31cc]: ofs_seg = seg001
 attr[seg000:31f6]: type = code; name = troop_prepare_troop_data_for_condit
 attr[seg000:329d]: type = code; name = troop_prepare_troop_data_for_condit_sub_0329d
 attr[seg000:32c7]: type = code; name = troop_prepare_troop_data_for_condit_sub_032c7
 attr[seg000:3310]: type = code; name = get_command_string_index_from_troop_skill
 attr[seg000:331e]: type = code; name = prepare_location_data_for_condit
+attr[seg000:332c]: ofs_seg = seg001
+attr[seg000:3351]: ofs_seg = seg001
+attr[seg000:3363]: ofs_seg = seg001
 attr[seg000:3385]: type = code; name = prepare_location_data_for_condit_sub_03385
 attr[seg000:33ad]: type = code; name = NPC_033ad; fn = in npc: *RoomPerson @si, in location_slot: u16 @bx
 attr[seg000:33be]: name = location_033be; fn = in location: *Location @di, out retval: u8 @al
@@ -928,7 +942,7 @@ attr[seg000:342d]: type = code; name = troop_probably_related_to_number_of_Harko
 attr[seg000:348a]: type = code; name = troop_0348a
 attr[seg000:34a5]: type = code; name = prepare_location_data_for_condit_sub_034a5
 attr[seg000:34b4]: ofs_seg = seg000
-attr[seg000:34d0]: type = code; name = troop_034d0; fn = in troop: *Troop @si
+attr[seg000:34d0]: type = code; name = troop_034d0; fn = in troop: *Troop @si, in carry: bool @cf
 attr[seg000:351a]: type = code
 attr[seg000:3520]: type = code; name = NPC_03520; fn = in npc: *RoomPerson @si
 attr[seg000:355c]: ofs_seg = seg001
@@ -1062,6 +1076,7 @@ attr[seg000:3f27]: type = code; name = ui_click_move_room; comment = [[[
 attr[seg000:401f]: name = location_0401f; fn = in location: *Location @si
 attr[seg000:407e]: type = code; name = get_map_position
 attr[seg000:40ae]: name = location_leaf_fn_040ae; fn = in location: *Location @di
+attr[seg000:40b0]: ofs_seg = seg001
 attr[seg000:40c3]: type = code; name = move_all_NPCs_whose_bit_6_of_flags_is_set; ofs_seg = seg000
 attr[seg000:40c9]: type = code; name = NPC_move_if_flag_bit_6_set_040c9; fn = in npc: *RoomPerson @si, in location_and_room: u16 @dx, in location_slot: u16 @bx
 attr[seg000:40d5]: type = code
@@ -1164,12 +1179,19 @@ attr[seg000:50c4]: type = code; name = menu_callback_choice_towards_nearest_plac
 attr[seg000:50db]: type = code; name = menu_callback_choice_move_to_location_orni
 attr[seg000:50ea]: type = code; name = menu_callback_choice_move_to_location_worm
 attr[seg000:5274]: type = code; name = prepare_location_data_for_condit_sub_05274
+attr[seg000:528d]: ofs_seg = seg001
 attr[seg000:5344]: type = code; name = iterate_over_locations_and_coordinates
+attr[seg000:5348]: ofs_seg = seg001
 attr[seg000:5381]: type = code
+attr[seg000:5385]: ofs_seg = seg001
 attr[seg000:53b6]: type = code
+attr[seg000:53ba]: ofs_seg = seg001
 attr[seg000:53f1]: type = code; name = menu_callback_choice_map_main_see_spice_density
 attr[seg000:5481]: comment = RES_MAP2_HSQ
+attr[seg000:559f]: ofs_seg = seg001
+attr[seg000:55c0]: ofs_seg = seg001
 attr[seg000:55dd]: type = code; name = map_func_leaf_fn
+attr[seg000:55ea]: ofs_seg = seg001
 attr[seg000:562c]: targets = segvga:011e
 attr[seg000:5656]: comment = "  SPICE DENSITY  "
 attr[seg000:5662]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
@@ -1180,14 +1202,20 @@ attr[seg000:56c0]: ofs_seg = seg000
 attr[seg000:5709]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:5710]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:5725]: comment = "no troops"
-attr[seg000:5728]: type = code; name = troop_05728
+attr[seg000:5728]: type = code; name = troop_05728; fn = in troop: *Troop @si, in carry: bool @cf, in zero: bool @zf, in sign: bool @sf, inout param_1: u16 @bx, inout param_2: u16 @cx
+attr[seg000:572f]: comment = Waiting orders ?
+attr[seg000:5739]: comment = Bits 2-3 = 0 -> spice-related occupations, increase bl.
+attr[seg000:5740]: comment = Bits 2-3 = 1 -> military-related occupations, increase ch.
+attr[seg000:5743]: comment = Bits 2-3 = 2 (or 3) -> ecology-related occupations, increase cl.
 attr[seg000:5746]: type = code
 attr[seg000:5766]: targets = segvga:0184
 attr[seg000:578a]: type = code
 attr[seg000:57a7]: targets = segvga:0181
 attr[seg000:57dd]: comment = "  TROOP OCCUPATION  "
 attr[seg000:57ec]: comment = RES_MAP2_HSQ
+attr[seg000:5801]: ofs_seg = seg001; let = location: *Location @si
 attr[seg000:5817]: comment = Test cmd arg MON = Monotone
+attr[seg000:583f]: ofs_seg = seg001
 attr[seg000:584e]: ofs_seg = seg000
 attr[seg000:5886]: targets = seg000:589b, seg000:589e, seg000:58a1, seg000:58a4, seg000:58b1, seg000:58b4, seg000:58c1, seg000:58ce
 attr[seg000:588b]: type = [ofs16(seg000); 8]
@@ -1245,6 +1273,7 @@ attr[seg000:5d36]: name = location_is_Atreides_05d36; fn = in location: *Locatio
 attr[seg000:5d44]: name = location_05d44; fn = in location: *Location @di
 attr[seg000:5d50]: name = location_05d50; fn = in location: *Location @di
 attr[seg000:5d7e]: targets = seg000:4377, seg000:49a0
+attr[seg000:5df1]: ofs_seg = seg001
 attr[seg000:5e4f]: type = code; name = calc_SAL_index
 attr[seg000:5e57]: comment = Atreides Palace: +1.
 attr[seg000:5e5d]: comment = Village: +2.
@@ -1276,9 +1305,10 @@ attr[seg000:62ba]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:62c6]: comment = Draw last name
 attr[seg000:62c9]: name = location_062c9; fn = in location: *Location @si
 attr[seg000:63f0]: type = code; name = iterate_over_all_locations
+attr[seg000:63fb]: ofs_seg = seg001
 attr[seg000:642e]: type = code
 attr[seg000:6447]: type = code; name = location_battle_lost_iterate_over_allied_NPCs_and_do_something_else_sub_06447; fn = in location: *Location @di
-attr[seg000:644e]: type = code; fn = in location: *Location @di
+attr[seg000:644e]: type = code; name = location_0644e; fn = in location: *Location @di
 attr[seg000:6458]: ofs_seg = seg000
 attr[seg000:646f]: type = code
 attr[seg000:64ed]: type = u16
@@ -1286,18 +1316,25 @@ attr[seg000:6500]: targets = seg000:646f, seg000:653a
 attr[seg000:6508]: targets = seg000:646f, seg000:653a
 attr[seg000:6515]: type = code; name = location_06515; fn = in location: *Location @di
 attr[seg000:653a]: type = code
+attr[seg000:6582]: ofs_seg = seg001
 attr[seg000:65b4]: type = u16
+attr[seg000:65e6]: ofs_seg = seg001
 attr[seg000:6603]: type = code; name = call_callback_on_all_troops_in_location; fn = in location: *Location @di, in callback: ofs16(seg000) @bp
 attr[seg000:6616]: let = troop: *Troop @si
 attr[seg000:661d]: type = code; name = call_callback_on_hired_troops_in_location
-attr[seg000:6639]: name = callback_troop_location_06639
+attr[seg000:6639]: name = callback_troop_location_06639; fn = in troop: *Troop @si, in location: *Location @di, in callback: ofs16(seg000) @bp, inout param_1: u16 @bx, inout param_2: u16 @cx
 attr[seg000:663d]: ofs_seg = seg001
+attr[seg000:6640]: let = troop: *Troop @si
+attr[seg000:6668]: ofs_seg = seg001
 attr[seg000:6670]: type = code
 attr[seg000:6678]: ofs_seg = seg000
-attr[seg000:667d]: type = code; name = callback_troop_0667d
-attr[seg000:668f]: name = troop_possibly_part_of_making_troop_captured_0668f
-attr[seg000:66b1]: name = troop_location_066b1
-attr[seg000:66ce]: type = code; name = troop_rally_troop_066ce
+attr[seg000:667d]: type = code; name = callback_troop_0667d; fn = in troop: *Troop @si, in param_1: u8 @bl, inout param_2: u16 @cx
+attr[seg000:668f]: name = troop_possibly_part_of_making_troop_captured_0668f; fn = in troop: *Troop @si
+attr[seg000:66b1]: name = troop_location_066b1; fn = in troop: *Troop @si, in location: *Location @di
+attr[seg000:66c0]: ofs_seg = seg001; let = troop: *Troop @si
+attr[seg000:66ce]: type = code; name = troop_rally_troop_066ce; fn = in troop: *Troop @si
+attr[seg000:66ee]: let = troop: *Troop @si
+attr[seg000:6704]: let = location: *Location @di
 attr[seg000:6715]: ofs_seg = seg001
 attr[seg000:6757]: type = code; fn = in id: u8 @al, out carry: bool @cf
 attr[seg000:676e]: type = code
@@ -1358,9 +1395,11 @@ attr[seg000:6bf5]: type = [ofs16(seg000); 16]; name = array_callbacks_for_troop_
 attr[seg000:6c15]: type = code; name = troop_call_callback_according_to_occupation
 attr[seg000:6c21]: targets = seg000:0f66, seg000:6b8a, seg000:6b96, seg000:6bd7
 attr[seg000:6c26]: type = [ofs16(seg000); 16]; name = array_callbacks_for_troop_occupation_06c26
+attr[seg000:6c7e]: ofs_seg = seg001
 attr[seg000:6c8f]: ofs_seg = seg001
+attr[seg000:6c92]: let = troop: *Troop @si
 attr[seg000:6cba]: targets = seg000:0f66, seg000:6fe5, seg000:70cc, seg000:71ef, seg000:72b0, seg000:739e, seg000:767d, seg000:7693, seg000:7711
-attr[seg000:6cfc]: type = code; name = troop_location_increase_phase_by_1_for_TuonoTabr_CarthagTabr_TuonoTuek_06cfc; comment = Sietch
+attr[seg000:6cfc]: type = code; name = troop_location_increase_phase_by_1_for_TuonoTabr_CarthagTabr_TuonoTuek_06cfc; fn = in troop: *Troop @si, in location: *Location @di; comment = Sietch
 attr[seg000:6d02]: comment = [[[
     Selects the following sietches with phase < 0xC:
     00: 3 first sietches
@@ -1379,31 +1418,31 @@ attr[seg000:6dfc]: ofs_seg = seg000
 attr[seg000:6e02]: type = code; name = location_Arrakeen_Harkonnen_palace_06e02; fn = in location: *Location @di
 attr[seg000:6e04]: ofs_seg = seg000
 attr[seg000:6e0f]: type = code; name = callback_troop_06e0f
-attr[seg000:6e20]: type = code; name = troop_location_06e20
+attr[seg000:6e20]: type = code; name = troop_location_06e20; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:6e66]: ofs_seg = seg000
 attr[seg000:6e71]: ofs_seg = seg000
 attr[seg000:6e77]: comment = Send message type 2 = "Nothing coming from .... I wonder what's going on there!"
-attr[seg000:6e82]: type = code; name = callback_troop_location_06e82
-attr[seg000:6ea8]: type = code; name = callback_troop_06ea8
-attr[seg000:6ebf]: type = code; name = troop_06ebf
+attr[seg000:6e82]: type = code; name = callback_troop_location_06e82; fn = in troop: *Troop @si, in location: *Location @di, inout param_1: u16 @dx
+attr[seg000:6ea8]: type = code; name = callback_troop_06ea8; fn = in troop: *Troop @si
+attr[seg000:6ebf]: type = code; name = troop_06ebf; fn = in troop: *Troop @si
 attr[seg000:6ec3]: ofs_seg = seg000
-attr[seg000:6ecb]: type = code; name = callback_troop_06ecb
-attr[seg000:6edb]: type = code; name = troop_clamp_army_skill_and_do_something_else
-attr[seg000:6edd]: type = code; name = troop_clamp_skill_and_do_something_else
-attr[seg000:6efd]: type = code; name = troop_compute_motivation_modifiers
-attr[seg000:6f48]: type = code; name = troop_increase_motivation
+attr[seg000:6ecb]: type = code; name = callback_troop_06ecb; fn = in troop: *Troop @si
+attr[seg000:6edb]: type = code; name = troop_clamp_army_skill_and_do_something_else; fn = in troop: *Troop @si
+attr[seg000:6edd]: type = code; name = troop_clamp_skill_and_do_something_else; fn = in troop: *Troop @si, in param_1: u16 @bx, in param_2: u8 @al
+attr[seg000:6efd]: type = code; name = troop_compute_motivation_modifiers; fn = in troop: *Troop @si
+attr[seg000:6f48]: type = code; name = troop_increase_motivation; fn = in troop: *Troop @si
 attr[seg000:6f56]: type = code; name = increase_motivation_for_all_active_troops
 attr[seg000:6f57]: ofs_seg = seg001
 attr[seg000:6f78]: type = code; name = increase_charisma_and_increase_troop_motivation_accordingly
-attr[seg000:6f93]: type = code; name = troop_decrease_motivation
+attr[seg000:6f93]: type = code; name = troop_decrease_motivation; fn = in troop: *Troop @si
 attr[seg000:6fb0]: type = code; name = decrease_charisma_and_decrease_troop_motivation_accordingly
 attr[seg000:6fce]: ofs_seg = seg001
-attr[seg000:6fe5]: type = code; name = callback_troop_location_for_troop_occupation_spice_mining
-attr[seg000:7085]: type = code; name = callback_troop_make_troop_stop_working
-attr[seg000:70cc]: type = code; name = callback_troop_location_for_troop_occupation_spice_prospecting
+attr[seg000:6fe5]: type = code; name = callback_troop_location_for_troop_occupation_spice_mining; fn = in troop: *Troop @si, in location: *Location @di
+attr[seg000:7085]: type = code; name = callback_troop_make_troop_stop_working; fn = in troop: *Troop @si
+attr[seg000:70cc]: type = code; name = callback_troop_location_for_troop_occupation_spice_prospecting; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:7144]: comment = Send message type E = "We have finished our prospecting job, here in ...."
 attr[seg000:7148]: type = u8
-attr[seg000:714c]: type = code; name = troop_location_events_for_spice_mining_troops_with_harvesters
+attr[seg000:714c]: type = code; name = troop_location_events_for_spice_mining_troops_with_harvesters; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:7151]: comment = Do nothing if Paul hasn't had a vision yet.
 attr[seg000:7157]: comment = Do nothing if the troop doesn't have a harvester.
 attr[seg000:7163]: comment = Event triggered at period in day (4 LSB of game time) = 4 LSB of troop ID...
@@ -1415,35 +1454,36 @@ attr[seg000:7183]: comment = 0: no harvester attack.
 attr[seg000:718a]: comment = 2: harvester damaged.
 attr[seg000:718c]: comment = 1: harvester not eaten by worm.
 attr[seg000:7191]: comment = Worm ate 20 Fremen.
-attr[seg000:719c]: type = code; name = troop_location_make_harvester_damaged; comment = Harvester took a lot of damage and needs repairing.
+attr[seg000:719c]: type = code; name = troop_make_harvester_damaged; fn = in troop: *Troop @si, in location: *Location @di; comment = Harvester took a lot of damage and needs repairing.
 attr[seg000:71a4]: comment = 3: worm ate a harvester.
 attr[seg000:71a9]: comment = Remove harvester from troop equipment.
 attr[seg000:71ad]: comment = Remove harvester from location equipment.
 attr[seg000:71b0]: comment = [[[Send message type 6 = "A worm has swallowed our harvester here in ..."; fallthrough.]]]
 attr[seg000:71b2]: type = code; name = or_message_ID_with_F00_and_queue_vision_message_with_location
-attr[seg000:71bc]: type = code; name = troop_location_spice_mining_troop_events_randomize_saboteurs
+attr[seg000:71bc]: type = code; name = troop_location_spice_mining_troop_events_randomize_saboteurs; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:71e1]: comment = Troop has saboteurs.
 attr[seg000:71e6]: comment = Location has saboteurs.
 attr[seg000:71ea]: comment = Send message type 3 = "There are saboteurs here in ..."
-attr[seg000:71ef]: type = code; name = callback_troop_location_for_troop_occupation_military_training
-attr[seg000:727d]: type = code; name = troop_location_clear_saboteurs_in_location_and_spice_mining_troops
+attr[seg000:71ef]: type = code; name = callback_troop_location_for_troop_occupation_military_training; fn = in troop: *Troop @si, in location: *Location @di
+attr[seg000:727d]: type = code; name = troop_location_clear_saboteurs_in_location_and_spice_mining_troops; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:7281]: ofs_seg = seg000
-attr[seg000:7289]: type = code; name = callback_troop_remove_saboteurs_in_spice_mining_troop
+attr[seg000:7289]: type = code; name = callback_troop_remove_saboteurs_in_spice_mining_troop; fn = in troop: *Troop @si, inout param_1: u16 @cx
 attr[seg000:7298]: type = code; name = troop_location_accumulate_army_military_training_troops_and_army_skill; ofs_seg = seg000; fn = in troop: *Troop @si, in location: *Location @di, out troop_count: u16 @cx, out skill_sum: u16 @dx
 attr[seg000:72a2]: type = code; name = callback_troop_accumulate_army_military_training_troops_and_army_skill; fn = in troop: *Troop @si, inout troop_count: u16 @cx, inout skill_sum: u16 @dx
-attr[seg000:72b0]: type = code; name = callback_troop_location_for_troop_occupation_espionage
+attr[seg000:72b0]: type = code; name = callback_troop_location_for_troop_occupation_espionage; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:7317]: type = code; name = menu_callback_choice_massive_attack
 attr[seg000:7336]: ofs_seg = seg000
 attr[seg000:733b]: ofs_seg = seg000
 attr[seg000:7399]: type = code; name = troop_make_occupation_military_training
-attr[seg000:739e]: type = code; name = callback_troop_location_for_troop_occupation_attacking
+attr[seg000:739e]: type = code; name = callback_troop_location_for_troop_occupation_attacking; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:73a3]: ofs_seg = seg001
 attr[seg000:73ad]: ofs_seg = seg000
+attr[seg000:73bc]: ofs_seg = seg001
 attr[seg000:73d1]: comment = Send message type A = "The shield is down, the Harkonnen troops here have surrendered!"
 attr[seg000:73d3]: ofs_seg = seg001
 attr[seg000:740b]: ofs_seg = seg000
-attr[seg000:7419]: type = code; name = callback_troop_07419
-attr[seg000:7429]: type = code; name = troop_location_07429
+attr[seg000:7419]: type = code; name = callback_troop_location_07419; fn = in troop: *Troop @si, in location: *Location @di
+attr[seg000:7429]: type = code; name = troop_location_07429; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:742f]: comment = Send message type 7 = "We won the battle Muad'Dib, here in ...! Yaoouuuh!"
 attr[seg000:743e]: ofs_seg = seg000
 attr[seg000:7443]: type = code; name = location_battle_won_07443; fn = in location: *Location @di
@@ -1461,22 +1501,28 @@ attr[seg000:7516]: type = code; name = callback_troop_07516
 attr[seg000:751d]: type = code; name = troop_0751d
 attr[seg000:7552]: type = code; name = callback_troop_07552
 attr[seg000:758d]: type = code; name = troop_leaf_fn_0758d
-attr[seg000:75af]: type = code; name = callback_troop_location_after_battle_won_075af
+attr[seg000:75af]: type = code; name = callback_troop_location_after_battle_won_075af; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:75b1]: ofs_seg = seg001
-attr[seg000:75ea]: type = code; name = callback_troop_location_after_battle_won_randomize_slaved_troop_parameters_075ea
-attr[seg000:762a]: type = code; name = callback_troop_location_make_slaved_by_Hakonnen_if_conditions_met_0762a
-attr[seg000:764d]: type = code; name = callback_troop_location_Arrakeen_Harkonnen_palace_0764d
+attr[seg000:75ea]: type = code; name = callback_troop_location_after_battle_won_randomize_slaved_troop_parameters_075ea; fn = in troop: *Troop @si, in location: *Location @di
+attr[seg000:762a]: type = code; name = callback_troop_location_make_slaved_by_Hakonnen_if_conditions_met_0762a; fn = in troop: *Troop @si, in location: *Location @di
+attr[seg000:764d]: type = code; name = callback_troop_location_Arrakeen_Harkonnen_palace_0764d; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:765e]: name = location_count_total_atomics_and_add_more_to_location_if_necessary_0765e; fn = in location: *Location @di
 attr[seg000:7661]: ofs_seg = seg001
 attr[seg000:7664]: let = location: *Location @si
-attr[seg000:767d]: type = code; name = callback_troop_location_for_troop_occupation_bulb_growing_spawn_16_bulbs_if_growing_progress_over
-attr[seg000:7693]: type = code; name = callback_troop_location_for_troop_occupation_irrigation_and_tree_care_possibly_spawn_first_vegetation_in_location
-attr[seg000:7711]: type = code; name = callback_troop_location_for_troop_occupation_wind_trap_assembly_possibly_create_first_wind_trap
+attr[seg000:767d]: type = code; name = callback_troop_location_for_troop_occupation_bulb_growing_spawn_16_bulbs_if_growing_progress_over; fn = in troop: *Troop @si, in location: *Location @di
+attr[seg000:7693]: type = code; name = callback_troop_location_for_troop_occupation_irrigation_and_tree_care_possibly_spawn_first_vegetation_in_location; fn = in troop: *Troop @si, in location: *Location @di
+attr[seg000:7711]: type = code; name = callback_troop_location_for_troop_occupation_wind_trap_assembly_possibly_create_first_wind_trap; fn = in troop: *Troop @si, in location: *Location @di
+attr[seg000:7725]: comment = Wind-trap.
 attr[seg000:7734]: type = code; name = menu_callback_choice_troop_occupation_army_troop_go_search_for_equipment
+attr[seg000:7737]: let = troop: *Troop @si
 attr[seg000:775c]: type = code; name = menu_callback_choice_troop_occupation_ecology_troop_go_search_for_equipment
+attr[seg000:775f]: let = troop: *Troop @si
 attr[seg000:776d]: type = code; name = menu_callback_choice_troop_occupation_spice_troop_go_search_for_equipment
-attr[seg000:77d7]: name = troop_077d7
-attr[seg000:780a]: name = troop_0780a
+attr[seg000:7770]: let = troop: *Troop @si
+attr[seg000:7780]: name = go_search_for_equipment_troop_needs_something
+attr[seg000:77d7]: name = troop_077d7; fn = in troop: *Troop @si
+attr[seg000:77da]: let = troop: *Troop @si
+attr[seg000:780a]: name = troop_0780a; fn = in troop: *Troop @si
 attr[seg000:780d]: ofs_seg = seg001
 attr[seg000:7821]: ofs_seg = seg001
 attr[seg000:782a]: ofs_seg = seg001
@@ -1506,7 +1552,7 @@ attr[seg000:7d23]: ofs_seg = seg001
 attr[seg000:7d39]: ofs_seg = seg001
 attr[seg000:7d68]: type = code
 attr[seg000:7d75]: ofs_seg = seg001
-attr[seg000:7d81]: name = troop_07d81
+attr[seg000:7d81]: name = troop_07d81; fn = in troop: *Troop @si
 attr[seg000:7dd9]: name = leaf_fn_07dd9; ofs_seg = seg001
 attr[seg000:7ddc]: ofs_seg = seg001
 attr[seg000:7ddf]: ofs_seg = seg001
@@ -1525,9 +1571,10 @@ attr[seg000:7f11]: name = troop_compute_troop_equipment_from_location_style_equi
 attr[seg000:7f12]: ofs_seg = seg001
 attr[seg000:7f1b]: ofs_seg = seg001
 attr[seg000:7f2a]: type = code; name = location_iterate_on_troops_in_location; fn = in location: *Location @di
+attr[seg000:7f41]: let = troop: *Troop @si
 attr[seg000:7f5f]: name = troop_location_register_troop_equipment_into_location_equipment_07f5f
 attr[seg000:7f75]: name = troop_location_unregister_troop_equipment_from_location_equipment_07f75
-attr[seg000:7f90]: name = troop_07f90
+attr[seg000:7f90]: name = troop_07f90; fn = in troop: *Troop @si
 attr[seg000:7fe8]: ofs_seg = seg001
 attr[seg000:7fef]: ofs_seg = seg001
 attr[seg000:8018]: type = code; name = location_leaf_fn_iterate_on_troops_and_do_stuff_08018; ofs_seg = seg001; fn = in location: *Location @di
@@ -1990,7 +2037,9 @@ attr[seg000:b379]: comment = "SAVE ERROR"
 attr[seg000:b389]: type = code; name = create_save_cl
 attr[seg000:b3b0]: type = code; name = menu_callback_choice_globe_load_game
 attr[seg000:b427]: type = code; name = create_save_in_memory
+attr[seg000:b45d]: ofs_seg = seg001
 attr[seg000:b473]: type = code; name = restore_from_save_memory
+attr[seg000:b4aa]: ofs_seg = seg001
 attr[seg000:b4bb]: type = code; name = decompress_sav
 attr[seg000:b4bc]: comment = Read RLE control byte
 attr[seg000:b4bf]: comment = Read input size
@@ -2078,6 +2127,7 @@ attr[seg000:bf2f]: comment = "  0%"
 attr[seg000:bf55]: type = code
 attr[seg000:bfa7]: type = code; name = string_update_ordinal_suffix
 attr[seg000:bfe3]: type = code; name = map_func
+attr[seg000:bfe8]: ofs_seg = seg001
 attr[seg000:c051]: ofs_seg = seg001
 attr[seg000:c07c]: type = code; name = set_fb1_as_active_framebuffer
 attr[seg000:c085]: type = code; name = set_backbuffer_as_frame_buffer
@@ -2948,6 +2998,7 @@ attr[seg001:1170]: type = u16
 attr[seg001:1172]: type = u16
 attr[seg001:1174]: type = u16
 attr[seg001:1176]: type = u16
+attr[seg001:1178]: type = u8; name = number_of_rallied_troops_for_Leto_being_killed
 attr[seg001:118d]: type = u16
 attr[seg001:1190]: type = u8
 attr[seg001:1191]: type = u16
