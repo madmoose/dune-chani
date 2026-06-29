@@ -39,176 +39,176 @@ segment[segvga]:
 end
 
 struct[CmdArg]:
-    name  = str(3)
-    flags = u16
-    field = ofs16(seg001)
+    field[name]: type = str(3)
+    field[flags]: type = u16
+    field[field]: type = ofs16(seg001)
 end
 
 struct[CursorShape]:
-    hotspot_x = dec(u16)
-    hotspot_y = dec(u16)
-    and_mask  = [bin(u16); 16]
-    or_mask   = [bin(u16); 16]
+    field[hotspot_x]: type = dec(u16)
+    field[hotspot_y]: type = dec(u16)
+    field[and_mask]: type = [bin(u16); 16]
+    field[or_mask]: type = [bin(u16); 16]
 end
 
 struct[Equipment]:
-    harvesters       = u8
-    ornithopters     = u8
-    krys_knives      = u8
-    laser_guns       = u8
-    weirding_modules = u8
-    atomics          = u8
-    bulbs            = u8
+    field[harvesters]: type = u8
+    field[ornithopters]: type = u8
+    field[krys_knives]: type = u8
+    field[laser_guns]: type = u8
+    field[weirding_modules]: type = u8
+    field[atomics]: type = u8
+    field[bulbs]: type = u8
 end
 
 struct[FrameTask]:
-    interval    = dec(u16)
-    accumulator = dec(u16)
-    callback    = ofs16(seg000)
+    field[interval]: type = dec(u16)
+    field[accumulator]: type = dec(u16)
+    field[callback]: type = ofs16(seg000)
 end
 
 struct[IntroPart]:
-    wait_init  = u16
-    init       = ofs16
-    wait_play  = u16
-    transition = u16
-    play       = ofs16
-    wait_pcm   = dec(u16)
+    field[wait_init]: type = u16
+    field[init]: type = ofs16
+    field[wait_play]: type = u16
+    field[transition]: type = u16
+    field[play]: type = ofs16
+    field[wait_pcm]: type = dec(u16)
 end
 
 struct[Location]:
-    first_name            = dec(u8)
-    last_name             = dec(u8)
-    map_x                 = signed(u16)
-    map_y                 = signed(u16)
-    another_x             = u16
-    appearance            = u8
-    troop_id              = u8
-    status                = bin(u8)
-    discoverable_at_phase = signed(u8)
-    field_C               = u16
-    field_E               = u16
-    spice_field_id        = u8
-    spice_amount          = u8
-    spice_density         = u8
-    field_13              = u8
-    equipment             = Equipment
-    water                 = u8
+    field[first_name]: type = dec(u8)
+    field[last_name]: type = dec(u8)
+    field[map_x]: type = signed(u16)
+    field[map_y]: type = signed(u16)
+    field[another_x]: type = u16
+    field[appearance]: type = u8
+    field[troop_id]: type = u8
+    field[status]: type = bin(u8)
+    field[discoverable_at_phase]: type = signed(u8)
+    field[field_C]: type = u16
+    field[field_E]: type = u16
+    field[spice_field_id]: type = u8
+    field[spice_amount]: type = u8
+    field[spice_density]: type = u8
+    field[field_13]: type = u8
+    field[equipment]: type = Equipment
+    field[water]: type = u8
 end
 
 struct[MenuEntry]:
-    id       = u16
-    callback = ofs16(seg000)
+    field[id]: type = u16
+    field[callback]: type = ofs16(seg000)
 end
 
 struct[MenuFence]:
-    fence = u16
+    field[fence]: type = u16
 end
 
 struct[MenuHeader]:
-    flags = u16
+    field[flags]: type = u16
 end
 
 struct[MouseHandlers]:
-    idle        = ofs16(seg000)
-    lmb         = ofs16(seg000)
-    rmb         = ofs16(seg000)
-    release     = ofs16(seg000)
-    rmb_release = ofs16(seg000)
-    drag        = ofs16(seg000)
-    rmb_drag    = ofs16(seg000)
+    field[idle]: type = ofs16(seg000)
+    field[lmb]: type = ofs16(seg000)
+    field[rmb]: type = ofs16(seg000)
+    field[release]: type = ofs16(seg000)
+    field[rmb_release]: type = ofs16(seg000)
+    field[drag]: type = ofs16(seg000)
+    field[rmb_drag]: type = ofs16(seg000)
 end
 
 struct[PalaceRoom]:
-    background = hex(u8)
-    exits      = [u8; 4]
+    field[background]: type = hex(u8)
+    field[exits]: type = [u8; 4]
 end
 
 struct[Rect]:
-    x0 = dec(u16)
-    y0 = dec(u16)
-    x1 = dec(u16)
-    y1 = dec(u16)
+    field[x0]: type = dec(u16)
+    field[y0]: type = dec(u16)
+    field[x1]: type = dec(u16)
+    field[y1]: type = dec(u16)
 end
 
 struct[ResTableEntry]:
-    unk0 = u16
-    name = cstr
+    field[unk0]: type = u16
+    field[name]: type = cstr
 end
 
 struct[RoomPerson]:
-    location_and_room = hex(u16)
-    location_slot     = hex(u16)
-    handler           = ofs16(seg000)
-    not_just_padding  = [u8; 8]
-    person_index      = dec(u8)
-    flags             = hex(u8)
+    field[location_and_room]: type = hex(u16)
+    field[location_slot]: type = hex(u16)
+    field[handler]: type = ofs16(seg000)
+    field[not_just_padding]: type = [u8; 8]
+    field[person_index]: type = dec(u8)
+    field[flags]: type = hex(u8)
 end
 
 struct[Smuggler]:
-    region                 = dec(u8)
-    willingness_to_haggle  = dec(u8)
-    field_2                = u8
-    field_3                = u8
-    harvesters             = dec(u8)
-    ornithopters           = dec(u8)
-    krys_knives            = dec(u8)
-    laser_guns             = dec(u8)
-    weirding_modules       = dec(u8)
-    harvesters_price       = dec(u8)
-    ornithopters_price     = dec(u8)
-    krys_knives_price      = dec(u8)
-    laser_guns_price       = dec(u8)
-    weirding_modules_price = dec(u8)
-    not_just_padding       = [u8; 3]
+    field[region]: type = dec(u8)
+    field[willingness_to_haggle]: type = dec(u8)
+    field[field_2]: type = u8
+    field[field_3]: type = u8
+    field[harvesters]: type = dec(u8)
+    field[ornithopters]: type = dec(u8)
+    field[krys_knives]: type = dec(u8)
+    field[laser_guns]: type = dec(u8)
+    field[weirding_modules]: type = dec(u8)
+    field[harvesters_price]: type = dec(u8)
+    field[ornithopters_price]: type = dec(u8)
+    field[krys_knives_price]: type = dec(u8)
+    field[laser_guns_price]: type = dec(u8)
+    field[weirding_modules_price]: type = dec(u8)
+    field[not_just_padding]: type = [u8; 3]
 end
 
 struct[Troop]:
-    troop_id                   = dec(u8)
-    next_troop_id              = dec(u8)
-    position                   = dec(u8)
-    occupation                 = hex(u8)
-    offset_of_location         = hex(u16)
-    gps_coordinates_1          = signed(u16)
-    gps_coordinates_2          = signed(u16)
-    time_period_of_ralliement  = dec(u16)
-    field_C                    = u16
-    field_E                    = u16
-    bitfield_10                = bin(u16)
-    dissatisfaction_and_speech = u16
-    game_day_of_ralliement     = dec(u8)
-    motivation                 = dec(u8)
-    spice_skill                = dec(u8)
-    army_skill                 = dec(u8)
-    ecology_skill              = dec(u8)
-    equipment                  = bin(u8)
-    population                 = dec(u8)
+    field[troop_id]: type = dec(u8)
+    field[next_troop_id]: type = dec(u8)
+    field[position]: type = dec(u8)
+    field[occupation]: type = hex(u8)
+    field[offset_of_location]: type = hex(u16)
+    field[gps_coordinates_1]: type = signed(u16)
+    field[gps_coordinates_2]: type = signed(u16)
+    field[time_period_of_ralliement]: type = dec(u16)
+    field[troop_occupation_dependent_C]: type = u16; comment = Usage depends on occupation, see seg001:0044 for more details.
+    field[troop_occupation_dependent_E]: type = u16; comment = Usage depends on occupation, see seg001:0046 for more details.
+    field[bitfield_10]: type = bin(u16)
+    field[dissatisfaction_and_speech]: type = u16
+    field[game_day_of_ralliement]: type = dec(u8)
+    field[motivation]: type = dec(u8)
+    field[spice_skill]: type = dec(u8)
+    field[army_skill]: type = dec(u8)
+    field[ecology_skill]: type = dec(u8)
+    field[equipment]: type = bin(u8)
+    field[population]: type = dec(u8)
 end
 
 struct[UIElement]:
-    x0        = dec(u16)
-    y0        = dec(u16)
-    x1        = dec(u16)
-    y1        = dec(u16)
-    flags     = hex(u16)
-    sprite_id = dec(u16)
-    func_ptr  = ofs16(seg000)
+    field[x0]: type = dec(u16)
+    field[y0]: type = dec(u16)
+    field[x1]: type = dec(u16)
+    field[y1]: type = dec(u16)
+    field[flags]: type = hex(u16)
+    field[sprite_id]: type = dec(u16)
+    field[func_ptr]: type = ofs16(seg000)
 end
 
 struct[UIFriezeSprite]:
-    flags     = u16
-    sprite_id = u16
+    field[flags]: type = u16
+    field[sprite_id]: type = u16
 end
 
 struct[UISprite]:
-    index = u16
-    y     = u16
-    x     = u16
+    field[index]: type = u16
+    field[y]: type = u16
+    field[x]: type = u16
 end
 
 struct[XY]:
-    x = dec(u16)
-    y = dec(u16)
+    field[x]: type = dec(u16)
+    field[y]: type = dec(u16)
 end
 
 attr[seg000:0000]: type = code; name = start; ofs_seg = seg001
