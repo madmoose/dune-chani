@@ -119,7 +119,7 @@ struct[MouseHandlers]:
     field[rmb_drag]: type = ofs16(seg000)
 end
 
-struct[PalaceRoom]:
+struct[LocationRoom]:
     field[background]: type = hex(u8)
     field[exits]: type = [u8; 4]
 end
@@ -3797,7 +3797,7 @@ attr[seg001:1207]: type = u16; name = subst_id_0e; comment = string_subst_id_tab
 attr[seg001:1209]: type = u16; name = subst_id_0f; comment = string_subst_id_table[15]: placeholder 0x8f default id 0fh = COMMAND "Tabr".
 attr[seg001:120b]: name = _stru_206BB_icon_list
 attr[seg001:1223]: type = u16
-attr[seg001:1225]: type = [PalaceRoom; 12]; name = palace_rooms; comment = [[[
+attr[seg001:1225]: type = [LocationRoom; 12]; name = atreides_palace_rooms; comment = [[[
     Per-location scene descriptors for palace-category locations. Selected by
     draw_SAL via loc_03efe: [13c4 table][dh] picks this table for dh=0x20, and
     the dx low byte (dl) indexes it as palace_rooms[dl-1].
@@ -3821,7 +3821,29 @@ attr[seg001:1225]: type = [PalaceRoom; 12]; name = palace_rooms; comment = [[[
                     rebuild_and_draw_room_nav_panel (seg000:305c) shows as a
                     visible HUD arrow; the rest are in-scene/scripted exits.
 ]]]
-attr[seg001:1261]: name = sietch_rooms
+attr[seg001:1261]: type = [LocationRoom; 2]; name = appearance_00_rooms
+attr[seg001:126b]: type = [LocationRoom; 2]; name = appearance_01_11_rooms
+attr[seg001:1275]: type = [LocationRoom; 2]; name = appearance_02_12_rooms
+attr[seg001:127f]: type = [LocationRoom; 2]; name = appearance_03_13_rooms
+attr[seg001:1289]: type = [LocationRoom; 2]; name = appearance_04_14_rooms
+attr[seg001:1293]: type = [LocationRoom; 3]; name = appearance_05_15_rooms
+attr[seg001:12a2]: type = [LocationRoom; 3]; name = appearance_06_16_rooms
+attr[seg001:12b1]: type = [LocationRoom; 3]; name = appearance_07_17_rooms
+attr[seg001:12c0]: type = [LocationRoom; 4]; name = appearance_08_18_rooms
+attr[seg001:12d4]: type = [LocationRoom; 4]; name = appearance_09_19_rooms
+attr[seg001:12e8]: type = [LocationRoom; 4]; name = appearance_0a_1a_rooms
+attr[seg001:12fc]: type = [LocationRoom; 4]; name = appearance_0b_1b_rooms
+attr[seg001:1310]: type = [LocationRoom; 4]; name = appearance_0c_1c_rooms
+attr[seg001:1324]: type = [LocationRoom; 4]; name = appearance_0d_1d_rooms
+attr[seg001:1338]: type = [LocationRoom; 4]; name = appearance_0e_1e_rooms
+attr[seg001:134c]: type = [LocationRoom; 4]; name = appearance_0f_1f_rooms
+attr[seg001:1360]: type = [LocationRoom; 5]; name = appearance_10_rooms
+attr[seg001:1379]: type = [LocationRoom; 1]; name = appearance_21_22_23_24_25_26_27_rooms
+attr[seg001:137e]: type = [LocationRoom; 3]; name = appearance_28_2c_rooms
+attr[seg001:138d]: type = [LocationRoom; 3]; name = appearance_29_2d_rooms
+attr[seg001:139c]: type = [LocationRoom; 3]; name = appearance_2a_2e_rooms
+attr[seg001:13ab]: type = [LocationRoom; 3]; name = appearance_2b_2f_rooms
+attr[seg001:13ba]: type = [LocationRoom; 2]; name = harkonnen_palace_rooms
 attr[seg001:13c4]: type = [ofs16(seg001); 49]
 attr[seg001:1426]: type = u16
 attr[seg001:1428]: type = u16
