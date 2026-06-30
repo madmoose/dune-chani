@@ -96,6 +96,11 @@ struct[Location]:
     field[water]: type = u8
 end
 
+struct[LocationRoom]:
+    field[background]: type = hex(u8)
+    field[exits]: type = [u8; 4]
+end
+
 struct[MenuEntry]:
     field[id]: type = u16
     field[callback]: type = ofs16(seg000)
@@ -117,11 +122,6 @@ struct[MouseHandlers]:
     field[rmb_release]: type = ofs16(seg000)
     field[drag]: type = ofs16(seg000)
     field[rmb_drag]: type = ofs16(seg000)
-end
-
-struct[LocationRoom]:
-    field[background]: type = hex(u8)
-    field[exits]: type = [u8; 4]
 end
 
 struct[Rect]:
@@ -709,7 +709,7 @@ attr[seg000:1b0c]: type = code
 attr[seg000:1b0d]: type = code; name = game_loop_sub_01b0d
 attr[seg000:1b23]: type = code; name = run_events_for_current_time_period
 attr[seg000:1b7d]: targets = seg000:1dd3, seg000:1dd4, seg000:1dd7, seg000:1dda, seg000:1dfe
-attr[seg000:1c46]: type = code; name = run_events_for_current_time_period_sub_01c46
+attr[seg000:1c46]: type = code; name = run_events_for_current_time_period_new_day_01c46
 attr[seg000:1cab]: ofs_seg = seg001
 attr[seg000:1cda]: type = code; name = iterate_over_locations_and_accumulate_number_of_Atreides_locations_and_value_related_to_spice_density; ofs_seg = seg001
 attr[seg000:1d10]: type = code; name = randomly_increase_all_harkonnen_troops_head_count_by_10
@@ -755,7 +755,8 @@ attr[seg000:1fd5]: ofs_seg = seg001
 attr[seg000:1fe7]: comment = Send message type C = "The Harkonnens are attacking ...!"
 attr[seg000:1fe9]: ofs_seg = seg001
 attr[seg000:1ff1]: comment = Send message type D = "The Harkonnens are attacking ...! Be careful Muad'Dib, the prospecting troop might be involved in the fight."
-attr[seg000:2017]: type = code; name = ui_comm; ofs_seg = seg001
+attr[seg000:2017]: type = code; name = ui_comm; ofs_seg = seg001; fn = out location: *Location @di, out zf: *bool @zf
+attr[seg000:201a]: let = location: *Location @di
 attr[seg000:205d]: ofs_seg = seg001; comment = Atreides (Carthag) palace.
 attr[seg000:20a4]: name = actions_time_in_day_3
 attr[seg000:2165]: type = [u8; 11]
@@ -979,10 +980,11 @@ attr[seg000:332c]: ofs_seg = seg001
 attr[seg000:3351]: ofs_seg = seg001
 attr[seg000:3363]: ofs_seg = seg001
 attr[seg000:3385]: type = code; name = prepare_location_data_for_condit_sub_03385
+attr[seg000:3392]: ofs_seg = seg001
 attr[seg000:339e]: ofs_seg = seg001; comment = Gurney Halleck.
 attr[seg000:33a4]: ofs_seg = seg001; comment = Stilgar.
 attr[seg000:33aa]: ofs_seg = seg001; comment = Chani.
-attr[seg000:33ad]: type = code; name = NPC_033ad; fn = in npc: *RoomPerson @si, in location_slot: u16 @bx
+attr[seg000:33ad]: type = code; name = NPC_mark_presence_at_ds_f7_if_in_location_033ad; fn = in npc: *RoomPerson @si, in location_slot: u16 @bx
 attr[seg000:33be]: name = location_033be; fn = in location: *Location @di, out retval: u8 @al
 attr[seg000:33cc]: ofs_seg = seg000
 attr[seg000:33d9]: name = location_033be_sub_033d9; fn = out retval: u8 @al
@@ -1226,7 +1228,8 @@ attr[seg000:44ab]: type = code; name = frame_task_callback_044ab
 attr[seg000:44bc]: ofs_seg = seg001
 attr[seg000:44cd]: ofs_seg = seg001
 attr[seg000:44d0]: let = rect: *Rect @si
-attr[seg000:450e]: type = code
+attr[seg000:450e]: type = code; name = mouse_handler_0450e
+attr[seg000:4586]: type = code; name = mouse_handler_04586
 attr[seg000:460f]: comment = "DESERT"
 attr[seg000:461c]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:4625]: comment = "northwards", etc.
@@ -1375,8 +1378,8 @@ attr[seg000:5909]: ofs_seg = seg001
 attr[seg000:5912]: ofs_seg = seg001
 attr[seg000:5923]: type = code
 attr[seg000:5997]: targets = segvga:0181
-attr[seg000:599f]: type = code
-attr[seg000:59c1]: type = code
+attr[seg000:599f]: type = code; name = mouse_handler_0599f
+attr[seg000:59c1]: type = code; name = mouse_handler_059c1
 attr[seg000:59d1]: ofs_seg = seg001
 attr[seg000:5a03]: type = code
 attr[seg000:5a1a]: name = ui_show_globe_map_view; comment = [[[
@@ -1420,13 +1423,14 @@ attr[seg000:5bb3]: ofs_seg = seg001
 attr[seg000:5bc0]: comment = "ALL TOPICS"
 attr[seg000:5bc3]: comment = "           DUNE  MAP\\n* Map to command rallied troops *\\n\\n  Number of rallied troops =   0"
 attr[seg000:5be5]: comment = "           DUNE  MAP\\n* Map to command rallied troops *\\n\\n  Number of rallied troops =   0"
+attr[seg000:5c03]: type = code; name = mouse_handler_05c03
 attr[seg000:5c07]: ofs_seg = seg001
 attr[seg000:5c14]: arg[1] = dec
 attr[seg000:5c22]: ofs_seg = seg001
 attr[seg000:5c2c]: ofs_seg = seg001
-attr[seg000:5c76]: type = code
+attr[seg000:5c76]: type = code; name = mouse_handler_05c76
 attr[seg000:5c89]: ofs_seg = seg001
-attr[seg000:5ce4]: type = code
+attr[seg000:5ce4]: type = code; name = mouse_handler_05ce4
 attr[seg000:5cf9]: ofs_seg = seg001
 attr[seg000:5d36]: name = location_is_Atreides_05d36; fn = in location: *Location @di
 attr[seg000:5d44]: name = location_05d44; fn = in location: *Location @di
@@ -1468,7 +1472,7 @@ attr[seg000:62ad]: comment = Draw first name
 attr[seg000:62ba]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:62c6]: comment = Draw last name
 attr[seg000:62c9]: name = location_062c9; fn = in location: *Location @si
-attr[seg000:63f0]: type = code; name = iterate_over_all_locations
+attr[seg000:63f0]: type = code; name = iterate_over_all_locations_upon_new_day
 attr[seg000:63fb]: ofs_seg = seg001
 attr[seg000:642e]: type = code
 attr[seg000:6447]: type = code; name = location_battle_lost_iterate_over_allied_NPCs_and_do_something_else_sub_06447; fn = in location: *Location @di
@@ -1557,7 +1561,7 @@ attr[seg000:6ac5]: name = troop_06ac5; fn = in troop: *Troop @si, in param_1: u8
 attr[seg000:6acb]: name = troop_06acb; fn = in troop: *Troop @si, in param_1: u8 @cl
 attr[seg000:6ad4]: name = troop_06ad4; fn = in troop: *Troop @si, in param_1: u8 @cl
 attr[seg000:6ad7]: let = location: *Location @di
-attr[seg000:6b25]: name = troop_set_timePeriodOfRalliement_clear_field_C_clear_field_E_06b25
+attr[seg000:6b25]: name = troop_set_timePeriodOfRalliement_clear_troop_occupation_dependent_fields_06b25
 attr[seg000:6b34]: type = code; name = frame_task_callback_06b34
 attr[seg000:6b4b]: ofs_seg = seg001
 attr[seg000:6b8a]: type = code; name = troop_location_test_for_location_area_prospected; fn = in troop: *Troop @si, in location: *Location @di
@@ -1591,7 +1595,7 @@ attr[seg000:6dfc]: ofs_seg = seg000
 attr[seg000:6e02]: type = code; name = location_Arrakeen_Harkonnen_palace_06e02; fn = in location: *Location @di
 attr[seg000:6e04]: ofs_seg = seg000
 attr[seg000:6e0f]: type = code; name = callback_troop_06e0f
-attr[seg000:6e20]: type = code; name = troop_location_06e20; fn = in troop: *Troop @si, in location: *Location @di
+attr[seg000:6e20]: type = code; name = troop_location_do_stuff_upon_new_day_06e20; fn = in troop: *Troop @si, in location: *Location @di
 attr[seg000:6e66]: ofs_seg = seg000
 attr[seg000:6e71]: ofs_seg = seg000
 attr[seg000:6e77]: comment = Send message type 2 = "Nothing coming from .... I wonder what's going on there!"
@@ -1602,7 +1606,7 @@ attr[seg000:6ec3]: ofs_seg = seg000
 attr[seg000:6ecb]: type = code; name = callback_troop_06ecb; fn = in troop: *Troop @si
 attr[seg000:6edb]: type = code; name = troop_clamp_army_skill_and_do_something_else; fn = in troop: *Troop @si
 attr[seg000:6edd]: type = code; name = troop_clamp_skill_and_do_something_else; fn = in troop: *Troop @si, in param_1: u16 @bx, in param_2: u8 @al
-attr[seg000:6efd]: type = code; name = troop_compute_motivation_modifiers; fn = in troop: *Troop @si
+attr[seg000:6efd]: type = code; name = troop_compute_motivation_modifier; fn = in troop: *Troop @si
 attr[seg000:6f48]: type = code; name = troop_increase_motivation; fn = in troop: *Troop @si
 attr[seg000:6f56]: type = code; name = increase_motivation_for_all_active_troops
 attr[seg000:6f57]: ofs_seg = seg001
@@ -1804,7 +1808,7 @@ attr[seg000:814f]: ofs_seg = seg001
 attr[seg000:8155]: ofs_seg = seg001
 attr[seg000:81c9]: ofs_seg = seg001
 attr[seg000:81cc]: targets = segvga:0139
-attr[seg000:81ec]: type = code
+attr[seg000:81ec]: type = code; name = mouse_handler_081ec
 attr[seg000:8214]: type = code; name = menu_callback_choice_map_move_prospectors_done
 attr[seg000:821a]: ofs_seg = seg001
 attr[seg000:8221]: ofs_seg = seg001
@@ -2202,11 +2206,12 @@ attr[seg000:a541]: type = code
 attr[seg000:a54d]: ofs_seg = seg001
 attr[seg000:a553]: type = code
 attr[seg000:a56c]: ofs_seg = seg001
-attr[seg000:a576]: type = code; ofs_seg = seg001
+attr[seg000:a576]: type = code; name = mouse_handler_0a576; ofs_seg = seg001
 attr[seg000:a584]: ofs_seg = seg001
 attr[seg000:a58c]: ofs_seg = seg001
+attr[seg000:a5aa]: name = mouse_handler_0a5aa; ofs_seg = seg001
 attr[seg000:a5b9]: ofs_seg = seg001
-attr[seg000:a5df]: type = code
+attr[seg000:a5df]: type = code; name = mouse_handler_0a5df
 attr[seg000:a672]: ofs_seg = seg001
 attr[seg000:a67a]: ofs_seg = seg001
 attr[seg000:a682]: ofs_seg = seg001
@@ -3291,14 +3296,14 @@ attr[seg001:0002]: type = u16; name = game_time
 attr[seg001:0004]: type = u16; name = location_and_room
 attr[seg001:0005]: comment = [[[High byte of location_and_room: the current location code (dh); < 0x20 = sietch.]]]
 attr[seg001:0006]: type = u16; name = location_appearance
-attr[seg001:0008]: type = u8; name = current_scene
+attr[seg001:0008]: type = u8; name = current_scene; comment = 0x1 for outside a location, 0xFF for desert.
 attr[seg001:0009]: type = u8
 attr[seg001:000a]: type = u8; name = bitfield_Paul_events; comment = [[[
     Bit 6: ridden a worm.
     Bit 5: met Liet Kynes.
-    Bit 4: met Stilgar.
-    Bit 3: has drunk the Water of life: set by Stilgar's dialog when drinking the Water of Life.
-    Bit 1: has obtained large charisma: set by Stilgar's dialog when Paul's charisma is >= 100, read by Jessica's dialog.
+    Bit 4: met Stilgar; now able to recruit army troops.
+    Bit 3: has heard about the Water of Life: set by Stilgar's dialogue when seeing a wind trap, read by Jessica's dialog.
+    Bit 1: has drunk the Water of life: set by Stilgar's dialogue when drinking the Water of Life.
     Bit 0: has had a vision: set at game phase 14.
 ]]]
 attr[seg001:000b]: type = u8; name = current_room
@@ -3309,16 +3314,16 @@ attr[seg001:0010]: type = u16; name = persons_travelling_with
 attr[seg001:0012]: type = u16; name = persons_in_room
 attr[seg001:0014]: type = u16; name = persons_talking_to
 attr[seg001:0016]: type = u16; name = for_condit_ds_16
-attr[seg001:0018]: type = u8; comment = FLAGS: 0x04 - Left Jessica in the desert
-attr[seg001:0019]: type = u8
-attr[seg001:001a]: type = u8
-attr[seg001:001b]: type = u8
-attr[seg001:001c]: type = u8
-attr[seg001:001d]: type = u8
-attr[seg001:001e]: type = u8
-attr[seg001:001f]: type = u8
-attr[seg001:0020]: type = u16
-attr[seg001:0022]: type = u8
+attr[seg001:0018]: type = u8; name = for_condit_ds_18; comment = FLAGS: 0x04 - Left Jessica in the desert
+attr[seg001:0019]: type = u8; name = for_condit_ds_19
+attr[seg001:001a]: type = u8; name = related_to_arguing_ds_1a
+attr[seg001:001b]: type = u8; name = related_to_stay_here_come_with_me_ds_1b
+attr[seg001:001c]: type = u8; name = related_to_paying_smuggler_bills_ds_1c
+attr[seg001:001d]: type = u8; name = current_smuggler_willingness_to_haggle_ds_1d
+attr[seg001:001e]: type = u8; name = current_smuggler_number_of_days_since_previous_encounter_ds_1e
+attr[seg001:001f]: type = u8; name = related_to_paying_smuggler_bills_ds_1f
+attr[seg001:0020]: type = u16; name = current_smuggler_bill_value_ds_20
+attr[seg001:0022]: type = u8; name = smuggler_bills_count_ds_22
 attr[seg001:0023]: type = u8; name = pending_room_action; comment = [[[
     Pending room-action / leave-dialogue state code (u8), armed when the player picks
     a move-room verb (ui_click_move_room: seg000:3faa stages pending_destination_room
@@ -3332,7 +3337,7 @@ attr[seg001:0023]: type = u8; name = pending_room_action; comment = [[[
     by sub 64h; the <64h test at seg000:359c separates menu codes from person codes).
     Cleared to 0 after the scan (seg000:36e8) or once the move proceeds.
 ]]]
-attr[seg001:0024]: type = u8
+attr[seg001:0024]: type = u8; name = for_dialogue_enemies_ds_24; comment = Used by the dialogues of Baron Vladimir Harkonnen, Feyd-Rautha Harkonnen and Emperor Shaddam IV.
 attr[seg001:0025]: type = u8; name = number_of_sietches_visited
 attr[seg001:0026]: type = u8; name = entering_new_sietch
 attr[seg001:0027]: type = u8; name = discovered_sietch_count
@@ -3351,69 +3356,125 @@ attr[seg001:002e]: type = u8; name = for_condit_troop_troop_id_ds_2e
 attr[seg001:002f]: type = u8; name = for_condit_troop_occupation_and_0xf_ds_2f
 attr[seg001:0030]: type = u8; name = for_condit_troop_occupation_ds_30
 attr[seg001:0031]: type = u8; name = for_condit_troop_dissatisfactionAndSpeech_and_0xf_ds_31
-attr[seg001:0032]: type = u16; name = for_condit_troop_bitfield_10_ds_32
-attr[seg001:0034]: type = u16; name = for_condit_troop_dissatisfactionAndSpeech_ds_34
-attr[seg001:0036]: type = u8; name = for_condit_troop_ds_36
+attr[seg001:0032]: type = u16; name = for_condit_troop_bitfield_10_ds_32; comment = [[[
+    Bit   15: saboteurs are here.
+    Bit   14: a worm has attacked.
+    Bit   13: a worm ate 20 men.
+    Bit   12: a worm ate a harvester.
+    Bit   11: army training occurs with Gurney Halleck and is much more efficient.
+    Bit   10: troop was, or is, in a battle at a fortress.
+    Bit    9: repairing equipment.
+    Bit    6: currently doing espionage at a Harkonnen fortress.
+    Bit    5: troop has won a battle and is currently transforming the fortress into a nice sietch + taking a rest.
+    Bit    3: spice production has raised.
+    Bit    2: spice production has decreased.
+    Bits 1-0: ability increased in spice (1), army (2) or ecology (3).
+]]]
+attr[seg001:0034]: type = u16; name = for_condit_troop_dissatisfactionAndSpeech_ds_34; comment = [[[
+    Bit   15: Ecology skill showing in troop characteristics.
+    Bit   14: Army skill showing in troop characteristics.
+    Bit   13: Spice Mining skill showing in troop characteristics.
+    Bit   12: troop has turned ugly fortress into a sietch.
+    Bit   11: troop was cured by Chani.
+    Bit   10: troop is ill.
+    Bit    9: a small troop has merged with this one.
+    Bit    8: troop has discovered and eliminated saboteurs.
+    Bit    7: troop is from the south (used for northern / southern Fremen conflicts).
+    Bit    5: troop motivation has become too low, men don't believe in Paul anymore => troop refuses to work.
+    Bit    4: current conflict between northern and southern Fremen => troop refuses to work.
+]]]
+attr[seg001:0036]: type = u8; name = for_condit_troop_motivation_modifier_ds_36
 attr[seg001:0037]: type = u8; name = for_condit_troop_skill_in_current_occupation_ds_37
 attr[seg001:0038]: type = u8; name = for_condit_troop_spice_skill_ds_38
 attr[seg001:0039]: type = u8; name = for_condit_troop_army_skill_ds_39
 attr[seg001:003a]: type = u8; name = for_condit_troop_ecology_skill_ds_3a
 attr[seg001:003b]: type = u8; name = for_condit_troop_equipment_ds_3b
 attr[seg001:003c]: type = u8; name = for_condit_troop_population_ds_3c
-attr[seg001:003d]: type = u8; name = troop_equipment_related_ds_3d
-attr[seg001:003e]: type = u8; name = troop_equipment_related_ds_3e
-attr[seg001:003f]: type = u8; name = troop_equipment_related_ds_3f
+attr[seg001:003d]: type = u8; name = for_condit_troop_equipment_added_by_modify_operation_ds_3d
+attr[seg001:003e]: type = u8; name = for_condit_troop_equipment_removed_by_modify_operation_ds_3e
+attr[seg001:003f]: type = u8; name = for_condit_troop_equipment_Paul_orni_ds_3f; comment = Used for the "Thanks for giving me your orni!" dialogue line.
 attr[seg001:0040]: type = u8; name = for_condit_troop_number_of_days_since_ralliement_ds_40
 attr[seg001:0041]: type = u8; name = for_condit_game_days_since_ralliement_ds_41
 attr[seg001:0042]: type = u16; name = for_condit_time_periods_since_ralliement_ds_42
-attr[seg001:0044]: type = u16; name = for_condit_troop_field_C_ds_44
-attr[seg001:0046]: type = u16; name = for_condit_troop_field_E_ds_46
-attr[seg001:0048]: type = u16; name = for_condit_ds_48
-attr[seg001:004a]: type = u16; name = for_condit_ds_4a
-attr[seg001:004c]: type = u8
+attr[seg001:0044]: type = u16; name = for_condit_troop_troop_occupation_dependent_C_ds_44; comment = [[[
+    Usage depends on troop occupation:
+    * Go & search for equipment: target location;
+    * Espionage: number of Harkonnen troops seen;
+    * Attacking: number of Harkonnen killed.
+]]]
+attr[seg001:0046]: type = u16; name = for_condit_troop_troop_occupation_dependent_E_ds_46; comment = [[[
+    Usage depends on troop occupation:
+    * Spice mining: amount of spice extracted at the current location since the beginning of this mining occupation;
+    * Spice prospecting: percentage of the area covered;
+    * Go & search for equipment: when going back, requestd equipment found at target location, if any:
+    * Espionage: information derived from Harkonnen troop armament and skill;
+    * Attacking: number of Fremen killed.
+]]]
+attr[seg001:0048]: type = u16; name = for_condit_ds_48; comment = Used at least for the spice mining production level.
+attr[seg001:004a]: type = u16; name = for_condit_ds_4a; comment = Used at least for the average spice mining production level.
+attr[seg001:004c]: type = u8; name = related_to_contacting_troops_ds_4c
 attr[seg001:004d]: type = u8; name = for_condit_location_appearance_ds_4d
 attr[seg001:004e]: type = u16; name = for_condit_location_location_area_and_name_ds_4e
 attr[seg001:0050]: type = u8; name = for_condit_likelihood_of_worm_related_spice_mining_troop_events_ds_50
-attr[seg001:0051]: type = u8; name = for_condit_location_status_ds_51
+attr[seg001:0051]: type = u8; name = for_condit_location_status_ds_51; comment = [[[
+    Bit    7: location has not been discovered.
+    Bit    6: location area has been prospected.
+    Bit    5: location has a wind-trap.
+    Bit    4: location inventory can be seen.
+    Bit    3: location is a conquered but not yet transformed Harkonnen fortress ? If set, the "Good to see these Harkonnens beaten off! Our Fremen are good warriors, and you are a great leader of men." message in Stilgar's dialogue and the "Paul, you are the only man able to make these Harkonnens step back. I'm proud to be at your side." message in Chani's dialogue are triggered; if clear, the "I don't think this is the place to do that." message in Fremen dialogue is triggered.
+    Bit    2: location has saboteurs.
+    Bit    1: location is in a battle.
+    Bit    0: location has vegetation present (no more spice mining).
+]]]
 attr[seg001:0052]: type = u8; name = for_condit_location_spice_density_ds_52
-attr[seg001:0053]: type = u8; name = for_condit_ds_53
-attr[seg001:0054]: type = u8; name = for_condit_location_water_ds_54
-attr[seg001:0055]: type = [u8; 7]; name = array_for_condit_location_equipment_ds_55
-attr[seg001:005c]: type = u16
-attr[seg001:005e]: type = u16
-attr[seg001:0060]: type = [u8; 49]; name = array_ds_60
+attr[seg001:0053]: type = u8; name = for_condit_related_to_unused_location_equipment_ds_53
+attr[seg001:0054]: type = u8; name = for_condit_location_water_amount_or_wind_trap_assembly_progress_ds_54
+attr[seg001:0055]: type = Equipment; name = array_for_condit_location_equipment_ds_55; comment = Number of harvesters
+attr[seg001:0056]: comment = Number of ornis
+attr[seg001:0057]: comment = Number of krys knives
+attr[seg001:0058]: comment = Number of laser guns
+attr[seg001:0059]: comment = Number of weirding modules
+attr[seg001:005a]: comment = Number of atomics
+attr[seg001:005b]: comment = Number of bulbs
+attr[seg001:005c]: type = u16; name = for_condit_combined_troops_bitfield_10_at_location_ds_5c
+attr[seg001:005e]: type = u16; name = for_condit_combined_troops_dissatisfactionAndSpeech_at_location_ds_5e
+attr[seg001:0060]: type = [u8; 49]; name = array_for_condit_ds_60; comment = ds:0060 is used to determine the number of Fremen troops.
+attr[seg001:0061]: comment = Used to trigger "And they have terrible weapons." message
+attr[seg001:0066]: comment = Used by Gurney Halleck's dialogue.
 attr[seg001:0082]: comment = RES_HARK_HSQ
-attr[seg001:0091]: type = u8; name = for_condit_ds_91
+attr[seg001:0085]: comment = Used to determine whether there's already a troop on the way to a fortress for espionage.
+attr[seg001:0090]: type = u8; comment = Used to determine the number of Fremen troops.
+attr[seg001:0091]: type = u8; name = for_condit_number_of_troops_in_location_ds_91; comment = Part of the trigger for the "I'm afraid there are too many people there." message.
 attr[seg001:0092]: type = u16; name = for_condit_ds_92
-attr[seg001:0094]: type = u16
+attr[seg001:0094]: type = u16; name = for_condit_ds_94; comment = Related to the difficulty of a fortress (appears in Harkonnen captain dialogue).
 attr[seg001:0096]: type = u16
-attr[seg001:0098]: type = u16
-attr[seg001:009a]: type = u16
-attr[seg001:009c]: type = u8
-attr[seg001:009d]: type = u8
-attr[seg001:009e]: type = u8
+attr[seg001:0098]: type = u16; name = for_condit_probably_number_of_Harkonnen_killed_during_massive_attack_ds_98
+attr[seg001:009a]: type = u16; name = for_condit_probably_number_of_Fremen_killed_during_massive_attack_ds_9a
+attr[seg001:009c]: type = u8; name = for_condit_battle_balance_ds_9c; comment = changes dialogue with Stilgar & Gurney Halleck, Fremen lose if < 0x80 and Harkonnen lose if > 0x80.
+attr[seg001:009d]: type = u8; name = for_condit_smuggler_dialogue_related_ds_9d
+attr[seg001:009e]: type = u8; name = for_condit_smuggler_arguing_count_ds_9e
 attr[seg001:009f]: type = u8; name = accept_refuse_argue_choice_ds_9f
 attr[seg001:00a0]: type = u16; name = spice_in_stock
-attr[seg001:00a2]: type = u16
-attr[seg001:00a4]: type = u16
+attr[seg001:00a2]: type = u16; name = for_condit_area_controlled_by_Atreides_ds_a2
+attr[seg001:00a4]: type = u16; name = for_condit_area_controlled_by_Harkonnen_ds_a4
 attr[seg001:00a6]: type = u16
 attr[seg001:00a8]: type = u16
 attr[seg001:00aa]: type = u16
 attr[seg001:00ac]: type = u16
 attr[seg001:00ae]: type = u16
-attr[seg001:00b0]: type = u16
-attr[seg001:00b2]: type = u16
+attr[seg001:00b0]: type = u16; name = for_condit_spice_production_better_than_previous_day_ds_b0
+attr[seg001:00b2]: type = u16; name = for_condit_spice_production_lower_than_previous_day_ds_b2
 attr[seg001:00b4]: type = u16
-attr[seg001:00b6]: type = u16
-attr[seg001:00b8]: type = u16
-attr[seg001:00ba]: type = u16
-attr[seg001:00bc]: type = u16
-attr[seg001:00be]: type = u8
-attr[seg001:00bf]: type = u8
-attr[seg001:00c0]: type = u16
+attr[seg001:00b6]: type = u16; name = for_condit_spice_shipment_arguing_related_ds_b6
+attr[seg001:00b8]: type = u16; name = for_condit_spice_shipment_arguing_related_ds_b8
+attr[seg001:00ba]: type = u16; name = for_condit_spice_shipment_arguing_related_ds_ba
+attr[seg001:00bc]: type = u16; name = for_condit_spice_shipment_related_ds_bc
+attr[seg001:00be]: type = u8; name = for_condit_spice_shipment_related_ds_be
+attr[seg001:00bf]: type = u8; name = for_condit_spice_shipment_related_ds_bf
+attr[seg001:00c0]: type = u16; name = for_condit_spice_shipment_related_ds_c0
 attr[seg001:00c2]: type = u8; name = final_attack_stage_ds_c2
 attr[seg001:00c3]: type = u8
-attr[seg001:00c4]: type = u8
+attr[seg001:00c4]: type = u8; name = number_of_sietches_attacked_by_Harkonnen_ds_c4
 attr[seg001:00c5]: type = u8; name = person_marker_base; comment = [[[
     Random base offset for arranging people standing in a room. Set
     to rand() at room setup (seg000:4fc6), reset to 0 on scene change
@@ -3422,34 +3483,34 @@ attr[seg001:00c5]: type = u8; name = person_marker_base; comment = [[[
 ]]]
 attr[seg001:00c6]: type = u8
 attr[seg001:00c8]: type = u8
-attr[seg001:00c9]: type = u8; name = RES_SMUG_HSQ
+attr[seg001:00c9]: type = u8; name = for_condit_comms_room_message_count_ds_c9
 attr[seg001:00ca]: type = u16; name = for_condit_ds_ca
 attr[seg001:00cc]: type = u16; name = for_condit_ds_cc
 attr[seg001:00cf]: type = u8; name = days_left_until_spice_shipment
 attr[seg001:00d0]: type = u16; name = for_condit_ds_d0
 attr[seg001:00d2]: type = u16; name = for_condit_ds_d2
-attr[seg001:00d5]: type = u8
-attr[seg001:00d6]: type = u16; name = for_condit_ds_d6
+attr[seg001:00d5]: type = u8; name = contact_distance_related_ds_d5; comment = Related to increasing the contact distance once in every while.
+attr[seg001:00d6]: type = u16; name = for_condit_ds_d6; comment = Used for the "There is a sietch very near" and "There is a sietch not far from here" messages
 attr[seg001:00d8]: type = u16; name = for_condit_ds_d8
-attr[seg001:00db]: type = u8; name = _1c28_ui_element_23
-attr[seg001:00dc]: type = u16
-attr[seg001:00de]: type = u16
-attr[seg001:00e2]: type = u16
-attr[seg001:00e4]: type = u16; name = locations_indexed_to_zero_ds_e4
-attr[seg001:00e7]: type = u8
+attr[seg001:00db]: type = u8; name = _1c28_ui_element_23; comment = Related to comms room messages.
+attr[seg001:00dc]: type = u16; name = for_condit_ds_dc
+attr[seg001:00de]: type = u16; name = for_condit_ds_de
+attr[seg001:00e2]: type = u16; name = distance_to_closest_Harkonnen_area_ds_e2
+attr[seg001:00e4]: type = u16; name = locations_indexed_to_zero_and_also_a_variable_ds_e4
+attr[seg001:00e7]: type = u8; name = Paul_found_unconscious_in_desert_ds_e7
 attr[seg001:00e8]: type = u8; name = ui_hud_head_index
-attr[seg001:00e9]: type = u8
-attr[seg001:00ea]: type = u8
-attr[seg001:00eb]: type = u8
+attr[seg001:00e9]: type = u8; name = for_condit_ds_e9
+attr[seg001:00ea]: type = u8; name = vision_message_type_ds_ea
+attr[seg001:00eb]: type = u8; name = for_condit_presence_of_comms_room_message_which_needs_viewing_there_ds_eb
 attr[seg001:00ec]: type = u8; name = bulb_growing_progress
-attr[seg001:00ed]: type = u8
-attr[seg001:00ee]: type = u16
+attr[seg001:00ed]: type = u8; name = for_condit_related_to_overpowering_Harkonnen_captain_ds_ed
+attr[seg001:00ee]: type = u16; name = for_condit_related_to_overpowering_Harkonnen_captain_ds_ee
 attr[seg001:00f0]: type = u16
-attr[seg001:00f2]: type = u16
+attr[seg001:00f2]: type = u16; name = for_condit_Chani_prisoner_location_area_and_name_ds_f2
 attr[seg001:00f4]: type = u8; name = desert_walk_counter
-attr[seg001:00f5]: type = u8
-attr[seg001:00f6]: type = u8
-attr[seg001:00f7]: type = u8
+attr[seg001:00f5]: type = u8; name = for_condit_desert_walk_related_ds_f5; comment = Used by Jessica's dialogue.
+attr[seg001:00f6]: type = u8; name = for_condit_Paul_next_to_harvester_ds_f6
+attr[seg001:00f7]: type = u8; name = for_condit_Gurney_Stilgar_Chani_at_location_ds_f7
 attr[seg001:00f8]: type = u8; name = number_of_locations_with_illness
 attr[seg001:00f9]: type = u8; name = Chani_troop_illness_cure_progress
 attr[seg001:00fa]: type = u8; name = vegetation_started_on_Dune
@@ -3463,9 +3524,14 @@ attr[seg001:00fc]: type = u16; name = has_not_talked_to_leto; comment = [[[
     Constant early-game flag, static init 1, no writers.
     CONDIT condition 1 (byte ds:[fc]) gates Leto's first greeting (phrase 0x801) on it.
 ]]]
-attr[seg001:00fd]: type = u8
-attr[seg001:00fe]: type = u8
-attr[seg001:00ff]: type = u8
+attr[seg001:00fd]: type = u8; name = for_condit_battle_related_ds_fd; comment = [[[
+    Used in the following dialogue lines:
+    * "Muad'Dib, we have nearly routed the Harkonnens already, your presence should help us defeat them quicker";
+    * "Muad'Dib, the battle has been very close, your presence may bring us to victory.";
+    * "Muad'Dib, our troops are suffering severe losses, you shouldn't stay as your life may be in danger."
+]]]
+attr[seg001:00fe]: type = u8; name = game_phase_copy_ds_fe; comment = Used to determine whether the game phase has changed.
+attr[seg001:00ff]: type = u8; name = number_of_days_since_last_game_phase_change_ds_ff
 attr[seg001:0100]: type = [Location; 70]; name = locations; comment = Carthag
 attr[seg001:0101]: comment = (Atreides)
 attr[seg001:011c]: comment = Arrakeen
@@ -3720,7 +3786,7 @@ attr[seg001:114b]: comment = Cielago
 attr[seg001:114c]: comment = Sihaya
 attr[seg001:114d]: comment = Celimyn
 attr[seg001:114e]: type = u16; name = command_list_ptr; comment = Offset of the active command (verb) list in the data segment. Header is [x:u8, y:u8] giving the menu pixel origin (read by set_command_menu_origin), followed by the records build_room_command_records assembles. Its value also tags the list identity (e.g. 100h, 7c8h).
-attr[seg001:1150]: type = u16
+attr[seg001:1150]: type = ofs16(seg001)
 attr[seg001:1152]: type = signed(u8); name = ui_hud_companion_1
 attr[seg001:1153]: type = signed(u8); name = ui_hud_companion_2
 attr[seg001:1154]: type = u16
@@ -5084,7 +5150,7 @@ attr[seg001:46dd]: type = u8; name = new_hour_flag; comment = [[[
     consumes it to refresh the date/time indicator and fire that period's
     scheduled events.
 ]]]
-attr[seg001:46de]: type = u8
+attr[seg001:46de]: type = u8; name = new_day_flag
 attr[seg001:46df]: type = u8; name = sky_fade_active
 attr[seg001:46e0]: type = u8
 attr[seg001:46e3]: type = Rect; name = data_046e3_rect
@@ -5146,8 +5212,8 @@ attr[seg001:4731]: type = u8; name = orni_anim_frame; comment = [[[
     0xff = ornis hidden: draw_room_scene skips the orni pass (seg000:3a32).
     draw_orni maps it to the two animated part sprites: min(frame,0xe)+8 and clamp(frame-0xf,0,5)+2.
 ]]]
-attr[seg001:4732]: type = u8
-attr[seg001:4733]: type = u16
+attr[seg001:4732]: type = u8; comment = total_harvesters_in_location
+attr[seg001:4733]: type = u16; name = spice_mining_troops_with_harvester_in_location
 attr[seg001:4735]: type = u8
 attr[seg001:4737]: type = u8
 attr[seg001:4738]: type = u8
