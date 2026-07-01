@@ -440,6 +440,7 @@ attr[seg000:09f5]: type = code; name = play_credits
 attr[seg000:0a0c]: ofs_seg = seg000
 attr[seg000:0a16]: type = code; name = frame_task_callback_00a16
 attr[seg000:0a3e]: ofs_seg = seg000
+attr[seg000:0a44]: name = callback_transition_00a44
 attr[seg000:0a47]: comment = STARS.HSQ
 attr[seg000:0acd]: type = code; name = intro_28_night_attack_start; ofs_seg = seg000
 attr[seg000:0ad3]: comment = ATTACK.HSQ
@@ -570,7 +571,7 @@ attr[seg000:1474]: type = code
 attr[seg000:1475]: type = [ofs16(seg000); 12]
 attr[seg000:148d]: type = code
 attr[seg000:1492]: ofs_seg = seg000
-attr[seg000:1498]: type = code
+attr[seg000:1498]: type = code; name = callback_transition_01498
 attr[seg000:14ac]: type = code
 attr[seg000:14af]: comment = FINAL.HSQ
 attr[seg000:14c9]: type = code; ofs_seg = seg000
@@ -770,7 +771,7 @@ attr[seg000:221d]: name = iterate_over_allied_NPCs_and_locations_sub_0221d
 attr[seg000:2239]: type = code; name = callback_event_dialogue_line_08_Duncan_Idaho
 attr[seg000:2253]: ofs_seg = seg001
 attr[seg000:2296]: ofs_seg = seg001
-attr[seg000:22b1]: name = related_to_arguing_about_spice_amounts_with_Duncan_Idaho
+attr[seg000:22b1]: name = related_to_arguing_about_spice_amounts_with_Duncan_Idaho; ofs_seg = seg001
 attr[seg000:2318]: type = code
 attr[seg000:231a]: ofs_seg = seg001
 attr[seg000:2388]: type = code; name = callback_event_dialogue_line_08_Smugglers
@@ -783,7 +784,7 @@ attr[seg000:2432]: type = code; name = menu_callback_choice_refuse
 attr[seg000:2453]: type = code; name = menu_callback_choice_argue
 attr[seg000:24a3]: type = code; name = callback_event_dialogue_line_0f_Duncan_Idaho
 attr[seg000:24ee]: type = code; name = callback_event_dialogue_line_09_Duncan_Idaho
-attr[seg000:2555]: type = code
+attr[seg000:2555]: type = code; name = callback_transition_02555
 attr[seg000:2557]: comment = Play SNA.VOC
 attr[seg000:2566]: ofs_seg = seg001; comment = Duncan Idaho.
 attr[seg000:25ba]: ofs_seg = seg001
@@ -804,7 +805,7 @@ attr[seg000:2685]: comment = STARS.HSQ
 attr[seg000:268a]: ofs_seg = seg000
 attr[seg000:2690]: ofs_seg = seg000
 attr[seg000:269b]: ofs_seg = seg000
-attr[seg000:26a6]: type = code
+attr[seg000:26a6]: type = code; name = callback_transition_026a6
 attr[seg000:26ad]: ofs_seg = seg001
 attr[seg000:26b0]: ofs_seg = seg001
 attr[seg000:26b7]: targets = segvga:014e
@@ -839,7 +840,7 @@ attr[seg000:2898]: ofs_seg = seg001
 attr[seg000:289b]: ofs_seg = seg000
 attr[seg000:28a1]: type = code
 attr[seg000:28ad]: ofs_seg = seg000
-attr[seg000:28b5]: type = code
+attr[seg000:28b5]: type = code; name = callback_transition_028b5
 attr[seg000:28b8]: comment = COMM.HSQ
 attr[seg000:28bd]: comment = Play SNA.VOC
 attr[seg000:28e1]: type = code
@@ -868,7 +869,7 @@ attr[seg000:2b68]: comment = Clear the pending room-action before falling into t
 attr[seg000:2b98]: ofs_seg = seg000
 attr[seg000:2c69]: ofs_seg = seg000
 attr[seg000:2c94]: ofs_seg = seg000
-attr[seg000:2c9a]: type = code
+attr[seg000:2c9a]: type = code; name = callback_transition_02c9a
 attr[seg000:2cb8]: ofs_seg = seg000
 attr[seg000:2cbe]: ofs_seg = seg000
 attr[seg000:2cc7]: type = code; name = frame_task_callback_02cc7
@@ -884,6 +885,7 @@ attr[seg000:2d62]: type = code; name = store_troop_to_array_of_troop_ptrs_if_arm
 attr[seg000:2d74]: type = code; name = open_SAL_resource
 attr[seg000:2da5]: ofs_seg = seg001
 attr[seg000:2db1]: type = code; name = draw_room_game_screen; ofs_seg = seg000
+attr[seg000:2dd3]: type = code; name = callback_transition_02dd3
 attr[seg000:2dcd]: ofs_seg = seg000
 attr[seg000:2e41]: ofs_seg = seg000
 attr[seg000:2e98]: name = set_command_menu_origin; comment = [[[
@@ -1172,12 +1174,12 @@ attr[seg000:3f92]: comment = [[[
 attr[seg000:3fae]: comment = Arm action code 1 (normal room-leave) after staging pending_destination_room.
 attr[seg000:3fca]: comment = Arm action code 5 (leave confirmed past the dialogue-interrupt gate).
 attr[seg000:401f]: name = location_0401f; fn = in location: *Location @si
-attr[seg000:4057]: comment = [[[
+attr[seg000:4057]: name = callback_transition_04057; comment = [[[
     Commit a room move: move companion NPCs (room-person flag bit 0x40) to the destination
     (dx = new location_and_room, bx = new location appearance), record location_and_room,
     rotate current_room into previous_room, store location_appearance.
     No redraw when data_046eb bit 7 is set (ornithopter view); dx == 3002h (Harkonnen
-    fortress room 2) triggers the game ending; otherwise re-enter draw_room_game_screen
+    palace room 2) triggers the game ending; otherwise re-enter draw_room_game_screen
     at the scene-reload entry loc_02dbf.
 ]]]
 attr[seg000:407e]: type = code; name = get_map_position
@@ -1247,7 +1249,7 @@ attr[seg000:4821]: type = code
 attr[seg000:4828]: comment = RES_ORNYTK_HSQ
 attr[seg000:48dd]: ofs_seg = seg000
 attr[seg000:4904]: comment = Play SN7.VOC
-attr[seg000:4913]: type = code
+attr[seg000:4913]: type = code; name = callback_transition_04913
 attr[seg000:4916]: comment = VER.HNM
 attr[seg000:4924]: comment = Play SN8.VOC
 attr[seg000:4937]: name = hnm_end_voc_loop_check_complete; comment = [[[
@@ -1392,7 +1394,7 @@ attr[seg000:5a25]: ofs_seg = seg000
 attr[seg000:5a3d]: type = code; name = ui_transition_to_map_interface
 attr[seg000:5a45]: targets = segvga:0160
 attr[seg000:5a49]: ofs_seg = seg000
-attr[seg000:5a56]: type = code
+attr[seg000:5a56]: type = code; name = callback_transition_05a56
 attr[seg000:5a66]: ofs_seg = seg000
 attr[seg000:5a6f]: ofs_seg = seg001
 attr[seg000:5a72]: ofs_seg = seg001
@@ -2320,10 +2322,11 @@ attr[seg000:aed6]: type = code; name = callback_main_ui_element_03
 attr[seg000:aef7]: ofs_seg = seg000
 attr[seg000:af00]: type = code
 attr[seg000:af12]: ofs_seg = seg001
-attr[seg000:af26]: type = code
+attr[seg000:af26]: type = code; name = callback_transition_0af26
 attr[seg000:af29]: ofs_seg = seg001
 attr[seg000:af38]: ofs_seg = seg001
 attr[seg000:af3b]: ofs_seg = seg000
+attr[seg000:af43]: type = code; name = callback_transition_0af43
 attr[seg000:af58]: type = code; name = menu_callback_choice_book_all_topics
 attr[seg000:af60]: type = code; name = menu_callback_choice_book_politics
 attr[seg000:af68]: type = code; name = menu_callback_choice_book_paul_on_dune
@@ -2350,8 +2353,8 @@ attr[seg000:b1ee]: type = code; name = callback_main_ui_element_23; targets = se
 attr[seg000:b1fc]: ofs_seg = seg000
 attr[seg000:b224]: targets = segvga:0187
 attr[seg000:b22a]: ofs_seg = seg000
-attr[seg000:b236]: type = code
-attr[seg000:b23f]: type = code
+attr[seg000:b236]: type = code; name = callback_transition_0b236
+attr[seg000:b23f]: type = code; name = callback_transition_0b23f
 attr[seg000:b245]: ofs_seg = seg001
 attr[seg000:b258]: ofs_seg = seg001
 attr[seg000:b270]: type = code; name = handle_ctrl_v_once; ofs_seg = seg001
@@ -3861,7 +3864,7 @@ attr[seg001:1203]: type = u16; name = subst_id_0c; comment = string_subst_id_tab
 attr[seg001:1205]: type = u16; name = subst_id_0d; comment = string_subst_id_table[13]: placeholder 0x8d default id 0dh = COMMAND "(Atreides)".
 attr[seg001:1207]: type = u16; name = subst_id_0e; comment = string_subst_id_table[14]: placeholder 0x8e default id 0eh = COMMAND "(Harkonnen)".
 attr[seg001:1209]: type = u16; name = subst_id_0f; comment = string_subst_id_table[15]: placeholder 0x8f default id 0fh = COMMAND "Tabr".
-attr[seg001:120b]: name = _stru_206BB_icon_list
+attr[seg001:120b]: type = [UISprite; 5]; name = _stru_206BB_icon_list
 attr[seg001:1223]: type = u16
 attr[seg001:1225]: type = [LocationRoom; 12]; name = atreides_palace_rooms; comment = [[[
     Per-location scene descriptors for palace-category locations. Selected by
@@ -3922,19 +3925,26 @@ attr[seg001:1434]: type = u16
 attr[seg001:1436]: type = u16
 attr[seg001:1438]: type = u16
 attr[seg001:143a]: type = u16
-attr[seg001:143c]: type = u16
+attr[seg001:143c]: type = Rect
+attr[seg001:1444]: type = Rect
 attr[seg001:144c]: type = u8; name = _byte_208FC_loaded_SAL_index
 attr[seg001:1454]: type = u16
 attr[seg001:1462]: type = u16
 attr[seg001:1466]: type = u16
 attr[seg001:146e]: type = u16
-attr[seg001:1470]: type = u16; name = _word_20920_game_area_rect
-attr[seg001:1472]: type = u16
-attr[seg001:149a]: type = u16
-attr[seg001:14b4]: name = _stru_20964_icon_list
+attr[seg001:1470]: type = Rect; name = _stru_20920_game_area_rect
+attr[seg001:1478]: type = Rect
+attr[seg001:1482]: type = Rect
+attr[seg001:148a]: type = Rect
+attr[seg001:1492]: type = Rect
+attr[seg001:149a]: type = ofs16(seg001)
+attr[seg001:149c]: type = Rect
+attr[seg001:14a4]: type = Rect
+attr[seg001:14ac]: type = Rect
+attr[seg001:14b4]: type = [UISprite; 3]; name = _stru_20964_icon_list
 attr[seg001:14c0]: name = _stru_20970_icon_list_ornypan
 attr[seg001:14c6]: type = u16
-attr[seg001:14c8]: name = _stru_20978_icon_list
+attr[seg001:14c8]: type = [UISprite; 3]; name = _stru_20978_icon_list
 attr[seg001:14da]: type = u16
 attr[seg001:1500]: type = [UISprite; 6]; name = _stru_209B0_icon_list
 attr[seg001:1524]: type = u16
@@ -3942,6 +3952,7 @@ attr[seg001:1526]: type = [UISprite; 3]; name = _stru_209D6_icon_list
 attr[seg001:1538]: type = u16
 attr[seg001:153a]: type = [UISprite; 3]; name = _stru_209EA_icon_list
 attr[seg001:154c]: type = u16
+attr[seg001:154e]: type = [UISprite; 2]
 attr[seg001:155a]: type = u16
 attr[seg001:155c]: type = [UISprite; 6]
 attr[seg001:1580]: type = u16
@@ -4023,6 +4034,7 @@ attr[seg001:1e6e]: type = Rect; name = ui_hud_head_rect
 attr[seg001:1e76]: type = Rect; name = ui_hud_head_rect_game_area_strip
 attr[seg001:1e7e]: type = [XY; 32]; name = ui_draw_date_and_time_indicator
 attr[seg001:1efe]: type = Rect; name = sun_moon_clip_rect
+attr[seg001:1f06]: type = Rect
 attr[seg001:1f0e]: name = command_menu_buf; comment = The verb-menu record buffer. [0]=priority byte (z-stack key), [1]=header skip byte (built as 0), then 4-byte [text_id:u16, handler_ofs:u16] records ending with a 0 word. Built by build_room_command_records, drawn by redraw_active_command_menu.
 attr[seg001:1f0f]: type = u8
 attr[seg001:1f10]: type = u16
@@ -4239,7 +4251,9 @@ attr[seg001:2280]: type = [u8; 16]; name = sky_palette_id_table; comment = [[[
     Values: 8 8 9 9 9 9 9 9 9 9 9 0Ah 0Ah 0Bh 0Bh 0Bh.
     get_sky_palette_id_from_game_time_in_bl reads it with xlat and adds ((game_time>>2) & 0x1c) so each whole-day rollover shifts the gradient by 4 sub-palettes.
 ]]]
-attr[seg001:2298]: name = _stru_21748_icon_list_chankiss
+attr[seg001:2290]: type = UISprite
+attr[seg001:2296]: type = u16
+attr[seg001:2298]: type = UISprite; name = _stru_21748_icon_list_chankiss
 attr[seg001:229e]: type = u16
 attr[seg001:22a6]: type = u16; name = _word_21756_talking_head_id
 attr[seg001:22cb]: type = dec(u16); name = year
@@ -4253,7 +4267,7 @@ attr[seg001:22e3]: type = u8; name = _byte_22E3_sky_skydn_selector; comment = [[
     Also picks the faded palette span: loc_039b9/loc_0391d/loc_0398c use 0 -> entries 128..207 (bx=0x180, cx=0xf0); nonzero -> 73..223 (bx=0xdb, cx=0x1c5).
     remove_all_frame_tasks (seg000:0920) sets it to 1, so every intro stage (e.g. stage 29's MTG3 desert flyover) uses the SKYDN/73..223 branch; room day/night logic sets it at loc_039ec (1) / loc_03a18 (0).
 ]]]
-attr[seg001:22e4]: name = icon_list
+attr[seg001:22e4]: type = UISprite; name = icon_list
 attr[seg001:22ea]: type = u16
 attr[seg001:22fd]: type = cstr; name = aLim1_hsq
 attr[seg001:2406]: type = u16
@@ -4268,17 +4282,17 @@ attr[seg001:2438]: type = u16
 attr[seg001:243a]: type = u16
 attr[seg001:243c]: type = u16
 attr[seg001:243e]: type = u16
-attr[seg001:2440]: name = _word_218F0_rect
-attr[seg001:2448]: name = _word_218F8_rect
-attr[seg001:2450]: type = u16; name = _word_21900_ui_area_rect
-attr[seg001:2458]: name = _word_21908_rect
+attr[seg001:2440]: type = Rect; name = _word_218F0_rect
+attr[seg001:2448]: type = Rect; name = _word_218F8_rect
+attr[seg001:2450]: type = Rect; name = _word_21900_ui_area_rect
+attr[seg001:2458]: type = Rect; name = _word_21908_rect
 attr[seg001:2460]: name = _word_21910_globe_tilt
 attr[seg001:2465]: type = u16
 attr[seg001:2482]: name = ui_stats_day_and_charisma
 attr[seg001:2492]: type = u16
 attr[seg001:2494]: name = ui_stats_text
 attr[seg001:24ec]: type = u16
-attr[seg001:2506]: name = _word_219B6_stats_houses_icons_list
+attr[seg001:2506]: type = [UISprite; 2]; name = _word_219B6_stats_houses_icons_list
 attr[seg001:2512]: type = u16
 attr[seg001:2514]: name = _word_219C4_dnchar_tall_glyphs_ptr
 attr[seg001:2516]: name = _word_219C6_dnchar_small_glyphs_ptr
@@ -5009,6 +5023,7 @@ attr[seg001:3821]: type = u16; name = _word_22CD1_pcm_voice_file_handle
 attr[seg001:3823]: type = u8
 attr[seg001:3824]: type = u16
 attr[seg001:3826]: name = _22CD6_temp_filepath_buffer
+attr[seg001:38a6]: type = ofs16(seg001)
 attr[seg001:38a8]: type = str(12); name = aDune37s0_sav
 attr[seg001:38b5]: type = ofs16(segvga); name = gfx_vtable_vga_set_mode_13h
 attr[seg001:38b7]: type = u16
