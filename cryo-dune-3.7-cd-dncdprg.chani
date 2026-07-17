@@ -81,7 +81,7 @@ struct[Location]:
     field[last_name]: type = dec(u8)
     field[map_x]: type = signed(u16)
     field[map_y]: type = signed(u16)
-    field[another_x]: type = u16
+    field[map_offset]: type = hex(u16)
     field[appearance]: type = u8
     field[troop_id]: type = u8
     field[status]: type = bin(u8)
@@ -889,12 +889,15 @@ attr[seg000:2dd3]: type = code; name = callback_transition_02dd3
 attr[seg000:2dcd]: ofs_seg = seg000
 attr[seg000:2e41]: ofs_seg = seg000
 attr[seg000:2e98]: name = set_command_menu_origin; comment = [[[
-    Compute the verb-menu draw origin from the command_list header at di (= command_list_ptr) and save the list.
-    command_menu_list = di; command_menu_x = header[0]; command_menu_y = header[1] + 0ch.
+    Save the verb-menu list identity and compute its draw origin from the
+    two-byte header at di: command_menu_list = di; command_menu_x = [di];
+    command_menu_y = [di+1] + 0ch. Popup menus pass a real template; the plain
+    room menu passes current_location_ptr, whose first_name/last_name bytes
+    serve as the nominal header.
 ]]]
 attr[seg000:2eb2]: name = ui_draw_room_command_panel; comment = [[[
     Draw the bottom command/dialogue panel (run via gfx_call_bp_with_front_buffer_as_screen).
-    When a dialogue is active (data_04774 != 0) it renders the dialogue (loc_0301a); otherwise it builds and renders the verb menu for command_list_ptr:
+    When a dialogue is active (data_04774 != 0) it renders the dialogue (loc_0301a); otherwise it builds and renders the verb menu for current_location_ptr:
     set_command_menu_origin -> build_room_command_records -> (room mode) build_persons_in_room_records,
     then rebuild_and_draw_room_nav_panel and the book/companion buttons (loc_0d763), and enqueues the record list (bp=1f0eh) into the draw-task list.
 ]]]
@@ -924,7 +927,7 @@ attr[seg000:2fed]: ofs_seg = seg001
 attr[seg000:2ff2]: ofs_seg = seg001
 attr[seg000:2ffb]: name = rebuild_and_draw_room_nav_panel; comment = [[[
     Rebuild the bottom-right navigation/compass HUD records (12..18) for the current room context, then draw them (falls into loc_0d735).
-    Night-attack / map / book modes pick alternate templates; the plain room uses the move-direction set keyed off command_list_ptr and location_and_room.
+    Night-attack / map / book modes pick alternate templates; the plain room uses the move-direction set keyed off current_location_ptr and location_and_room.
 ]]]
 attr[seg000:3010]: ofs_seg = seg001
 attr[seg000:301a]: ofs_seg = seg001
@@ -1044,15 +1047,18 @@ attr[seg000:37b2]: name = draw_room_scene; comment = [[[
 ]]]
 attr[seg000:3805]: targets = segvga:017b
 attr[seg000:380c]: name = draw_outdoor_backdrop; comment = [[[
-    The outdoor "window/balcony" view drawn behind the SAL for the first room of a
-    location (location_and_room low byte == 1); reached via loc_037eb from
-    draw_room_scene (seg000:3a02..3a16). Installs the sky-gradient palette
-    (set_sky_palette), picks a backdrop sprite sheet from room1_backdrop_base
-    (seg001:1972) indexed by calc_SAL_index, opens it and draws sprite 0 (loc_0c2f2).
-    The special-room branch (location_appearance low byte == 0x80) yields
-    room1_backdrop_base[sal_index] directly (= DP1 for the palace). The other
-    branches pick a time-of-day still (seg000:382d) or a map-terrain tile
-    (seg000:384a, get_map_position/map_func -> DN20..DN38 / VG..).
+    The outdoor view drawn as (or behind) the scene, reached via loc_037eb from
+    both draw_room_scene dispatches (the first-room path seg000:3a02..3a16 and
+    the desert branch loc_037dc). Installs the sky-gradient palette
+    (set_sky_palette), picks a full-screen backdrop sheet and draws its sprite 0
+    (loc_0c2f2). al = the distance the nearby location (last_location_ptr) is
+    seen from: 0 in a room (bl == 0x80); in the desert the fine latitude when
+    standing on the location's longitude (seg000:382d dx == [si+2]). Below
+    room1_backdrop_threshold the resource is room1_backdrop_base[calc_SAL_index]
+    + al (DP1/DP0/DP2/DP3 for the palace — the view recedes step by step; the
+    VILG base 0x7f varies by first_name at seg000:383f); past it (or off the
+    longitude) loc_0384a hashes the position into a DN20..DN38 dune tile or a
+    VG01..VG10 rock tile when the surrounding map bytes are rock terrain.
 ]]]
 attr[seg000:388d]: type = code; name = set_sky_palette
 attr[seg000:38b4]: type = code; name = draw_sky
@@ -1078,7 +1084,13 @@ attr[seg000:3a41]: comment = [[[
 ]]]
 attr[seg000:3a54]: comment = RES_ORNY_HSQ
 attr[seg000:3a6a]: type = code; name = draw_ornis_loop
-attr[seg000:3a73]: type = code; name = draw_ornis
+attr[seg000:3a73]: type = code; name = draw_ornis; fn = inout count: u16 @cx, inout x: u16 @dx, inout y: u16 @bx; comment = [[[
+    The step-first entry of the parked-orni draw loop: advance one pad slot
+    (+0x46, +0x0a) and loop-decrement BEFORE drawing, so count - 1 ornis draw
+    at slots 2..count. The takeoff frames (orni_anim_draw_frame) enter here to
+    leave the departing orni's first slot empty; the room pass enters at
+    draw_ornis_loop and draws all count slots.
+]]]
 attr[seg000:3a7c]: type = code; name = add_room_frame_task
 attr[seg000:3a8b]: ofs_seg = seg000
 attr[seg000:3a95]: type = code; name = get_orni_position; arg[1] = dec
@@ -1155,7 +1167,8 @@ attr[seg000:3f27]: type = code; name = ui_click_move_room; comment = [[[
     Handle a compass-button click: bp is the 1-based exit offset into the
     current scene record (loc_03efe -> mov dl,[bp+si]). A destination-room exit
     (0x01..0x7F) replaces the room low byte and redraws; 0x80..0xFF is a special
-    exit via the jump table at cs:1454h.
+    exit: walk out of the location into the desert (loc_03fd2, stepped by the
+    desert_step_deltas word at index -exit).
 ]]]
 attr[seg000:3f49]: comment = [[[
     Outdoor (desert) step: data_04735 = ((data_04735 & 0x7f) + 1, saturated at 0x7f) | 0x80.
@@ -1173,7 +1186,32 @@ attr[seg000:3f92]: comment = [[[
 ]]]
 attr[seg000:3fae]: comment = Arm action code 1 (normal room-leave) after staging pending_destination_room.
 attr[seg000:3fca]: comment = Arm action code 5 (leave confirmed past the dialogue-interrupt gate).
-attr[seg000:401f]: name = location_0401f; fn = in location: *Location @si
+attr[seg000:3fd2]: comment = [[[
+    Special exit (exit byte 0x80..0xFF): leave the location for the desert.
+    bp = -exit indexes desert_step_deltas; the location record is detached from
+    current_location_ptr (kept in last_location_ptr), the desert position seeds from
+    its map_x/map_y with fine-latitude bh = 0, and current_scene/data_00009 go to
+    0xff (no room scene). Falls into the desert-position dispatch below.
+]]]
+attr[seg000:3ff5]: comment = [[[
+    Desert-position dispatch: apply the desert_step_deltas step for bp to
+    (dx = longitude, bx = latitude/fine). A nonzero fine-latitude (bh) commits
+    the new desert position as location_and_room/location_appearance
+    (loc_04057); fine-latitude 0 falls through to the arrival check.
+]]]
+attr[seg000:4002]: comment = [[[
+    Desert arrival check (fine-latitude 0): a location is here when the map byte
+    has bit 0x40, find_location_by_map_offset finds its record, and the walked
+    longitude dx equals the location's snapped map_x; then arrive_at_location
+    enters its room 1. Otherwise commit the position as a plain desert view.
+]]]
+attr[seg000:401f]: name = arrive_at_location; fn = in location: *Location @si; comment = [[[
+    Walk-in arrival at location si from the desert: reset the desert step counter
+    (data_04735), make si the current location record (current_location_ptr /
+    last_location_ptr), run the occupation check (night attack etc.), mark the
+    location discovered, and build the entry-room dx/bx
+    (location_entry_room_dx_bx) committed by the fall-through into loc_04057.
+]]]
 attr[seg000:4057]: name = callback_transition_04057; comment = [[[
     Commit a room move: move companion NPCs (room-person flag bit 0x40) to the destination
     (dx = new location_and_room, bx = new location appearance), record location_and_room,
@@ -1183,16 +1221,57 @@ attr[seg000:4057]: name = callback_transition_04057; comment = [[[
     at the scene-reload entry loc_02dbf.
 ]]]
 attr[seg000:407e]: type = code; name = get_map_position
-attr[seg000:40ae]: name = location_leaf_fn_040ae; fn = in location: *Location @di
+attr[seg000:409a]: name = find_location_by_map_offset; comment = [[[
+    Scan locations[] for the entry whose cached map-byte offset (+6, map_offset)
+    equals di (the es:di offset map_func computed). Returns si = the location
+    with ZF set on a match; ZF clear (si = end sentinel) when no location claims
+    the cell.
+]]]
+attr[seg000:40ae]: name = location_entry_room_dx_bx; fn = in location: *Location @di; comment = [[[
+    Build the arrival scene codes for location di: dx = (appearance << 8) | 1
+    (the location's entry room 1), bx = (slot << 8) | 0x80 where slot is the
+    1-based index of di in locations[] (the location_appearance in-room form).
+]]]
 attr[seg000:40b0]: ofs_seg = seg001
 attr[seg000:40c3]: type = code; name = move_all_NPCs_whose_bit_6_of_flags_is_set; ofs_seg = seg000
 attr[seg000:40c9]: type = code; name = NPC_move_if_flag_bit_6_set_040c9; fn = in npc: *RoomPerson @si, in location_and_room: u16 @dx, in location_slot: u16 @bx
-attr[seg000:40d5]: type = code; comment = Arm action code 7 before running the leave-dialogue scan.
+attr[seg000:40d5]: type = code; name = run_travel_departure_npc_scans; comment = [[[
+    The NPC half of a travel departure: arm the room-leave dialogue scan
+    (pending_room_action = 7, run_room_leave_dialogue_scan), clear data_011ca
+    (loc_04ac4), then detach the boarding companions
+    (NPC_travel_detach_companion scan).
+]]]
 attr[seg000:40e0]: ofs_seg = seg000
-attr[seg000:40e6]: type = code; name = NPC_040e6; fn = in npc: *RoomPerson @si
+attr[seg000:40e6]: type = code; name = NPC_travel_detach_companion; fn = in npc: *RoomPerson @si; comment = [[[
+    Room-person scan callback for a travel departure: entries with both
+    flag 0x40 (companion follows the player) and flag 2 set lose the
+    companion flag (NPC_09556) and update the companion HUD slot (NPC_09655).
+]]]
 attr[seg000:4163]: comment = Arm action code 3 (travelling companions are following) before rebuilding the room nav panel.
 attr[seg000:41ae]: comment = Arm action code 4 (entering a hostile/non-Atreides zone) to trigger the warning menu.
-attr[seg000:425b]: name = location_0425b; fn = in location: *Location @di
+attr[seg000:41c5]: name = ungrey_skip_to_destination_verb; comment = [[[
+    Clear the map verbs heading-adjust accumulator (data_04726) and the SKIP
+    TO DESTINATION verb flags (falls into
+    set_skip_to_destination_verb_flags with al = 0).
+]]]
+attr[seg000:41cc]: name = set_skip_to_destination_verb_flags; fn = in flags: u8 @al; comment = [[[
+    Store the flags byte into the SKIP TO DESTINATION command template
+    (data_021fd, the seg001:21fc records text-id high byte; 0x40 = greyed),
+    and into the live command_menu_buf copy (data_01f11) when its first
+    records handler is menu_callback_choice_skip_to_destination.
+]]]
+attr[seg000:41e1]: name = travel_flyover_detect; comment = [[[
+    Detect a location the flight passes: scan an 8-cell strip across the heading for a
+    location cell (map bit 0x40) whose bearing is within +-0x20 of travel_heading; latch
+    its relative angle * 0x20 (data_01968) and SAL-type sprite (data_0196a, table 196d)
+    for the cockpit fly-over overlay, with data_0196c as the re-arm countdown.
+]]]
+attr[seg000:425b]: name = location_mark_discovered; fn = in location: *Location @di; comment = [[[
+    First arrival at an undiscovered location (status bit 0x80 set): clear the
+    bit, zero discoverable_at_phase, count sietches (appearance < 0x20) in
+    discovered_sietch_count, and advance the game phase to 0x10 when the location
+    is Tuono-Harg (first_name/last_name word 0x0603).
+]]]
 attr[seg000:4273]: comment = Tuono-Harg
 attr[seg000:4285]: type = code
 attr[seg000:429a]: ofs_seg = seg001
@@ -1202,17 +1281,43 @@ attr[seg000:42d1]: type = code; name = menu_callback_choice_call_a_worm
 attr[seg000:42d9]: type = code; name = menu_callback_choice_map_main_take_an_ornithopter
 attr[seg000:42e9]: type = code; name = menu_callback_choice_map_main_take_an_ornithopter_notransition
 attr[seg000:42f2]: comment = RES_ORNYPAN_HSQ
-attr[seg000:4305]: ofs_seg = seg001
-attr[seg000:430b]: ofs_seg = seg000
+attr[seg000:4305]: name = map_screen_open_with_cancel_menu; ofs_seg = seg001; comment = [[[
+    Open the map/globe main view with the single-entry Cancel command menu
+    (bp = menu_multiple_cancel). Shared tail of TAKE AN ORNITHOPTER (seg000:42e9)
+    and CALL A WORM (seg000:42d1); falls through into map_screen_open.
+]]]
+attr[seg000:430b]: name = map_screen_open; ofs_seg = seg000; comment = [[[
+    Open the map/globe main view. bp = the command-menu record buffer to fold in.
+    Pushes a screen element with cleanup func map_screen_cleanup, installs the map
+    mouse handlers (mouse_handlers_01ac8) and the alternate nav panel (data_01cca,
+    via data_046eb = 1), copies the map window rect template (data_0149c) into
+    data_046e3_rect, draws the screen base (map_screen_draw_base), starts the
+    "select destination" narration clip 0x2bc, arms the SELECT DESTINATION ON MAP
+    text task, installs map_view_redraw as the main-view drawing function, draws
+    the windowed map + location markers, and folds in the verb panel.
+]]]
 attr[seg000:4311]: ofs_seg = seg001
 attr[seg000:4328]: ofs_seg = seg001; comment = Right-side map navigation buttons
 attr[seg000:432e]: ofs_seg = seg001
 attr[seg000:4331]: ofs_seg = seg001
 attr[seg000:4362]: comment = RES_ORNYPAN_HSQ
 attr[seg000:4365]: ofs_seg = seg001
-attr[seg000:4377]: type = code
+attr[seg000:4377]: type = code; name = map_view_redraw; comment = [[[
+    Redraw the map main view into fb1: clip to the map window, draw the windowed
+    map (map_draw_zoomed_globe), the location markers (loc_05dce), and in
+    ornithopter mode the ORNYPAN window overlay sprite; then update the screen and
+    re-arm the location marker task. Installed as
+    _word_23B9D_current_main_view_drawing_function while the map screen is up.
+]]]
 attr[seg000:4390]: comment = RES_ORNYPAN_HSQ
 attr[seg000:4393]: ofs_seg = seg001
+attr[seg000:439f]: name = map_screen_draw_base; comment = [[[
+    Draw the map screen base into fb1. Globe mode (map_ornithopter_mode == 0):
+    present the framebuffer, snapshot it to fb2, flush the palette, draw the
+    nested border around the map window, and fill the title strip (data_014a4)
+    with 0xf5. Ornithopter mode: draw the sky backdrop (unless the night attack is
+    staged) and the ORNYPAN cockpit icon list (icon_list_ornypan_cockpit).
+]]]
 attr[seg000:43ac]: comment = RES_ORNYPAN_HSQ
 attr[seg000:43b5]: targets = segvga:0160
 attr[seg000:43bc]: ofs_seg = seg001
@@ -1221,32 +1326,161 @@ attr[seg000:43d9]: comment = RES_ORNYPAN_HSQ
 attr[seg000:43dc]: ofs_seg = seg001
 attr[seg000:43e3]: type = code
 attr[seg000:43f1]: ofs_seg = seg001
-attr[seg000:4415]: type = code
+attr[seg000:4415]: type = code; name = map_screen_cleanup; comment = [[[
+    The map screen elements cleanup func (the bx passed to the screen-element
+    push at seg000:430b). Guarded by exchanging data_046eb with 0: clears the
+    visible-location list head (data_0a5c0), the mouse hotspot, the marker and
+    select-destination frame tasks, restores the room backdrop (loc_043e3), drops
+    game_screen_mode_flags unless a travel is pending (data_011c5), reselects the
+    room mouse handlers and nav panel, and with a destination armed
+    (data_04728 > 0) enters the travel departure (loc_049d4).
+]]]
 attr[seg000:4429]: ofs_seg = seg000
-attr[seg000:445d]: ofs_seg = seg000
+attr[seg000:445d]: name = map_arm_player_marker_task; ofs_seg = seg000; comment = [[[
+    Arm the blinking "you are here" marker: remove the blink task, project the
+    players map position (get_map_position ->
+    map_position_to_screen_if_visible; off-window clears map_player_marker_rect
+    and bails), read ICONES sprite 0x4c s header for its size, store the marker
+    bounding rect (x-13, y-height)..(+width, +height) into map_player_marker_rect,
+    re-add map_player_marker_blink_task at interval 0x12c, zero the phase, and
+    fall into the task body for the immediate first draw.
+]]]
 attr[seg000:448f]: ofs_seg = seg001
 attr[seg000:449d]: ofs_seg = seg000
-attr[seg000:44ab]: type = code; name = frame_task_callback_044ab
+attr[seg000:44ab]: type = code; name = map_player_marker_blink_task; comment = [[[
+    The blinking "you are here" map marker: each firing bumps
+    map_player_marker_phase, restores the marker rect (clamped to the map window)
+    from fb1 to the screen (present_screen_rect_regs), and on odd phases draws
+    ICONES sprite 0x4c at the rects origin clipped to the map window — so the
+    marker alternates visible/hidden. Draws to the front buffer, bracketed by the
+    cursor restore/redraw.
+]]]
 attr[seg000:44bc]: ofs_seg = seg001
 attr[seg000:44cd]: ofs_seg = seg001
 attr[seg000:44d0]: let = rect: *Rect @si
-attr[seg000:450e]: type = code; name = mouse_handler_0450e
-attr[seg000:4586]: type = code; name = mouse_handler_04586
+attr[seg000:450e]: type = code; name = map_mouse_lmb_select_destination; fn = in x: u16 @dx, in y: u16 @bx; comment = [[[
+    The map screen's LMB handler: select the hovered travel destination.
+    Inert unless a map mode is active (game_screen_mode_flags & 0x0f) and the
+    hover state (refreshed via map_mouse_hover_tracker) is nonzero; a hovered
+    location marker is also inert when it is the player's current location
+    (current_location_ptr), unless mode flags & 3. Plays the destination's
+    narration clip with the score ducked, blinks the hover label 9 times
+    (0x14 ticks off / 0x0a ticks on), waits out the clip, sets data_04732 =
+    0x80 and enters the travel-confirm chain (loc_04703).
+]]]
+attr[seg000:456c]: name = map_hover_narration_clip; fn = in hover: u16 @di, out clip: u16 @ax; comment = [[[
+    Map a map-hover state to its narration voice clip index: a location ptr
+    gives 0x2bc + (first_name - 1) * 16 + last_name; the 0xffXX desert states
+    add 0x2bc with 16-bit wrap (0xffff -> 0x2bb, 0xfff0+n -> 0x2ac+n).
+]]]
+attr[seg000:4586]: name = map_mouse_hover_tracker; fn = in x: u16 @dx, in y: u16 @bx; comment = [[[
+    The map screen's idle/drag mouse handler: recompute the hover state into
+    data_046fc, redrawing the hover label strip (map_draw_hover_label) when it
+    changes. States: 0 = pointer outside the map window; a location ptr =
+    within 9 pixels (Manhattan) of that visible location marker; 0xfff0+n =
+    aligned within ~4 degrees of compass point n (0 N .. 7 NW) out from the
+    player marker's tip (marker rect x0+11, y1); otherwise 0xffff.
+]]]
+attr[seg000:45de]: name = map_draw_hover_label; fn = in hover: u16 @di; comment = [[[
+    Draw the map hover label strip to the front buffer in the small font: pen
+    (0x55, 0x22) colour word 0xf5fe, or (0x55, 0x26) / 0x20fe in ornithopter
+    mode. hover = a location ptr: its type string + name ("Sietch: Tuono-Tabr");
+    0xfff0+n: "DESERT" + a space + the compass-point phrase 0xda+n; 0xffff:
+    "DESERT" alone; 0: nothing (and the select-destination caption typewriter
+    is re-armed; every other state removes it). The strip is space-padded
+    until the pen passes x 0xed, erasing the previous label.
+]]]
 attr[seg000:460f]: comment = "DESERT"
 attr[seg000:461c]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:4625]: comment = "northwards", etc.
 attr[seg000:464b]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
+attr[seg000:4658]: name = map_add_select_destination_text_task; comment = [[[
+    Arm the map caption typewriter unless already armed (data_0473f != 0):
+    resolve string 0x57 "SELECT DESTINATION ON MAP" into the data_0473f/data_04741
+    far pointer, pen x = 0x55 into data_04743, pen y and colour word into
+    data_04745/data_04747 (globe mode y 0x22, colours 0xf561; ornithopter mode
+    y 0x26, colours 0x2061), and add the map_caption_frame_task at interval 0x18.
+    The task then writes the caption one letter per firing.
+]]]
 attr[seg000:4665]: comment = "SELECT DESTINATION ON MAP"
 attr[seg000:468e]: ofs_seg = seg000
+attr[seg000:469b]: name = map_remove_select_destination_text_task; comment = [[[
+    Disarm the map caption typewriter: when data_0473f != 0, clear it and remove
+    the map_caption_frame_task.
+]]]
 attr[seg000:46ab]: ofs_seg = seg000
-attr[seg000:46b5]: type = code; name = frame_task_callback_046b5
+attr[seg000:46b5]: type = code; name = map_caption_frame_task; comment = [[[
+    The map caption typewriter: each firing draws ONE glyph of the string at
+    data_0473f:data_04741 to the front buffer at the data_04743/data_04745 pen in
+    the small font with the data_04747 colour word, advancing the pointer and
+    storing the pen back. A space costs no firing (seg000:46fe loops straight to
+    the next glyph); a high-bit byte is the string terminator (the task then
+    idles until removed). The draw is bracketed by the cursor restore/redraw
+    (restore_mouse_if_rect_intersects on the data_014a4 strip /
+    draw_mouse_cursor_if_needed).
+]]]
 attr[seg000:46c4]: ofs_seg = seg001
-attr[seg000:4795]: type = code; name = game_phase_set_to_50_if_conditions_met
+attr[seg000:4703]: name = map_confirm_travel_and_close; comment = [[[
+    The travel-confirm chain (entered from the destination click at
+    seg000:4569 and SKIP TO DESTINATION at seg000:5116): arm the pending
+    travel (arm_pending_travel), refresh the sky, fold the map mode bit into
+    the travel bit (flags |= flags >> 2), reselect the music, cancel a staged
+    night attack (loc_00b21), and pop the map screen element (the cleanup
+    keeps the mode flags while travel_destination_ptr is set). First-confirm
+    (old flags & 3 == 0): reset travel_step_counter, un-grey SKIP TO
+    DESTINATION, fold the HUD head (orni mode), snapshot the restored room to
+    fb2, run the departure NPC scans, play the departure transition
+    (preserving travel_heading around it), force a scene rebuild
+    (current_scene = 0xff), take the first travel step, detach
+    current_location_ptr, zero travel_step_tick_stamp, rebuild the room view
+    (loc_02dbf) and arm the travel pump (data_04727 = 0xff); orni mode then
+    decrements the pads ornithopter count and stops the voice. Otherwise (or
+    non-orni) redraw the command panel and flush the palette.
+]]]
+attr[seg000:4795]: type = code; name = play_travel_departure_transition; fn = in old_mode_flags: u8 @al; comment = [[[
+    Play the departure transition for the mode the map screen was entered
+    from (al = the pre-confirm game_screen_mode_flags). Nothing on the full
+    globe (data_046eb bit 0x80). al == 4 (the ornithopter map): prefetch the
+    flight HNMs (prefetch_travel_hnm_resources), and when the destination
+    click armed data_04732 bit 7, fold the HUD head away, re-render the scene
+    without the parked ornis (orni_anim_frame = 0xff) snapshotting it to fb2,
+    start the SN6.VOC engine loop and run the takeoff animation
+    (orni_anim_loop, cl = 1). Any other al: set game phase 0x50 with its
+    transition (seg000:47a0..47ca, the worm/globe flows).
+]]]
 attr[seg000:47b7]: ofs_seg = seg000
 attr[seg000:47f6]: comment = Play SN6.VOC
-attr[seg000:47fb]: ofs_seg = seg000
-attr[seg000:4821]: type = code
+attr[seg000:47fb]: name = orni_anim_loop; ofs_seg = seg000; fn = in step: u8 @cl; comment = [[[
+    The ornithopter takeoff/landing animation pump: each pass draws one frame
+    (orni_anim_draw_frame via the wait callback), waits 0x14 ticks, steps
+    orni_anim_frame by cl (+1 takeoff, -1 landing), releases the SN6 engine
+    loop when an upward pass reaches frame 0x1a, and services the MIDI score;
+    runs until the frame passes 0x21.
+]]]
+attr[seg000:4821]: type = code; name = orni_anim_draw_frame; fn = in step: u8 @cl; comment = [[[
+    Draw one takeoff/landing frame: restore the clean pad scene from fb2,
+    open ORNYTK.HSQ (flushing its bank palette) and draw the animated orni at
+    the pad position — past frame 0xe it climbs away (x -= 5 per frame,
+    mirrored by the step sign; y -= (frame-0xe)^2 / 2) — plus the ornis still
+    parked beyond the departing slot (the step-first draw_ornis entry, at anim
+    frame 0), then present the game area. Frame 0xd also releases the
+    engine-sound loop; a running sky fade keeps stepping.
+]]]
 attr[seg000:4828]: comment = RES_ORNYTK_HSQ
+attr[seg000:488a]: name = travel_arrival_landing_sequence; comment = [[[
+    The orni-arrival landing sequence, run from the scene reload (loc_02dfb, seg000:2e02)
+    when data_04732 bit 0 is set by the travel arrival. Branches on
+    calc_SAL_index(current_location):
+    - < 8 (sietch/village/palace types): hide the minimap (travel_minimap_state = 0x80),
+      pump flight frames forcing sand terrain (travel_select_flight_video al=0) until the
+      clip loops back to MNT1 (hnm_video_id == 2), wait for hnm_counter_2 to reach 0x3c
+      (SAL type 6) / 0x16 (others), then hnm_switch_active_video(bx = the SAL index = the
+      approach video id: 6 SIET, 7 PALACE, ...) and play the approach clip to completion;
+      then data_046e0--, data_04732 = 0 and open_SAL_resource.
+    - == 9: play the current clip to completion full-screen (loc_0c8fb).
+    - else (the landing-pad types): the reverse orni landing animation (orni_anim frames
+      0x1f down to 0, SN7.VOC).
+]]]
 attr[seg000:48dd]: ofs_seg = seg000
 attr[seg000:4904]: comment = Play SN7.VOC
 attr[seg000:4913]: type = code; name = callback_transition_04913
@@ -1258,18 +1492,51 @@ attr[seg000:4937]: name = hnm_end_voc_loop_check_complete; comment = [[[
     Then tail-call check_if_hnm_complete, returning ZF=clip finished. Called once per advanced
     frame by intro_41_play_VER_HNM (loc_0071d).
 ]]]
+attr[seg000:4944]: name = arm_pending_travel; fn = in hover: u16 @di, in x: u16 @dx, in y: u16 @bx; comment = [[[
+    Arm the pending travel from the selected map hover state (di) and the
+    click screen position (dx/bx). A desert state (>= 0xfff0) sets
+    data_011cb = 0xff, converts the click to a map cell
+    (map_screen_to_position) and aims travel_heading at it with
+    travel_heading_mode = 1 (fixed heading, destination = last_location_ptr);
+    a location ptr aims at the location with mode 0 (re-aimed each step).
+    Both commit travel_destination_ptr and seed the step accumulator
+    (adjust_travel_heading).
+]]]
 attr[seg000:497a]: type = code; name = menu_callback_choice_change_destination
 attr[seg000:497d]: ofs_seg = seg001
+attr[seg000:4988]: name = travel_minimap_setup; comment = [[[
+    Set up the flight minimap view: clear the hover state, centre the zoomed view on the
+    player, copy travel_minimap_rect into data_046e3_rect and install travel_minimap_redraw
+    as the main-view drawing function (falls through into it).
+]]]
 attr[seg000:4991]: ofs_seg = seg001
 attr[seg000:4994]: ofs_seg = seg001
+attr[seg000:49a0]: name = travel_minimap_redraw; comment = [[[
+    Redraw the flight minimap into the back buffer: windowed map (data_046eb briefly 1),
+    nested border (draw_map_view_border), location markers, and the destination marker
+    (ICONES 0x2e) when travel_destination_ptr is visible; then back to fb1 active.
+]]]
+attr[seg000:49d4]: name = travel_enter_minimap_view; comment = Re-enter the flight minimap view: travel_minimap_setup + travel_trail_redraw. Run by map_screen_cleanup when travel_minimap_state > 0 and the CHANGE DESTINATION close.
+attr[seg000:49d9]: name = travel_refresh_view; comment = [[[Refresh the travel view: full-globe mode dispatches the installed main-view drawing function; otherwise travel_minimap_redraw + travel_trail_redraw.]]]
 attr[seg000:49e6]: targets = seg000:4377, seg000:49a0
+attr[seg000:49ea]: name = travel_reset_trail; comment = Reset the travel state: travel_minimap_state = 0 and every travel_trail_ring entry refilled with the 0x800 empty sentinel.
 attr[seg000:49f1]: ofs_seg = seg000
 attr[seg000:49f9]: ofs_seg = seg000
+attr[seg000:4a00]: name = travel_trail_append; comment = Append the position (dx = longitude, bx = latitude) at the travel_trail_cursor, wrapping the ring at its end.
 attr[seg000:4a0c]: ofs_seg = seg000
 attr[seg000:4a12]: ofs_seg = seg000
+attr[seg000:4a1a]: name = travel_trail_stamp_last; comment = [[[
+    Stamp the last appended trail position into the back buffer as a permanent minimap
+    trail dot (ICONES 0x2f): skipped while the minimap is hidden (travel_minimap_state
+    bit 0x80) or the entry is the 0x800 empty sentinel or off the minimap window.
+]]]
 attr[seg000:4a21]: ofs_seg = seg001
 attr[seg000:4a2b]: ofs_seg = seg000
 attr[seg000:4a31]: ofs_seg = seg000
+attr[seg000:4a5a]: name = travel_trail_redraw; comment = [[[
+    Redraw every trail dot (ICONES 0x2f) from the ring into the back buffer, oldest to
+    newest from the cursor, skipping 0x800 empties and dots outside (0xcc,4)-(0x13a,0x3a).
+]]]
 attr[seg000:4a99]: ofs_seg = seg000
 attr[seg000:4a9f]: ofs_seg = seg000
 attr[seg000:4aad]: type = code
@@ -1277,6 +1544,11 @@ attr[seg000:4ab8]: type = code; name = frame_task_callback_04ab8
 attr[seg000:4ad0]: type = code; name = callback_ui_element_04ad0
 attr[seg000:4ad7]: type = code; name = callback_ui_element_04ad7
 attr[seg000:4aee]: comment = RES_VER_HSQ
+attr[seg000:4afd]: name = hnm_present_flight_frame; comment = [[[
+    The resource-flag bit 4 full-screen present for the flight clips (from
+    hnm_decode_video_frame, seg000:ccee): restore the minimap rect from the back buffer
+    into fb1 (travel_restore_minimap_rect), then vga_copy_partial fb1 to the screen.
+]]]
 attr[seg000:4b0f]: targets = segvga:0136
 attr[seg000:4b16]: name = hnm_blit_frame_to_screen; comment = [[[
     Blit the just-decoded HNM frame to the visible screen. If the screen buffer ([dbd8]) and fb1
@@ -1285,7 +1557,17 @@ attr[seg000:4b16]: name = hnm_blit_frame_to_screen; comment = [[[
     skip. Called per advanced frame by intro_41_play_VER_HNM (loc_0071d).
 ]]]
 attr[seg000:4b26]: targets = segvga:0136
+attr[seg000:4b2b]: name = travel_restore_minimap_rect; comment = [[[Copy travel_minimap_restore_rect from the back buffer into fb1 (loc_0c46f) unless the minimap is hidden (travel_minimap_state bit 0x80); then the cursor-hide tail (loc_0dbca).]]]
 attr[seg000:4b32]: ofs_seg = seg001
+attr[seg000:4b3b]: name = travel_advance_step; comment = [[[
+    One travel movement step: every 16th step runs one time period of events
+    (run_events_for_n_time_periods), then the position advances along
+    travel_heading (loc_05206) and the companion NPCs follow
+    (move_all_NPCs_whose_bit_6_of_flags_is_set); the new encoding is committed
+    to location_and_room / location_appearance. Called once by
+    map_confirm_travel_and_close and every 0x300 ticks by the travel pump
+    (game_loop_sub_04f0c).
+]]]
 attr[seg000:4b5f]: ofs_seg = seg001
 attr[seg000:4bb9]: type = code; name = frame_task_callback_04bb9
 attr[seg000:4bc3]: ofs_seg = seg001
@@ -1301,8 +1583,33 @@ attr[seg000:4de3]: targets = segvga:0112
 attr[seg000:4def]: ofs_seg = seg000
 attr[seg000:4e04]: type = code; name = callback_troop_accumulate_spice_mining_troops_with_harvesters_04e04
 attr[seg000:4e8d]: type = code
+attr[seg000:4e8e]: name = travel_probe_terrain_ahead; comment = [[[
+    Probe the terrain ahead of the flight: from the current position take 6 preview steps
+    (travel_step_position on regs only, travel_step_accum preserved), read the map byte,
+    step once more and read again, run the fly-over detector (travel_flyover_detect), then
+    average the two bytes and fall into travel_select_flight_video.
+]]]
+attr[seg000:4ec6]: name = travel_select_flight_video; comment = [[[
+    Pick hnm_active_video_id from the vehicle and terrain: vehicle < 2 plays the vehicle id
+    itself. Ornithopter: terrain low nibble < 8 is sand — keep MNT1 (2) when already on it,
+    play the rock-to-sand transition MNT4 (5) from MNT2/3, else back to MNT1; nibble >= 8 is
+    rock — the sand-to-rock transition MNT2 (3) from MNT1/MNT4, else the rock loop MNT3 (4).
+    The HNM loop point switches clips when hnm_active_video_id differs (seg000:cb7c).
+]]]
 attr[seg000:4f09]: type = code; name = menu_callback_choice_resume_flight
-attr[seg000:4f0c]: type = code; name = game_loop_sub_04f0c
+attr[seg000:4f0c]: type = code; name = travel_pump; comment = [[[
+    The in-game travel pump, run once per game_loop pass (seg000:d851). Active while
+    travel_active is set and no room swap is pending (data_011ca). Every pass drives one
+    flight-HNM frame (hnm_do_frame; the MNT clips take the loc_04afd full-screen present).
+    Every 0x300 ticks (travel_step_tick_stamp): travel_advance_step, stamp the previous
+    position into the minimap trail (travel_trail_stamp_last), append the new position
+    (travel_trail_append), and check arrival (map offset == destination map_offset).
+    Not arrived: loc_02e52 settle, consume travel_minimap_state 1 (recenter + redraw via
+    travel_refresh_view), draw the live position marker (ICONES 0x30) into the back buffer
+    when inside the minimap, or set travel_minimap_state 1 when it left the bounds; then
+    travel_probe_terrain_ahead re-picks the flight HNM. Arrived (loc_04fb0): close the HNM,
+    disarm, fold the mode flags, count the visit, and commit the arrival (loc_04002).
+]]]
 attr[seg000:4ffb]: type = code; name = menu_callback_choice_skip_to_destination
 attr[seg000:501f]: comment = Clear the action code before each travel-route step hostile-zone check (loc_04182).
 attr[seg000:5027]: comment = Did the hostile-zone check arm an action? Non-zero breaks the travel loop (loopz keeps stepping while still 0).
@@ -1314,6 +1621,46 @@ attr[seg000:50a5]: type = code; name = menu_callback_choice_back_to_starting_poi
 attr[seg000:50c4]: type = code; name = menu_callback_choice_towards_nearest_place
 attr[seg000:50db]: type = code; name = menu_callback_choice_move_to_location_orni
 attr[seg000:50ea]: type = code; name = menu_callback_choice_move_to_location_worm
+attr[seg000:5119]: name = adjust_travel_heading; fn = in delta: u8 @al; comment = [[[
+    travel_heading += delta, and re-seed the travel step accumulator
+    (travel_step_accum = 0x80, half a cell).
+]]]
+attr[seg000:5124]: name = compass_angle_to_location; fn = in location: *Location @di, out angle: u8 @al; comment = [[[
+    The compass angle from the player map position to a locations map cell
+    (map_x/map_y through compass_angle_to_map_position).
+]]]
+attr[seg000:5133]: name = compass_angle_to_map_position; fn = in target_x: u16 @di, in target_lat: u16 @cx, in x: u16 @dx, in lat: u16 @bx, out angle: u8 @al; comment = [[[
+    The compass angle from the player map position (dx/bx, get_map_position
+    order) to a target map position (di/cx): both deltas are halved once when
+    the latitude delta is outside [-0x80, 0x80), then the latitude delta is
+    scaled by 256 onto the longitude scale (bh = bl) and the shared
+    compass_angle_from_delta math runs on the pair.
+]]]
+attr[seg000:514e]: name = compass_angle_from_delta; fn = in delta_x: u16 @dx, in delta_y: u16 @bx, out angle: u8 @al; comment = [[[
+    Octant-interpolated compass angle of the signed screen delta (delta_x
+    right, delta_y down): al = 0 due north, growing clockwise, 0x20 per
+    compass point (0x40 east, 0x80 south, 0xc0 west). Interpolates inside
+    each octant as 0x20 * minor / major delta. Both deltas zero returns CF
+    set with al = 0; otherwise CF clear.
+]]]
+attr[seg000:5198]: name = travel_heading_deltas; comment = [[[
+    Split heading al into per-step deltas (dx = dlng, bx = dlat): the major axis gets
+    +-0x20 and the minor the signed remainder, interpolated inside each quadrant.
+]]]
+attr[seg000:51cb]: name = travel_update_heading; comment = [[[
+    Re-aim travel_heading before a step: in fixed-heading mode (travel_heading_mode or
+    data_011cb) only the polar guard applies — past |lat| 0x4d a poleward heading is bent
+    to due east/west; in homing mode the heading re-aims at travel_destination_ptr
+    (compass_angle_to_location).
+]]]
+attr[seg000:5206]: name = travel_step_position; comment = [[[
+    Advance the desert position (dx = longitude, bx = latitude row) one step along
+    travel_heading: travel_update_heading re-aims, travel_heading_deltas splits the heading
+    into (dlng, dlat) with 0x20 = one full step on the major axis, both scaled by the rows
+    lng_units_per_cell. travel_step_accum accumulates fractional latitude (0x100 = one row);
+    past 0x1ff the longitude is rescaled to a single-row step. Past |lat| 0x60 the pole
+    flips: heading += 0x80 and longitude += 0x8000.
+]]]
 attr[seg000:5274]: type = code; name = prepare_location_data_for_condit_sub_05274
 attr[seg000:528d]: ofs_seg = seg001
 attr[seg000:5344]: type = code; name = iterate_over_locations_and_coordinates
@@ -1409,10 +1756,24 @@ attr[seg000:5adf]: name = reset_room_scene_state; comment = [[[
     frame task (si=6b34h).
 ]]]
 attr[seg000:5aff]: ofs_seg = seg000
-attr[seg000:5b05]: type = code
+attr[seg000:5b05]: type = code; name = ui_click_map_center; comment = [[[
+    The alternate (travel) nav panel centre button (NAV_PANEL_ALT record 0, seg001:1cca).
+    With the plain map menu up in the globe-0x40 sub-mode (ZF from loc_082a0) it copies the
+    zoomed position into globe_param_3/4 (loc_0541f); otherwise it recentres the map view on
+    the player (set_zoomed_globe_pos_from_map_position) and redraws (map_refresh_main_view).
+]]]
 attr[seg000:5b1e]: type = code; name = menu_callback_choice_map_main_find_prospectors
 attr[seg000:5b23]: ofs_seg = seg001
-attr[seg000:5b69]: ofs_seg = seg001
+attr[seg000:5b5d]: name = set_zoomed_globe_pos_from_map_position; comment = [[[
+    Seed the zoomed-globe/map-window centre from the players current map
+    position (get_map_position); falls into set_zoomed_globe_pos.
+]]]
+attr[seg000:5b60]: name = set_zoomed_globe_pos; comment = [[[
+    Store bx/dx into _word_20E2E_zoomed_globe_latitude /
+    _word_20E2C_zoomed_globe_longitude.
+]]]
+attr[seg000:5b69]: name = draw_map_view_border; ofs_seg = seg001; comment = Draw the nested 4-line border (colours 0xfc, 0xfa, 0xf8, 0xf6) around data_046e3_rect (falls into draw_nested_rect_border).
+attr[seg000:5b6e]: name = draw_nested_rect_border; comment = Draw 4 nested rect outlines growing outward from the rect at si, colour al stepping down by 2 per ring.
 attr[seg000:5b8d]: ofs_seg = seg001
 attr[seg000:5b93]: ofs_seg = seg001
 attr[seg000:5b96]: ofs_seg = seg001
@@ -1434,19 +1795,56 @@ attr[seg000:5c76]: type = code; name = mouse_handler_05c76
 attr[seg000:5c89]: ofs_seg = seg001
 attr[seg000:5ce4]: type = code; name = mouse_handler_05ce4
 attr[seg000:5cf9]: ofs_seg = seg001
+attr[seg000:5d1d]: name = map_window_contains_point; fn = in x: u16 @dx, in y: u16 @bx, out inside: bool @cf; comment = [[[
+    Half-open point-in-map-window test against data_046e3_rect:
+    CF set when x0 <= x < x1 && y0 <= y < y1.
+]]]
 attr[seg000:5d36]: name = location_is_Atreides_05d36; fn = in location: *Location @di
 attr[seg000:5d44]: name = location_05d44; fn = in location: *Location @di
 attr[seg000:5d50]: name = location_05d50; fn = in location: *Location @di
+attr[seg000:5d6d]: name = map_view_refresh_after_events; comment = [[[
+    Refresh the map/globe main view after the time-period event run (called from
+    run_events_for_current_time_period at seg000:1b9e, gated on the data_046ec
+    dirty counter, which it resets). data_046eb > 0: restore the cursor and jump
+    through _word_23B9D_current_main_view_drawing_function; bit 0x80: the full-
+    globe redraw path (loc_05d82); 0: fall to loc_05dcd (ret).
+]]]
 attr[seg000:5d7e]: targets = seg000:4377, seg000:49a0
 attr[seg000:5dae]: ofs_seg = seg001
+attr[seg000:5dce]: name = map_build_and_draw_location_markers; comment = [[[
+    Rebuild the visible-location marker list (visible_location_markers) and draw
+    the markers over the map view. Globe mode (data_046eb bit 0x80) first runs the
+    loc_0633b rotated-offset precompute; data_046eb bit 0x40 keeps the lists
+    leading non-0x40 entries and rebuilds from the first 0x40-flagged one. Every
+    non-hidden location (status bit 0x80 clear) inside the view
+    (location_visible_on_map) is appended as [location ptr, screen x, screen y:u8,
+    data_046eb:u8] and its marker sprite (calc_location_marker_sprite) drawn
+    centred on the screen position, clipped to the map window; sietches
+    (appearance < 0x20) farther than location_visibility_distance draw the +5
+    distant variant. The list is 0-terminated.
+]]]
 attr[seg000:5dda]: ofs_seg = seg001
 attr[seg000:5df1]: ofs_seg = seg001
+attr[seg000:5e42]: name = calc_location_marker_sprite; comment = [[[
+    The map marker sprite for the location at si: ICONES base 0x3a (windowed) or
+    0x7a (globe, data_046eb bit 0x80), tiered by the locations appearance through
+    the shared calc_SAL_index thresholds (+0 sietch, +1 Atreides palace,
+    +2 village, +3 Harkonnen fortress, +4 Harkonnen palace/special). Returns
+    ax = sprite, cl = the appearance byte.
+]]]
 attr[seg000:5e4f]: type = code; name = calc_SAL_index
 attr[seg000:5e57]: comment = Atreides Palace: +1.
 attr[seg000:5e5d]: comment = Village: +2.
 attr[seg000:5e63]: comment = Harkonnen Fortresses: +3.
 attr[seg000:5e69]: comment = Harkonnen Palace and special locations (3A, 7A in the function above): +4.
 attr[seg000:5e6b]: type = code
+attr[seg000:5e6d]: name = find_nearest_location_marker; fn = in max_appearance: u8 @al, in x: u16 @dx, in y: u16 @bx, out marker_location: u16 @di, out distance: u16 @ax; comment = [[[
+    Walk visible_location_markers for the entry nearest (x, y) by Manhattan
+    distance. Entries are skipped unless location->appearance < max_appearance
+    and the entry's stored mode byte (+5) equals data_046eb. Returns the
+    winning location ptr in di (0 if none) and its distance in ax (0xffff if
+    none); the first entry wins ties.
+]]]
 attr[seg000:5e83]: ofs_seg = seg001
 attr[seg000:5ed0]: type = code; name = location_leaf_fn_05ed0; ofs_seg = seg001; fn = in location: *Location @di, out zero: bool @zf
 attr[seg000:5ee4]: name = location_05ee4; fn = in location: *Location @di
@@ -1473,7 +1871,17 @@ attr[seg000:62a6]: type = code; name = draw_location_name
 attr[seg000:62ad]: comment = Draw first name
 attr[seg000:62ba]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:62c6]: comment = Draw last name
-attr[seg000:62c9]: name = location_062c9; fn = in location: *Location @si
+attr[seg000:62c9]: name = location_visible_on_map; fn = in location: *Location @si; comment = [[[
+    CF clear iff the location (si) is visible on the map view, with dx/bx = its
+    screen position: bail (CF set) when no map view owns the screen
+    (data_046eb == 0), else project location->map_x/map_y through
+    map_position_to_screen_if_visible.
+]]]
+attr[seg000:62d6]: name = map_position_to_screen_if_visible; comment = [[[
+    Project the map position dx (longitude) / bx (latitude) to map-view screen
+    coordinates (map_position_to_screen) and bounds-check them against the map
+    window (data_046e3_rect): CF clear + dx/bx = screen position iff inside.
+]]]
 attr[seg000:63f0]: type = code; name = iterate_over_all_locations_upon_new_day
 attr[seg000:63fb]: ofs_seg = seg001
 attr[seg000:642e]: type = code
@@ -1733,13 +2141,24 @@ attr[seg000:7a2a]: ofs_seg = seg001
 attr[seg000:7ac1]: ofs_seg = seg001
 attr[seg000:7b06]: ofs_seg = seg001
 attr[seg000:7b23]: targets = segvga:011e
+attr[seg000:7b36]: name = map_dismiss_troop_popups; comment = [[[
+    Close any troop-contact UI over the map before a redraw: the no-more-orders teardown
+    (menu_callback_choice_map_troop_contact_no_more_orders), the popup menu exit gated on
+    data_046f8 (loc_05f79) and the troop marker overlay removal gated on data_046fa
+    (loc_079de), bracketed by in_transition = 0x80.
+]]]
 attr[seg000:7b8f]: ofs_seg = seg001
 attr[seg000:7ba3]: name = troop_07ba3
 attr[seg000:7bc2]: comment = Store the caller-supplied action code (al) before presenting the troop dialogue line.
 attr[seg000:7bed]: type = code; name = menu_callback_choice_map_troop_dialogue_ask_for_more_information
 attr[seg000:7c02]: name = troop_07c02
 attr[seg000:7c63]: name = troop_07c63
-attr[seg000:7c8f]: name = location_07c8f; fn = in location: *Location @si
+attr[seg000:7c8f]: name = location_distance_from_player; fn = in location: *Location @si; comment = [[[
+    The Chebyshev distance in map cells between the player (get_map_position) and
+    the location at si: max(|delta longitude| / lng_units_per_cell_table[|player
+    latitude|], |delta latitude|). Compared against location_visibility_distance
+    by the marker/travel/troop-range code.
+]]]
 attr[seg000:7cbb]: type = code; name = menu_callback_choice_map_troop_dialogue_modify_equipment
 attr[seg000:7cc0]: ofs_seg = seg001
 attr[seg000:7cc3]: ofs_seg = seg000
@@ -1818,6 +2237,12 @@ attr[seg000:8224]: ofs_seg = seg001
 attr[seg000:824d]: type = code
 attr[seg000:8256]: type = code
 attr[seg000:8259]: ofs_seg = seg001
+attr[seg000:82a0]: comment = [[[
+    ZF check for the map centre button and the globe menu handlers: returns ZF set iff the
+    active screen element menu is menu_multiple_cancel or menu_map_move_prospectors AND
+    data_046eb bit 0x40 is set (the globe-0x40 sub-mode). Callers branch jnz to the plain
+    recentre path.
+]]]
 attr[seg000:82a3]: ofs_seg = seg001
 attr[seg000:82a9]: ofs_seg = seg001
 attr[seg000:82c7]: ofs_seg = seg001
@@ -1853,7 +2278,19 @@ attr[seg000:881f]: type = code; name = ui_click_map_left; ofs_seg = seg001
 attr[seg000:8824]: type = code; name = ui_click_map_right; ofs_seg = seg001
 attr[seg000:8829]: type = code; name = ui_click_map_up; ofs_seg = seg001
 attr[seg000:882e]: type = code; name = ui_click_map_down; ofs_seg = seg001
-attr[seg000:8831]: type = code; name = ui_click_map_buttons
+attr[seg000:8831]: type = code; name = ui_click_map_buttons; fn = in button_state: u8 @al, in delta: *u16 @si; comment = [[[
+    Scroll the map/globe view by the (delta longitude, delta latitude) word pair at si.
+    al = the live button byte: only while the LMB is down (test al,1) — the final fire on
+    the release edge is a no-op. The full-globe view (data_046eb bit 0x80) scrolls the globe
+    instead: bit 0x40 moves globe_param_3/4 (loc_08858), else loc_05beb runs first.
+    The plain windowed view adds the pair to zoomed_globe_longitude/latitude and falls into
+    map_refresh_main_view.
+]]]
+attr[seg000:8850]: name = map_refresh_main_view; comment = [[[
+    Redraw the current main view after a map scroll/recentre: dismiss any troop-contact
+    popups (map_dismiss_troop_popups), then call the installed main-view drawing function
+    (_word_23B9D; map_view_redraw while the map screen is up).
+]]]
 attr[seg000:8853]: targets = seg000:4377, seg000:49a0
 attr[seg000:8865]: type = code; name = font_draw_interpolated_string_w_color_at_pos
 attr[seg000:8877]: ofs_seg = seg001
@@ -1981,10 +2418,64 @@ attr[seg000:9105]: ofs_seg = seg000
 attr[seg000:910e]: ofs_seg = seg000
 attr[seg000:9111]: ofs_seg = seg001
 attr[seg000:911d]: ofs_seg = seg000
-attr[seg000:9123]: type = code; name = character_id_to_sprite; comment = [[[
-    = character_id_to_sprite. Map a person id to a PERS.HSQ sprite-pair index.
-    For id < 0x0d returns id unchanged; higher ids and the player (0x2d) fold
-    in walk/facing animation state ([114eh], [4756h], [4758h], [476ch]).
+attr[seg000:9123]: type = code; name = character_id_to_sprite; fn = in id: u8 @al, out sprite_pair: u16 @ax; comment = [[[
+    = character_id_to_sprite. Map a person id (al) to a PERS.HSQ sprite-pair
+    index (returned in ax, ah=0) and, as a side effect, set data_047d0 = the
+    talking-head idle expression the face animator reads (loc_0994f / loc_09a7b).
+    
+    Four cases:
+      - id < 0x0d (named characters): return id unchanged; data_047d0 = 0, i.e.
+        the random idle path (loc_0994f picks animations {0..3}).
+      - id == 0x0d (the SMUG smuggler head, char_to_sprite_smug): data_047d0 =
+        (command_menu_x >> 1) + 1, read from the active verb-list header byte
+        [current_location_ptr][0] (the menu x pixel origin). The reason the idle
+        facing is keyed to the menu x-origin is not yet understood.
+      - id 0x0e..0x10: fold in walk/facing animation state (char_to_sprite_walk_
+        facing, via data_04756 / data_04758 / data_0476c and the game_phase 0xc8 gate).
+      - id >= 0x11, incl. the player 0x2d (char_to_sprite_player): al is forced to
+        0x2d (PAUL) and data_047d0 is derived from the in-game clock (game_time),
+        so Paul visibly ages across the game.
+]]]
+attr[seg000:912f]: name = char_to_sprite_smug; comment = [[[
+    = id == 0x0d (the SMUG smuggler head): derive the idle expression from the
+    active verb-menu position. di = current_location_ptr; ah = [di] = the command-
+    list header byte 0 = the menu x pixel origin (= command_menu_x, see
+    set_command_menu_origin seg000:2e98). data_047d0 = (menu_x >> 1) + 1.
+    Why the smuggler idle facing is keyed to the menu x-origin is not yet
+    understood.
+]]]
+attr[seg000:913b]: name = char_to_sprite_walk_facing; comment = [[[
+    = id 0x0e..0x10: fold in the walk/facing animation state. si = data_04756;
+    id 0x0e uses it directly, otherwise (unless game_phase >= 0xc8) index
+    data_04758 by data_0476c. loc_09155 divides the facing byte by 3 and folds
+    it into the sprite index.
+]]]
+attr[seg000:914a]: let = walk_idx: u8 @al
+attr[seg000:9171]: comment = [[[
+    = loc_09171 (from loc_0917a): inc ah — the final +1 of the player
+    expression, then fall through to the data_047d0 store.
+]]]
+attr[seg000:9173]: name = char_to_sprite_store_expr; comment = [[[
+    = store the computed idle expression: data_047d0 = ah, then ax = al
+    (xor ah,ah) so the sprite-pair index is returned in ax.
+]]]
+attr[seg000:917a]: name = char_to_sprite_player; comment = [[[
+    = the player branch (id >= 0x11). Derive the talking-head idle expression
+    from the in-game clock and force the sprite to PAUL (0x2d).
+    
+      ah = min((game_time*4) >> 8, 8)   ; == min(game_time >> 6, 8)
+      ah = ah*2 + (desert_walk_counter >= 0x10 ? 1 : 0) + 1   ; via loc_09188 / cmc;adc / inc ah
+      al = 0x2d
+      data_047d0 = ah
+    
+    Higher game_time selects the higher (later, blue-eyed) idle animations;
+    at game start game_time is small so data_047d0 == 1 -> the youngest idle
+    animation 0 (loc_0994f / loc_09a7b use animation data_047d0 - 1).
+]]]
+attr[seg000:9188]: name = char_to_sprite_player_clamp; comment = [[[
+    = clamp the game_time-derived expression: ah = min(ah, 8) (9181..9186),
+    then ah *= 2. cmc;adc ah,0 (918a..9190) adds 1 when desert_walk_counter
+    >= 0x10; inc ah (loc_09171) adds the final +1.
 ]]]
 attr[seg000:9197]: type = code; name = setup_lip_sync_data_from_current
 attr[seg000:91a0]: type = code; name = setup_lip_sync_data_from_sprite_sheet
@@ -1994,6 +2485,17 @@ attr[seg000:9215]: type = code; name = callback_main_ui_element_21_22
 attr[seg000:9218]: ofs_seg = seg001
 attr[seg000:9238]: ofs_seg = seg001
 attr[seg000:9248]: ofs_seg = seg001
+attr[seg000:9285]: name = person_hit_test_at_cursor; comment = [[[
+    Hit-test the cursor (dx = x, bx = y) against the on-screen person markers
+    (character_screen_pos, seg001:47f8): a fixed box 1..=32 px right and 1..=80 px
+    below each anchor. On a person hit: CF set, cx = person id (loc_092eb). When
+    no person matches, test the parked-ornithopter hotspot (orni_hotspot_x/y,
+    recorded by the draw_room_scene orni pass, 0 = none): a box 1..=78 px right
+    and 0..=59 px below it; on a hit CF set, cx = 0x2f — the ornithopter
+    pseudo-person id, whose 0x78 + id verb text (0xa7 = TAKE AN ORNITHOPTER)
+    makes the hover highlight work with no special case. y >= 0x98 takes the
+    menu_NPC_actions path at loc_092c9 instead.
+]]]
 attr[seg000:928b]: ofs_seg = seg001
 attr[seg000:92c9]: fn = out carry: bool @cf
 attr[seg000:92d4]: ofs_seg = seg001
@@ -2249,6 +2751,10 @@ attr[seg000:aa68]: ofs_seg = seg001
 attr[seg000:aa70]: type = code; name = copy_sd_chunk_to_pcm_buf
 attr[seg000:ab15]: type = code; name = audio_start_voc
 attr[seg000:ab39]: ofs_seg = seg001
+attr[seg000:ab45]: name = duck_music_and_start_narration_voice_clip; fn = in clip: u16 @ax; comment = [[[
+    With PCM enabled, duck the score (midi_duck_music_volume) and fall into
+    start_narration_voice_clip for clip index ax.
+]]]
 attr[seg000:ab4f]: name = start_narration_voice_clip; comment = [[[
     Open and queue the next narration .VOC for playback (the PZ\PZNNNI.VOC family).
     ax (in): 3-hex-digit clip index. bx is forced to 0x19 -> directory letter "A"+0x19 = "Z", so the filename create_voc_file_name_from_bx builds is "PZ\PZ<ax3>I.VOC" (international language).
@@ -2264,6 +2770,12 @@ attr[seg000:ab86]: ofs_seg = seg001
 attr[seg000:ab92]: type = code; name = frame_task_callback_0ab92
 attr[seg000:ab9d]: ofs_seg = seg000
 attr[seg000:aba3]: type = code; name = check_pcm_voice_file_open
+attr[seg000:aba9]: name = wait_for_narration_voice_clip; comment = [[[
+    Block until the narration voice clip drains, pumping the ab92 monitor
+    body each PIT tick (it restores the ducked score once playback ends),
+    with a 1000-tick timeout; both exits fall into
+    set_voc_pcm_is_not_playing.
+]]]
 attr[seg000:abc6]: type = code; name = set_voc_pcm_is_not_playing
 attr[seg000:abcc]: type = code; name = is_voc_pcm_playing
 attr[seg000:abdb]: type = code; name = play_pcm_al
@@ -2280,9 +2792,36 @@ attr[seg000:ac90]: type = code; name = menu_callback_choice_music_cd_order_shuff
 attr[seg000:ac97]: type = code; name = menu_callback_choice_music_cd_order_standard
 attr[seg000:aca3]: ofs_seg = seg001
 attr[seg000:aca6]: ofs_seg = seg001
+attr[seg000:acae]: name = music_cd_start_selected_order; comment = [[[
+    Shared tail of the STANDARD ORDER / SHUFFLE choices: stop the current song
+    (midi_reset), pop the CD-order submenu and redraw the menu beneath, close the
+    mixer panel (menu_callback_choice_exit_menu), clear the music-off bit
+    (cmd_args_memory bit 4) and start the playlist (music_cd_playlist_restart).
+]]]
 attr[seg000:acbe]: type = code
-attr[seg000:acbf]: ofs_seg = seg001
-attr[seg000:ad21]: ofs_seg = seg001
+attr[seg000:acbf]: name = music_cd_playlist_shuffle; ofs_seg = seg001; comment = [[[
+    Shuffle the 9-entry CD playlist in place: 0x12 rounds of swapping two
+    rand_iterated(8) slots, perturbing the rand seed with the PIT counter xor the
+    loop counter between the two draws. Returns si = the playlist base.
+]]]
+attr[seg000:ace6]: name = music_cd_playlist_service; comment = [[[
+    CD-playlist music streamer, stepped from process_frame_tasks (seg000:d9d2) and
+    the in-game HNM play loop (seg000:c913). No-op while a VOC voice plays. In CD
+    mode (music_playlist_flags bit 0) with the sky not suppressed and the driver
+    idle: stamp the first idle sighting in music_song_end_tick_stamp, and 0xc8
+    ticks later advance the playlist (music_cd_playlist_advance). In game-relative
+    mode falls to loc_0ad37 (start the desired song when idle).
+]]]
+attr[seg000:ad18]: name = music_cd_playlist_advance; comment = [[[
+    Advance the CD playlist: read the song at [music_cd_playlist_cursor]; a
+    high-bit terminator restarts the playlist (music_cd_playlist_restart),
+    otherwise bump the cursor and play the song.
+]]]
+attr[seg000:ad21]: name = music_cd_playlist_restart; ofs_seg = seg001; comment = [[[
+    Restart the CD playlist from the top: in shuffle mode (music_playlist_flags
+    bit 1) first permute the 9 entries (music_cd_playlist_shuffle), then set the
+    cursor past the first entry and play it.
+]]]
 attr[seg000:ad50]: type = code; name = play_music_WORMSUIT_HSQ
 attr[seg000:ad57]: type = code; name = play_music_MORNING_HSQ
 attr[seg000:ad5c]: comment = MORNING.HSQ
@@ -2317,6 +2856,11 @@ attr[seg000:aeb7]: type = code; name = midi_reset; comment = [[[
     Stop the currently playing song.
     Clears [_byte_2D07B_current_song_index] to 0 and calls the driver-supplied MIDI_Reset (ADLReset for DNADL: silences all OPL voices and clears the driver status byte). The driver returns 0 in al, which is stored in [_byte_2D07D_midi_status], disabling subsequent midi_wait_until calls.
     Called before each play_music_* (to silence the previous song) and again from per-stage play loops like play_VIRGIN_HNM once the music reaches a target measure (one-shot termination — the song-index check prevents it from re-firing).
+]]]
+attr[seg000:aec6]: name = check_music_enabled; comment = [[[
+    Music service gate: returns CF set (music disabled) when cmd_args_memory bit 4
+    (the MUSIC OFF menu toggle) is set or the settings MIDI flag (settings_flags
+    bit 0x100, loc_0ae28) is clear.
 ]]]
 attr[seg000:aed6]: type = code; name = callback_main_ui_element_03
 attr[seg000:aef7]: ofs_seg = seg000
@@ -2393,12 +2937,58 @@ attr[seg000:b4bf]: comment = Read input size
 attr[seg000:b4ea]: type = code; name = compress_sav; comment = RLE-byte
 attr[seg000:b527]: comment = Write RLE-byte (in word)
 attr[seg000:b52a]: comment = Write output length
+attr[seg000:b532]: name = read_map_byte_at_dx_bl; comment = [[[
+    Read the MAP.HSQ terrain byte at longitude dx / latitude bl (via map_func;
+    dx is preserved). Bit 0x40 = a location is at this cell (set by the startup
+    loop at seg000:0192).
+]]]
 attr[seg000:b57b]: ofs_seg = seg001
 attr[seg000:b586]: ofs_seg = seg001
 attr[seg000:b58b]: type = code; name = map_func
 attr[seg000:b5a0]: type = code; name = tablat_lookup_from_bx_to_ax_bp
+attr[seg000:b5c5]: name = map_offset_and_snap_x; comment = [[[
+    map_func wrapper used by the startup location loop (seg000:0192): es:di = the
+    map byte for (dx = longitude, bx = latitude), and dx is snapped to the start
+    of its map cell (dx = row_byte_offset * 0x10000 / (2 * tablat_len)), so a
+    location's stored map_x compares equal (loc_04002) when a desert walk lands
+    on its cell.
+]]]
+attr[seg000:b5cf]: name = desert_apply_step_delta; comment = [[[
+    Apply a desert_step_deltas word (ax) to the desert position: dx = longitude
+    (0..0xffff around the planet), bl = signed latitude row (-97..97), bh = the
+    fine sub-row position (0..255 between latitude rows). ah steps bh, carrying
+    into bl clamped to bl < 0x62 going south and bl > -0x62 (0x9e) going north
+    (a blocked step is undone); al (sign-extended) is added to dx.
+]]]
+attr[seg000:b5f9]: name = map_screen_to_position; fn = in x: u16 @dx, in y: u16 @bx, out map_x: u16 @dx, out lat: u16 @bx; comment = [[[
+    The inverse of map_position_to_screen: convert a screen point inside the
+    map window to a map position. Subtract the window centre
+    (data_0dcf6/data_0dcf8), add the view latitude for the row; the longitude
+    cell = the screen dx plus the rows cached view-centre cell (the tablat
+    entry +6 scratch map_copy_window_row fills), wrapped into the row length
+    ([si+2] * 2), then scaled back to longitude units (cell * 0x10000 / len).
+    On the full globe (data_046eb bit 0x80) both deltas are unscaled by 4 and
+    the +4 rotated-band offset applies instead.
+]]]
 attr[seg000:b61e]: ofs_seg = seg001
-attr[seg000:b6c3]: type = code; name = map_draw_zoomed_globe
+attr[seg000:b647]: name = map_position_to_screen; comment = [[[
+    Project a map position (dx = longitude units, bx = latitude) to map-view
+    screen coordinates. y = (lat - zoomed_globe_latitude) + window centre
+    (data_0dcf8); x = window centre (data_0dcf6) + high word of
+    (lng - zoomed_globe_longitude) * the latitudes tablat row byte length
+    (the same lng * len >> 16 cell projection map_copy_window_row uses).
+    Globe mode (data_046eb bit 0x80) scales both deltas by 4.
+]]]
+attr[seg000:b6c3]: type = code; name = map_draw_zoomed_globe; comment = [[[
+    Draw the map main view. Globe mode (data_046eb bit 0x80): centre (0xa0,0x4c),
+    clamp latitude to +-0x4b and call vga_draw_map_zoomed (the full interpolated
+    globe). Windowed mode: derive centre/size from data_046e3_rect into
+    data_0dcf2..0dcf8, clamp latitude to +-(0x56 - height/2), copy one raw map row
+    per window row into the ss row buffer (map_copy_window_row, walking tablat
+    entries north of the centre mirrored/negated), and blit it with
+    vga_blit_shaded (pixel = (cell & 0x0f) + 0x10, curved edges) unless data_046eb
+    bit 0x40 suppresses the blit.
+]]]
 attr[seg000:b6f8]: ofs_seg = seg001
 attr[seg000:b708]: ofs_seg = seg001
 attr[seg000:b70f]: targets = segvga:0157
@@ -2406,6 +2996,16 @@ attr[seg000:b714]: ofs_seg = seg001
 attr[seg000:b769]: ofs_seg = seg001
 attr[seg000:b7c2]: ofs_seg = seg001
 attr[seg000:b7cd]: targets = segvga:0142
+attr[seg000:b7d2]: name = map_copy_window_row; comment = [[[
+    Copy one map row into the ss row buffer at es:di (stride 0xc8) for the
+    windowed map blit. cx = the rows tablat offset (negated for northern rows by
+    the caller), bx = the tablat half-length (doubled here to the row byte
+    length), dx = the window longitude; the longitude cell (high word of
+    lng * len) is cached in the tablat entrys +6 scratch word (bp), whose sole
+    reader is map_screen_to_position (seg000:b62c) — the globe path instead uses
+    +4..+7 as the bands 32-bit rotated offset (vga_globe_init). Rows shorter than
+    the window width (data_0dcf2) are centred; the copy wraps around the row end.
+]]]
 attr[seg000:b827]: type = code; name = draw_globe_and_ui_to_front_buffer
 attr[seg000:b841]: ofs_seg = seg001
 attr[seg000:b84a]: type = code; name = globe_fill_blue_background_to_front_buffer
@@ -2583,7 +3183,10 @@ attr[seg000:c43e]: type = code; name = copy_game_area_to_screen_fb2_to_fb1; ofs_
 attr[seg000:c443]: type = code; name = copy_clip_rect_to_screen_from_fb2; ofs_seg = seg001
 attr[seg000:c446]: type = code; name = copy_rect_fb2_to_fb1
 attr[seg000:c467]: targets = segvga:012a
-attr[seg000:c474]: type = code; name = copy_game_rect_from_fb2_to_fb1; ofs_seg = seg001
+attr[seg000:c474]: type = code; name = copy_game_rect_fb1_to_fb2; ofs_seg = seg001; comment = [[[
+    Snapshot the game-area rect (si = game_area_rect) from framebuffer 1 into
+    framebuffer 2 (falls into gfx_copy_rect_fb1_to_fb2).
+]]]
 attr[seg000:c477]: type = code; name = gfx_copy_rect_fb1_to_fb2
 attr[seg000:c493]: targets = segvga:0124
 attr[seg000:c49a]: type = code; name = gfx_copy_framebuffer_to_screen
@@ -2592,14 +3195,36 @@ attr[seg000:c4aa]: type = code; name = gfx_copy_rect_to_screen
 attr[seg000:c4c6]: targets = segvga:0130
 attr[seg000:c4cd]: type = code; name = gfx_copy_whole_framebuf_to_screen
 attr[seg000:c4d6]: targets = segvga:012d
+attr[seg000:c4dd]: name = present_game_area; comment = [[[
+    Present the game-area rect (0,0)-(320,152) from fb1 to the visible screen:
+    restore the saved background under the cursor when it sits in the game area
+    (so a stale cursor image is not baked into the pushed rect), then fall into
+    present_screen_rect with si = _word_20920_game_area_rect.
+]]]
 attr[seg000:c4e8]: ofs_seg = seg001
 attr[seg000:c4ed]: type = code; name = update_screen_at_sprite_rect_updating_head; ofs_seg = seg001
-attr[seg000:c4f0]: type = code; name = draw_hud_head_if_needed_and_update_screen_rect_at_si
-attr[seg000:c4fb]: type = code; name = draw_hud_head_if_needed_and_update_screen_rect
+attr[seg000:c4f0]: type = code; name = present_screen_rect; comment = [[[
+    Present the rect at si from fb1 to the visible screen: redraw the HUD
+    head-and-shoulders ornament into fb1 first when the rect overlaps the head box
+    (x in 0x7e..0xc2, bottom edge >= 0x89, unless data_0227d suppresses it), then
+    fall into copy_rect_fb1_to_screen.
+]]]
+attr[seg000:c4fb]: type = code; name = present_screen_rect_regs; comment = [[[
+    The register form of present_screen_rect (dx/bx/bp/ax = x0/y0/x1/y1, which the
+    si form loads and falls into): redraw the HUD head into fb1 when the rect
+    overlaps the head box, then push the rect from fb1 to the visible screen
+    (copy_rect_fb1_to_screen).
+]]]
 attr[seg000:c502]: arg[1] = dec
 attr[seg000:c507]: arg[1] = dec
 attr[seg000:c50d]: arg[1] = dec
-attr[seg000:c51e]: type = code; name = particles_update_screen_rect
+attr[seg000:c51e]: type = code; name = copy_rect_fb1_to_screen; comment = [[[
+    Copy the rect at si from fb1 to the visible screen (A000). A zero-area rect
+    does nothing; the copy is skipped while the front buffer is redirected to fb1
+    (offscreen render) or the mixer panel owns the mouse handlers (seg000:c526
+    cmp active_mouse_handlers, 1ad6h). Tail of the present_screen_rect chain; also
+    called directly (e.g. the night-attack particles, seg000:c7cc).
+]]]
 attr[seg000:c526]: ofs_seg = seg001
 attr[seg000:c537]: targets = segvga:0130
 attr[seg000:c53e]: type = code; name = draw_line; ofs_seg = seg001
@@ -2769,6 +3394,12 @@ attr[seg000:ce1a]: type = code; name = hnm_reset_buffers; comment = [[[
 ]]]
 attr[seg000:ce3b]: type = code; name = hnm_handle_pal_chunk
 attr[seg000:ce46]: targets = segvga:0160
+attr[seg000:ce4b]: name = hnm_switch_active_video; comment = Set hnm_active_video_id = bx (the HNM loop point then redirects into that clip, seg000:cb7c) and hnm_counter_4 = ax.
+attr[seg000:ce53]: name = prefetch_travel_hnm_resources; comment = [[[
+    When MNT1.HNM carries the resource-table flag 4, preload resources
+    0x63..0x68 (the travel flight HNMs) so the departure does not seek
+    mid-flight.
+]]]
 attr[seg000:ce6c]: type = code; name = hnm_initialize_memory_handler
 attr[seg000:cec2]: ofs_seg = seg001
 attr[seg000:cec9]: type = code; name = hnm_render_timer_callback
@@ -3014,8 +3645,15 @@ attr[seg000:da25]: type = code; name = add_frame_task
 attr[seg000:da27]: ofs_seg = seg001
 attr[seg000:da53]: type = code; name = clear_frame_tasks
 attr[seg000:da5f]: type = code; name = remove_frame_task; ofs_seg = seg001
-attr[seg000:daa3]: type = code; name = clear_some_mouse_rect
-attr[seg000:daaa]: type = code; name = set_some_mouse_rect
+attr[seg000:daa3]: type = code; name = clear_mouse_nav_rect; comment = [[[
+    Clear the navigation mouse hot-zone rect: the cursor drops back to the
+    plain arrow everywhere.
+]]]
+attr[seg000:daaa]: type = code; name = set_mouse_nav_rect; fn = in rect: *Rect @si; comment = [[[
+    Install a navigation mouse hot-zone rect: get_mouse_cursor_image_addr
+    shows the hand inside it and the four travel arrows in the scroll bands
+    outside its edges.
+]]]
 attr[seg000:daaf]: ofs_seg = seg001
 attr[seg000:dae3]: type = code; name = set_mouse_pos; comment = Test cmd arg NOM = NoMouse
 attr[seg000:db14]: type = code; name = define_mouse_range; ofs_seg = seg001
@@ -3120,7 +3758,7 @@ attr[seg000:e3a0]: type = code; name = wait_processing_frame_tasks
 attr[seg000:e3b7]: type = code; name = rand_masked
 attr[seg000:e3cc]: type = code; name = rand
 attr[seg000:e3df]: type = code; name = rand_iterated
-attr[seg000:e40c]: type = [CmdArg; 23]; name = cmd_arg_list
+attr[seg000:e40c]: type = [CmdArg; 23]; name = travel_trail_ring; comment = The cs-resident travel-trail ring: (longitude, latitude) word pairs up to loc_0e85c, empty entries hold 0x800 in both words (travel_reset_trail).
 attr[seg000:e4ad]: type = code; name = parse_command_line; comment = PSP[80h] = Number of bytes on command-line
 attr[seg000:e4b5]: comment = ds:[bp] = End of Command-line tail (terminated by 0Dh)
 attr[seg000:e4be]: comment = skip space
@@ -3788,8 +4426,27 @@ attr[seg001:114a]: comment = Haga
 attr[seg001:114b]: comment = Cielago
 attr[seg001:114c]: comment = Sihaya
 attr[seg001:114d]: comment = Celimyn
-attr[seg001:114e]: type = u16; name = command_list_ptr; comment = Offset of the active command (verb) list in the data segment. Header is [x:u8, y:u8] giving the menu pixel origin (read by set_command_menu_origin), followed by the records build_room_command_records assembles. Its value also tags the list identity (e.g. 100h, 7c8h).
-attr[seg001:1150]: type = ofs16(seg001)
+attr[seg001:114e]: type = u16; name = current_location_ptr; comment = [[[
+    Pointer to the current location's record in locations[] (0x100 + 0x1c *
+    slot), or no location: cleared to 0 by the desert walk-out (seg000:3fdd) and
+    the travel departure (seg000:4763); the static init is 0ffffh (also "none")
+    until the first scene open. Recomputed on every scene open (loc_008f0: 0xe4 +
+    0x1c * location_appearance-hi) and set on walk-in arrival
+    (arrive_at_location). Mostly read as the location record (get_map_position,
+    equipment/troop scans, "is di the current location" compares); the verb-menu
+    code additionally uses the record's address as the room command list's
+    identity (seg000:a2aa cmp against command_menu_list, seg000:303b cmp against
+    100h = the Atreides palace to show the centre palace-plan button) and reads
+    its first two bytes as the nominal menu-origin header
+    (set_command_menu_origin).
+]]]
+attr[seg001:1150]: type = u16; name = last_location_ptr; comment = [[[
+    The location record the player is at or last left (static init 0x100 =
+    locations[0], the Atreides palace). Set on walk-in arrival
+    (arrive_at_location) and travel arrivals; unlike current_location_ptr it is NOT
+    cleared when walking out into the desert, so the desert renderer
+    (draw_outdoor_backdrop, loc_04d06) can still see the nearby location.
+]]]
 attr[seg001:1152]: type = signed(u8); name = ui_hud_companion_1
 attr[seg001:1153]: type = signed(u8); name = ui_hud_companion_2
 attr[seg001:1154]: type = u16
@@ -3806,7 +4463,12 @@ attr[seg001:116f]: type = u8
 attr[seg001:1170]: type = u16
 attr[seg001:1172]: type = u16
 attr[seg001:1174]: type = u16
-attr[seg001:1176]: type = u16
+attr[seg001:1176]: type = u16; name = location_visibility_distance; comment = [[[
+    The sietch visibility radius in map cells (static init 1): sietch map markers
+    farther than this from the player draw the +5 distant sprite variant, and the
+    walk/troop range checks compare against it. Raised by the dialogue-line event
+    callback_event_dialogue_line_08_speaker_dependent_effect_1 (seg000:a1ad).
+]]]
 attr[seg001:1178]: type = u8; name = number_of_rallied_troops_for_Leto_being_killed
 attr[seg001:118d]: type = u16
 attr[seg001:1190]: type = u8
@@ -3818,9 +4480,22 @@ attr[seg001:11bd]: type = u16; name = dialogue_played_log_head; comment = [[[Hea
 attr[seg001:11bf]: type = u16
 attr[seg001:11c1]: type = u16
 attr[seg001:11c3]: type = u16
-attr[seg001:11c5]: type = u16
-attr[seg001:11c7]: type = u8
-attr[seg001:11c8]: type = u8
+attr[seg001:11c5]: type = u16; name = travel_destination_ptr; comment = [[[
+    The pending/active travel destination location ptr (0 = none). Set by
+    arm_pending_travel; map_screen_cleanup keeps game_screen_mode_flags while
+    it is set; the step re-aim (loc_051cb) and the arrival (seg000:4fd8)
+    read it; cleared at seg000:4ff2.
+]]]
+attr[seg001:11c7]: type = u8; name = travel_heading; comment = [[[
+    The travel compass heading (0 north, clockwise, 0x20 per compass point).
+    Seeded by arm_pending_travel; re-aimed at the destination each step when
+    travel_heading_mode == 0 (loc_051cb); reversed by BACK TO STARTING POINT
+    (seg000:526a += 0x80).
+]]]
+attr[seg001:11c8]: type = u8; name = travel_heading_mode; comment = [[[
+    1 = fixed compass heading (a desert-cell click); 0 = home toward
+    travel_destination_ptr, re-aiming each step (loc_051cb).
+]]]
 attr[seg001:11c9]: type = u8; name = game_screen_mode_flags; comment = [[[
     Bitfield selecting the active non-room screen/mode (book/map/dialogue/copy-
     protection etc): set to 4 or 8, tested with masks 3 and 0fh, cleared to 0 when
@@ -3828,7 +4503,10 @@ attr[seg001:11c9]: type = u8; name = game_screen_mode_flags; comment = [[[
 ]]]
 attr[seg001:11ca]: type = u8
 attr[seg001:11cb]: type = u8
-attr[seg001:11cc]: type = u16
+attr[seg001:11cc]: type = u16; name = travel_step_accum; comment = [[[
+    The travel steps 8.8 sub-cell accumulator, re-seeded to 0x80 (half a
+    cell) by adjust_travel_heading; consumed by the step math (loc_05206).
+]]]
 attr[seg001:11ce]: type = u16
 attr[seg001:11d3]: type = [ofs16(seg001); 4]; name = ARRAY_PTR_Location_prospector_destinations
 attr[seg001:11db]: type = ofs16(seg001); name = PTR_Location_latest_location_with_illness
@@ -3928,21 +4606,41 @@ attr[seg001:143a]: type = u16
 attr[seg001:143c]: type = Rect
 attr[seg001:1444]: type = Rect
 attr[seg001:144c]: type = u8; name = _byte_208FC_loaded_SAL_index
-attr[seg001:1454]: type = u16
-attr[seg001:1462]: type = u16
-attr[seg001:1466]: type = u16
+attr[seg001:1454]: type = [u16; 5]; name = desert_step_deltas; comment = [[[
+    Per-direction desert step deltas, indexed by bp = the compass direction (1..4,
+    UP/RIGHT/DOWN/LEFT) or the negated special-exit byte (0xff..0xfb -> 1..5).
+    Each word is a packed step: al = signed longitude delta, ah = signed
+    fine-latitude delta, applied by desert_apply_step_delta. Entries (from index
+    1): UP/0xff = lat -1, RIGHT/0xfe = lon +1, DOWN/0xfd = lat +1, LEFT/0xfc =
+    lon -1, 0xfb = no movement (step onto the map in place). Index 0 is unused
+    (the word there, 0x0209, is unrelated data).
+]]]
+attr[seg001:145e]: name = map_scroll_delta_up; comment = The four (delta longitude, delta latitude) word pairs the nav-panel arrows scroll by: up (0,-12), right (+0x1002,0), down (0,+12), left (-0x1002,0).
+attr[seg001:1462]: type = u16; name = map_scroll_delta_right
+attr[seg001:1466]: type = u16; name = map_scroll_delta_down
+attr[seg001:146a]: name = map_scroll_delta_left
 attr[seg001:146e]: type = u16
 attr[seg001:1470]: type = Rect; name = _stru_20920_game_area_rect
 attr[seg001:1478]: type = Rect
 attr[seg001:1482]: type = Rect
-attr[seg001:148a]: type = Rect
-attr[seg001:1492]: type = Rect
-attr[seg001:149a]: type = ofs16(seg001)
-attr[seg001:149c]: type = Rect
+attr[seg001:148a]: type = Rect; name = travel_minimap_rect; comment = The flight minimap view rect (204,4)-(316,60), copied into data_046e3_rect by travel_minimap_setup.
+attr[seg001:1492]: type = Rect; name = travel_minimap_restore_rect; comment = The minimap restore rect (200,0)-(320,64) hnm_present_flight_frame copies from the back buffer over each flight frame.
+attr[seg001:149a]: type = ofs16(seg001); name = travel_trail_cursor; comment = The travel_trail_ring write cursor (the NEXT slot travel_trail_append fills).
+attr[seg001:149c]: type = Rect; name = map_view_rect_template; comment = [[[
+    The map window rect template (81,45)-(241,134), copied into data_046e3_rect
+    when the map screen opens (seg000:432e).
+]]]
 attr[seg001:14a4]: type = Rect
 attr[seg001:14ac]: type = Rect
-attr[seg001:14b4]: type = [UISprite; 3]; name = _stru_20964_icon_list
-attr[seg001:14c0]: name = _stru_20970_icon_list_ornypan
+attr[seg001:14b4]: type = [UISprite; 3]; name = icon_list_ornypan_cockpit; comment = [[[
+    ORNYPAN.HSQ icon list: the full ornithopter cockpit interior, sprites 0..2 at
+    (0,0x13), (0x0a,0x2b), (0x4f,0x2d). The final entry is shared with
+    icon_list_ornypan_window_overlay, whose 0xffff terminator ends this list too.
+]]]
+attr[seg001:14c0]: name = icon_list_ornypan_window_overlay; comment = [[[
+    ORNYPAN.HSQ icon list: just the cockpit window frame (sprite 2 at 0x4f,0x2d),
+    redrawn over the freshly drawn map window on every map_view_redraw pass.
+]]]
 attr[seg001:14c6]: type = u16
 attr[seg001:14c8]: type = [UISprite; 3]; name = _stru_20978_icon_list
 attr[seg001:14da]: type = u16
@@ -5005,9 +5703,9 @@ attr[seg001:37d1]: name = aFreq_hsq
 attr[seg001:37da]: type = cstr; name = aPfPf001i_voc
 attr[seg001:37e9]: type = cstr; name = aDune_dat
 attr[seg001:37f2]: type = cstr; name = aDnmaj1
-attr[seg001:37fa]: type = [u8; 10]
-attr[seg001:3804]: type = [u8; 10]
-attr[seg001:380e]: type = u16
+attr[seg001:37fa]: type = [u8; 10]; name = music_cd_playlist; comment = [[[Working CD-playlist order: 9 song numbers + a 0xff terminator. STANDARD ORDER recopies music_cd_standard_order over it; SHUFFLE permutes it in place (music_cd_playlist_shuffle).]]]
+attr[seg001:3804]: type = [u8; 10]; name = music_cd_standard_order; comment = The pristine standard CD order (9 songs + 0xff terminator) STANDARD ORDER copies into music_cd_playlist.
+attr[seg001:380e]: type = u16; name = music_cd_playlist_cursor; comment = Cursor into music_cd_playlist: points at the NEXT entry to play (music_cd_playlist_advance lodsb + store).
 attr[seg001:3810]: type = u8; name = music_playlist_flags; comment = [[[
     Background-music playlist (jukebox) mode flags. Init 0 at seg000:0019.
     bit 0 (0x01): playlist mode. The streamer loc_0ace6 auto-advances the song list at 37fah via the [380eh] cursor and plays each track; also passed as the loop flag to the player vtable [3971h] at seg000:adac. When clear: single-track mode (loc_0ad5e -> loc_0ad75 plays one song, no advance); the single-track timers loc_0adbe/loc_0ae04 run only while clear.
@@ -5208,10 +5906,21 @@ attr[seg001:4723]: type = u8
 attr[seg001:4724]: type = u8
 attr[seg001:4725]: type = u8
 attr[seg001:4726]: type = u8
-attr[seg001:4727]: type = u8
-attr[seg001:4728]: type = u8
-attr[seg001:4729]: type = u16
-attr[seg001:472b]: type = u16
+attr[seg001:4727]: type = u8; name = travel_active; comment = [[[Nonzero while an in-game travel is under way (armed 0xff by map_confirm_travel_and_close / frame_task_callback_04ab8, cleared on arrival); gates travel_pump.]]]
+attr[seg001:4728]: type = u8; name = travel_minimap_state; comment = [[[
+    Flight minimap state: 0 normal, 1 = recenter + redraw pending (set when the position
+    leaves the minimap bounds, and by CHANGE DESTINATION at seg000:4980), bit 0x80 =
+    minimap hidden (toggled by loc_04aad). map_screen_cleanup re-enters the minimap view
+    when > 0.
+]]]
+attr[seg001:4729]: type = u16; name = travel_step_tick_stamp; comment = [[[
+    PIT stamp of the travel pumps last step (game_loop_sub_04f0c steps every
+    0x300 ticks); zeroed by map_confirm_travel_and_close.
+]]]
+attr[seg001:472b]: type = u16; name = travel_step_counter; comment = [[[
+    Counts travel_advance_step calls; every 16th runs one time period of
+    events. Zeroed by map_confirm_travel_and_close.
+]]]
 attr[seg001:472d]: type = u16; name = orni_hotspot_x; comment = [[[
     X of the parked orni hover hotspot (first orni position + 0x0c).
     0 = no orni on screen; draw_room_scene clears the x/y pair as one word (seg000:37b8).
@@ -5236,15 +5945,26 @@ attr[seg001:4739]: type = u8
 attr[seg001:473a]: type = u8
 attr[seg001:473b]: type = u8
 attr[seg001:473c]: type = u16
-attr[seg001:473e]: type = u8
+attr[seg001:473e]: type = u8; name = map_ornithopter_mode; comment = [[[
+    Nonzero while the map screen is in ornithopter (cockpit) mode: set to 1 by
+    TAKE AN ORNITHOPTER (seg000:42f5), cleared by CALL A WORM (seg000:42b0).
+    Selects the ORNYPAN cockpit drawing and caption style on the map screen.
+]]]
 attr[seg001:473f]: type = u32
 attr[seg001:4743]: type = u16
 attr[seg001:4745]: type = u16
 attr[seg001:4747]: type = u16
-attr[seg001:4749]: type = u16
+attr[seg001:4749]: type = u16; name = map_player_marker_rect; comment = [[[
+    The "you are here" markers screen bounding rect [x0,y0,x1,y1] (0 = no marker,
+    player off-window), set by map_arm_player_marker_task; the blink task restores
+    and redraws it, and the map hover tracker (loc_04586) reads it.
+]]]
 attr[seg001:474b]: type = u16
 attr[seg001:474f]: type = u16
-attr[seg001:4751]: type = u8
+attr[seg001:4751]: type = u8; name = map_player_marker_phase; comment = [[[
+    The "you are here" marker blink phase, bumped each
+    map_player_marker_blink_task firing; odd = marker drawn.
+]]]
 attr[seg001:4752]: type = u16; name = _word_23C02_particle_refs
 attr[seg001:4756]: type = u16
 attr[seg001:4758]: type = u16
@@ -5330,7 +6050,12 @@ attr[seg001:47c8]: type = u16
 attr[seg001:47ca]: type = u16; name = _23C7A_portrait_part_2_animations
 attr[seg001:47cc]: name = _23C7C_portrait_part_1_image_groups
 attr[seg001:47ce]: type = u16
-attr[seg001:47d0]: type = u8
+attr[seg001:47d0]: type = u8; name = talking_head_idle_expr; comment = [[[
+    = data_047d0. Talking-head idle expression / mouth index, set by
+    character_id_to_sprite. 0 = random idle (named heads); non-zero pins the
+    idle to animation (expr-1) in loc_0994f (lively) and loc_09a7b (calm).
+    Also reused as the live mouth value during voice lip-sync.
+]]]
 attr[seg001:47d1]: type = u8
 attr[seg001:47d2]: type = u16; name = _23C82_portrait_part_3_lip_ids
 attr[seg001:47dc]: type = u8
@@ -5342,7 +6067,13 @@ attr[seg001:47de]: type = u16; name = dialogue_line_word0; comment = [[[
 attr[seg001:47e0]: type = u8
 attr[seg001:47e1]: type = u16
 attr[seg001:47e4]: type = u16
-attr[seg001:47e6]: type = u16; name = command_menu_list; comment = [[[The command list (= command_list_ptr) the on-screen verb menu was built from; saved by set_command_menu_origin (seg000:2e98).]]]
+attr[seg001:47e6]: type = u16; name = command_menu_list; comment = [[[
+    The list the on-screen verb menu was built from, saved by
+    set_command_menu_origin (seg000:2e98): current_location_ptr for the plain
+    room menu, or a popup menu template (menu_NPC_actions etc.). Compared
+    against current_location_ptr (seg000:a2aa) to ask whether the plain room
+    menu is the one on screen.
+]]]
 attr[seg001:47e8]: type = u16; name = _word_23C98_x0
 attr[seg001:47ea]: type = u16; name = _word_23C9A_y0
 attr[seg001:47ec]: type = u8; name = _byte_23C9C_hi_part_of_polygon_cmd
@@ -5376,8 +6107,17 @@ attr[seg001:4876]: type = u16
 attr[seg001:4878]: type = u16
 attr[seg001:487a]: type = u16
 attr[seg001:487c]: type = u16
-attr[seg001:487e]: type = u16
-attr[seg001:4880]: type = u16
+attr[seg001:487e]: type = u16; name = travel_vehicle_mode; comment = [[[
+    The travel vehicle for the pending map travel: 1 = worm (CALL A WORM),
+    2 = ornithopter (TAKE AN ORNITHOPTER / seg000:50db). loc_04ec6 refines it
+    into hnm_active_video_id (day/night flight variants 2..5) from hnm_video_id.
+]]]
+attr[seg001:4880]: type = u16; name = lng_units_per_cell_table; comment = [[[
+    99 words, one per |latitude| 0..0x62: the longitude units spanned by one map
+    cell of that row = round(0x10000 / the rows tablat byte length), ties rounded
+    down. Built at startup (seg000:00e7) right after the TABLAT byte-swap;
+    location_distance_from_player and the walk/troop range checks divide by it.
+]]]
 attr[seg001:4948]: type = u16; name = RESOURCE_TABLAT
 attr[seg001:494a]: type = u16
 attr[seg001:494c]: type = u16; name = _dword_23DFC_globe_rotation
@@ -5388,7 +6128,12 @@ attr[seg001:8c3b]: name = _unk_280EB_unk_table_5
 attr[seg001:a1ed]: type = u16
 attr[seg001:a235]: type = u16
 attr[seg001:a25b]: type = u16
-attr[seg001:a5c0]: type = u16
+attr[seg001:a5c0]: type = u16; name = visible_location_markers; comment = [[[
+    The visible-location marker list map_build_and_draw_location_markers fills:
+    6-byte entries [location ptr:u16, screen x:u16, screen y:u8, data_046eb
+    copy:u8], terminated by a 0 word. The map hover tracker (loc_04586) resolves
+    the cursor against it; map_screen_cleanup clears the head.
+]]]
 attr[seg001:aa6e]: type = u16
 attr[seg001:aa72]: type = u16; name = _word_29F22_res_condit_ofs
 attr[seg001:aa74]: type = u16; name = _word_29F24_res_condit_seg
@@ -5503,7 +6248,7 @@ attr[seg001:dbd0]: type = u16; name = _word_2D080_midi_ticks_remaining; comment 
     Returned in cx by the driver tick handler (MIDI_Tick) and saved here every tick.
     Used together with _word_2D07E_midi_measure to compute the position in midi_wait_until.
 ]]]
-attr[seg001:dbd2]: type = u16
+attr[seg001:dbd2]: type = u16; name = music_song_end_tick_stamp; comment = [[[PIT-counter stamp of the first idle-driver sighting after a CD-playlist song ends; music_cd_playlist_service advances the playlist 0xc8 ticks later. 0 = unset; cleared when midi_play_song starts a song (seg000:adba).]]]
 attr[seg001:dbd4]: type = u16; name = _word_2D084_framebuffer_front_ofs
 attr[seg001:dbd6]: name = _word_2D086_framebuffer_1_seg
 attr[seg001:dbd8]: type = u16; name = _word_2D088_screen_buffer_seg
@@ -5597,7 +6342,11 @@ attr[seg001:dc51]: type = u16
 attr[seg001:dc53]: type = u16
 attr[seg001:dc55]: type = u16
 attr[seg001:dc57]: type = u8
-attr[seg001:dc58]: type = u16; name = _word_2D108_mouse_some_rect
+attr[seg001:dc58]: type = u16; name = mouse_nav_rect_ptr; comment = [[[
+    Pointer to the active navigation mouse hot-zone Rect (0 = none), read by
+    get_mouse_cursor_image_addr for the hand / travel-arrow cursor regions.
+    The map screen installs map_view_rect_template here (seg000:4331).
+]]]
 attr[seg001:dc5a]: type = u16; name = game_clock_tick_base; comment = [[[
     PIT timer-counter reference snapshot. ui_present_room_screen stores the current
     _word_2C32A_pit_timer_callback_counter here; elsewhere elapsed ticks are derived
@@ -5863,7 +6612,19 @@ attr[segvga:1c76]: name = vga_put_rect; comment = [[[Copy a pixel buffer into a 
 attr[segvga:1cb6]: name = vga_globe_init; comment = Initialize globe drawing. Large function, not yet analyzed.
 attr[segvga:1d07]: name = vga_globe_setup; comment = Set up globe drawing parameters. Large function, not yet analyzed.
 attr[segvga:1f4c]: name = vga_draw_map_zoomed
-attr[segvga:23eb]: name = vga_blit_shaded; comment = [[[as vga_blit but remaps pixels from palette bank 0 to bank 1; blits bottom-to-top]]]
+attr[segvga:2384]: name = map_globe_edge_insets; comment = [[[
+    18 per-row edge insets for map rows at |latitude| 0x46..0x57: the number of
+    pixels vga_blit_shaded trims from each side of the row, giving the windowed
+    map its curved-globe top/bottom edges. The trimmed span is drawn as shade
+    bytes 0x17..0x1c framed in black.
+]]]
+attr[segvga:23eb]: name = vga_blit_shaded; comment = [[[
+    Blit the ss map row buffer (si, stride 0xc8, di = width, cx = height) to the
+    framebuffer at (dx,bx), bottom to top. ax = the top rows latitude: rows at
+    |latitude| >= 0x46 are trimmed by map_globe_edge_insets on both sides (black +
+    shade bytes 0x1c,0x19 / 0x18,0x17) for the curved globe edge. Row pixels are
+    remapped from palette bank 0 to bank 1: (cell & 0x0f) + 0x10.
+]]]
 attr[segvga:2441]: name = vga_draw_landscape; comment = [[[Render a pixel map through an xlat palette-remap table at [BP]. BL=dest row, DX=dest col, DI=row count; source at DS:SI with 200-byte row stride. BH=0: plain remap, then if grayscale_mode update 16 DAC entries at index 80 from CS:8BFh. BH≠0: animated remap (maps pixels to palette range 0x71-0x74) and cycles the xlat table between each row to animate. Each pixel is only drawn if it matches both its next-column and next-row neighbor (interior-only rendering).]]]
 attr[segvga:25a9]: type = [ofs16(segvga); 31]; name = transition_dispatch_table; comment = 31 word offsets, one per transition effect type (AX mod 62, step 2). Each entry points to a different transition function.
 attr[segvga:25e7]: name = vga_transition; comment = [[[Perform a transition effect between two framebuffers. AX selects the transition type: forced even and wrapped mod 62 to index one of 31 handlers in transition_dispatch_table. CX=152 passed to the handler; caller's SI/DS/ES saved as source/destination buffer state before dispatch.]]]
