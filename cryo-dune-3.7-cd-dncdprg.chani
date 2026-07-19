@@ -2567,9 +2567,18 @@ attr[seg000:9188]: name = char_to_sprite_player_clamp; comment = [[[
 ]]]
 attr[seg000:9197]: type = code; name = setup_lip_sync_data_from_current
 attr[seg000:91a0]: type = code; name = setup_lip_sync_data_from_sprite_sheet
+attr[seg000:91d4]: comment = [[[
+    Patch the x0 of all three balloon descriptors (data_02224/222c/2234) with the
+    new head talking_head_balloon_x_table[head sprite id] byte, positioning the
+    speech balloon per speaker.
+]]]
 attr[seg000:91ec]: ofs_seg = seg001
 attr[seg000:920f]: type = code; name = open_talking_head_resource
-attr[seg000:9215]: type = code; name = callback_main_ui_element_21_22
+attr[seg000:9215]: type = code; name = callback_main_ui_element_21_22; comment = [[[
+    Game-area / person / companion-portrait click dispatch (ui elements 21/22 and the d90a no-element fallthrough).
+    Room menu active: person_hit_test_at_cursor (HUD-area cursor -> companion slots); person < 0fh dispatches room_persons[cl] handler (9234), >= 0fh the Fremen-2 dialogue (9240), 2fh the parked orni (9282); no hit in room 1 walks inside (9263).
+    Dialogue panel active (9248): only the companion slots respond - the speaker own portrait re-enters their dialogue (callback_main_ui_element_19), the other companion switches the conversation (dismiss_stacked_overlays + 9234).
+]]]
 attr[seg000:9218]: ofs_seg = seg001
 attr[seg000:9238]: ofs_seg = seg001
 attr[seg000:9248]: ofs_seg = seg001
@@ -2585,7 +2594,12 @@ attr[seg000:9285]: name = person_hit_test_at_cursor; comment = [[[
     menu_NPC_actions path at loc_092c9 instead.
 ]]]
 attr[seg000:928b]: ofs_seg = seg001
-attr[seg000:92c9]: fn = out carry: bool @cf
+attr[seg000:92c9]: name = companion_slot_hit_test; fn = out carry: bool @cf; comment = [[[
+    Hit-test the cursor against the two companion HUD portrait slots (ui_hud_elements[21]/[22]).
+    An occupied slot (ui_hud_companion_N != 0ffh) whose rect strictly contains the cursor returns CF set with cx = that companion person index.
+    An empty slot 1 ends the test without trying slot 2.
+    Reached from person_hit_test_at_cursor when the cursor sits below the game area (y >= 98h) and from the dialogue branch of callback_main_ui_element_21_22 (924e).
+]]]
 attr[seg000:92d4]: ofs_seg = seg001
 attr[seg000:92e5]: ofs_seg = seg001
 attr[seg000:92f2]: type = code; name = ui_dialogue_offset_base_for_funcs_and_code_related_to_DukeLetoAtreides
@@ -2615,7 +2629,11 @@ attr[seg000:941d]: type = code; name = callback_main_ui_element_20_room_game_are
     to the room. Otherwise handles the dialogue/map-mode branches.
 ]]]
 attr[seg000:942a]: ofs_seg = seg001
-attr[seg000:945b]: type = code; name = callback_main_ui_element_19
+attr[seg000:945b]: type = code; name = callback_main_ui_element_19; comment = [[[
+    Click on the talking-head area, also reached from the current speaker own companion portrait (9259).
+    No live subtitle bubble: re-enter the speaker dialogue (common_code_for_ui_dialogue_related_functions with current_lip_sync_resource_id).
+    With one: TALK TO ME, unless the argue accept/refuse menu is active (946b keeps the click inert).
+]]]
 attr[seg000:946b]: ofs_seg = seg001
 attr[seg000:9472]: type = code; name = menu_callback_choice_talk_to_me
 attr[seg000:9533]: type = code; name = menu_callback_choice_stay_here; comment = [[[
@@ -2720,6 +2738,11 @@ attr[seg000:9c45]: ofs_seg = seg001
 attr[seg000:9c48]: ofs_seg = seg001
 attr[seg000:9c4e]: ofs_seg = seg001
 attr[seg000:9c51]: ofs_seg = seg001
+attr[seg000:9c90]: comment = [[[
+    While a voice plays, clamp the diff-box bottom to the mouth-box top ([current_head_mouth_box]+2) so an idle blink/nod redraw never wipes the stamped mouth.
+    A box left entirely inside the mouth region collapses (y1 <= y0 -> the 9cbf empty sentinel) and the redraw is skipped.
+    BARO (9) and HARK (0ch) are exempt (9c88/9c8c): their mouth boxes sit near the top of the head and would collapse every redraw.
+]]]
 attr[seg000:9ce5]: ofs_seg = seg001
 attr[seg000:9d16]: type = code; name = copy_non_pcm_lip_sync_data_and_draw_talking_head
 attr[seg000:9d18]: ofs_seg = seg001
@@ -2728,7 +2751,19 @@ attr[seg000:9d2d]: type = code; name = draw_talking_head_at_si
 attr[seg000:9d5b]: ofs_seg = seg001
 attr[seg000:9d5e]: targets = segvga:0112
 attr[seg000:9dda]: targets = segvga:0112
+attr[seg000:9de3]: comment = [[[
+    Speech mouth draw: stamp ONLY the lip-id frame over the live fb1, CLIPPED to the head mouth box ([current_head_mouth_box] + the element-19 origin, 9df8..9e0f).
+    Each lip group bundles the torso/collar sprite under the mouth sprite; the clip confines that collar redraw to the mouth box (it erases the previous stamp overhang) and keeps it off the collar/ear stack elsewhere.
+    No backdrop restore and no [239F0] diff-list update.
+    The idle frame task keeps running during the voice (its callback at 99da never tests is_voc_pcm_playing); its calm-window redraws own the rest of the face, clamped above the mouth box (9c90).
+]]]
 attr[seg000:9df8]: ofs_seg = seg001
+attr[seg000:9e16]: comment = [[[
+    Bank the lip-frame index by styling variant: frame = mouth + (facing-1)*4.
+    facing 0 (the named heads) uses the mouth value directly (the js below).
+    Each variant group is four mouth-region sprites drawn in that variant styling (FRM chiefs: beard/mouth; Paul: age); FRM1 lip anim = 60 frames = 15 variants x 4.
+    The SMUG head (talking_head_id 0dh) adds one more per variant - a stride of 5.
+]]]
 attr[seg000:9e36]: ofs_seg = seg001
 attr[seg000:9e4b]: ofs_seg = seg001
 attr[seg000:9e57]: ofs_seg = seg001
@@ -3700,6 +3735,10 @@ attr[seg000:d338]: name = screen_element_stack_push; comment = [[[
     bp = the command-record buffer to insert, bx = its per-frame render/cleanup func.
 ]]]
 attr[seg000:d33a]: name = screen_element_stack_insert; comment = Insert (bp = record buffer, bx = per-frame render func) into the z-ordered screen-element stack (screen_element_stack_ptr / data_021da), sorted by the buffers leading priority byte. Higher-priority entries already on the stack are popped and their render func called as it inserts. loc_0d338 enters with cl = 0ffh.
+attr[seg000:d343]: comment = [[[
+    Equal priority byte: the new element REPLACES the top slot in place (jz loc_0d368) - the stack does not deepen.
+    This is how a mid-dialogue setup_npc_dialogue_menu rebuild (e.g. re-targeting the panel at Fremen 2 after the chief rallies, 964f) swaps the verb records while one STOP TALKING still pops the panel.
+]]]
 attr[seg000:d35b]: ofs_seg = seg001
 attr[seg000:d36d]: name = draw_command_menu; comment = Set the top screen-element-stack slot to bp (the menu record buffer), mark the menu records, then fall into redraw_active_command_menu to paint it.
 attr[seg000:d397]: name = redraw_active_command_menu; comment = [[[Repaint the active (top-of-stack) verb menu: walk its record buffer (skip header byte, then 4-byte [text_id,handler] records) and draw up to 5 slots via draw_command_menu_item; the 5th slot shows the 0a0h "more" arrow when records overflow. Remaining slots are filled blank. Falls into highlight_hovered_text_action_item (loc_0d410).]]]
@@ -5163,6 +5202,11 @@ attr[seg001:2296]: type = u16
 attr[seg001:2298]: type = UISprite; name = _stru_21748_icon_list_chankiss
 attr[seg001:229e]: type = u16
 attr[seg001:22a6]: type = u16; name = _word_21756_talking_head_id
+attr[seg001:22a8]: type = [dec(u8); 17]; name = talking_head_balloon_x_table; comment = [[[
+    Per-talking-head speech-balloon x0, indexed by the head sprite id (si at seg000:91ce).
+    setup_lip_sync_data_from_sprite_sheet copies the byte into the x0 word of all three balloon descriptors at data_02224/222c/2234 when the talking head changes, so the balloon clears the speaker portrait (e.g. 0x60=96 for head 0, Leto).
+    The descriptors statically hold x0=0x50, which is only in effect before the first head loads.
+]]]
 attr[seg001:22cb]: type = dec(u16); name = year
 attr[seg001:22cd]: type = str(12); name = author
 attr[seg001:22d9]: type = u16; name = _word_21789_gradient_line_buf
@@ -5259,7 +5303,11 @@ attr[seg001:27be]: type = u16
 attr[seg001:27c0]: type = u16
 attr[seg001:27c2]: type = u16
 attr[seg001:27c4]: type = u16
-attr[seg001:27fa]: type = u16
+attr[seg001:27fa]: type = u16; name = talking_head_mouth_box_table; comment = [[[
+    Per-head mouth-box rect table: x0,y0,x1,y1 words, 8 bytes per head, indexed by the head sprite index (17 entries).
+    Each rect tightly bounds the head speech mouth sprites, in head-element-relative coords (FRM1: 44h,61h,77h,8fh).
+    loc_0a727 stores the current head entry pointer in [data_0dc28] when a voice loads.
+]]]
 attr[seg001:27fc]: type = u16
 attr[seg001:27fe]: type = u16
 attr[seg001:2800]: type = u16
@@ -6512,7 +6560,7 @@ attr[seg001:dc20]: type = u16; name = hnm_block_size
 attr[seg001:dc22]: type = u16
 attr[seg001:dc24]: type = u16; name = _word_2D0D4_video_chunk_tag
 attr[seg001:dc26]: type = u16; name = _word_2D0D6_pcm_voc_lipsync_data
-attr[seg001:dc28]: type = u16
+attr[seg001:dc28]: type = u16; name = current_head_mouth_box; comment = [[[Pointer to the current head's talking_head_mouth_box_table entry (set at seg000:a73c); the speech stamp clip (9df8) and the speech-time idle diff clamp (9c90) read it.]]]
 attr[seg001:dc2a]: type = u8; name = _byte_2D0DA_last_lipsync_data
 attr[seg001:dc2b]: type = u8; name = _byte_2D0DB_is_voc_pcm_playing
 attr[seg001:dc2c]: type = u16; name = _word_2D0DC_next_lipsync_frame_time_hi
