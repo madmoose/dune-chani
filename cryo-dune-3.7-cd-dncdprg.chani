@@ -1042,6 +1042,14 @@ attr[seg000:3572]: comment = Pending action == 4? entering a hostile/non-Atreide
 attr[seg000:3579]: ofs_seg = seg001
 attr[seg000:3580]: ofs_seg = seg000
 attr[seg000:359c]: comment = Pending action < 64h? a menu/action code (not a >=64h speaking-person encoding) -> set this person as the dialogue speaker.
+attr[seg000:35ad]: name = travel_settle_companion_dispatch; comment = [[[
+    The per-settle dispatch, run once per travel step (from loc_02e52).
+    mode == 0 (loc_035b4): the room auto-dialogue scan.
+    mode != 0 (loc_035e9): during a travel, re-detect a location the flight
+    passes near (loc_040f9) + the hostile-zone warning; if either armed a room
+    action and a companion is aboard, raise the fly-over cabin (loc_0368b) and
+    the companion speaks a line (096d8 lip-sync, 03551 dialogue line).
+]]]
 attr[seg000:35e3]: ofs_seg = seg000
 attr[seg000:35f1]: comment = Clear the pending room-action on the room-screen reset path.
 attr[seg000:3609]: comment = No pending room-action? -> skip the move/leave handling this frame.
@@ -1050,6 +1058,17 @@ attr[seg000:363a]: comment = No pending room-action? -> skip the Harkonnen-zone 
 attr[seg000:3653]: comment = "  ****  WARNING  ****\\n\\nENTERING HARKONNEN ZONE"
 attr[seg000:365f]: ofs_seg = seg001
 attr[seg000:3666]: ofs_seg = seg000
+attr[seg000:366f]: name = travel_pick_speaking_companion; comment = [[[
+    Pick which companion speaks the fly-over line: the sole companion, or a
+    rand_bits coin-flip between the two. Returns SF set (js) when no companion
+    is aboard.
+]]]
+attr[seg000:368b]: name = travel_show_companion_cabin; comment = [[[
+    The fly-over companion cabin. mode & 3 == 1 (ornithopter): draw the ORNYCAB
+    cabin over the game area and raise the speaking companion as a lip-sync
+    talking head. mode & 3 == 2 (worm): re-composite the worm view instead.
+    Schedules a minimap recenter (travel_minimap_state |= 1) for when it closes.
+]]]
 attr[seg000:36d3]: name = run_room_leave_dialogue_scan; comment = [[[
     When pending_room_action != 0 (a room-leave attempt armed by ui_click_move_room), walk
     the standing room-persons (bp = room_person_present_auto_dialogue) so one can
@@ -1281,6 +1300,13 @@ attr[seg000:40e6]: type = code; name = NPC_travel_detach_companion; fn = in npc:
     Room-person scan callback for a travel departure: entries with both
     flag 0x40 (companion follows the player) and flag 2 set lose the
     companion flag (NPC_09556) and update the companion HUD slot (NPC_09655).
+]]]
+attr[seg000:40f9]: name = travel_scan_nearby_location; comment = [[[
+    Scan the 9x9 map-cell block around the flight for a location it passes near.
+    A qualifying location (discoverable-landmark status bit 0x80, revealed by the
+    story phase, bearing within +-0x60 of the heading) arms room action 3 and
+    records the location-type caption strings the companion line substitutes.
+    The last match in the block wins.
 ]]]
 attr[seg000:4163]: comment = Arm action code 3 (travelling companions are following) before rebuilding the room nav panel.
 attr[seg000:4182]: name = travel_route_hostile_zone_check; comment = [[[
@@ -2406,6 +2432,7 @@ attr[seg000:88f1]: name = expand_phrase_tokens; comment = [[[
 attr[seg000:88f5]: ofs_seg = seg001
 attr[seg000:8908]: ofs_seg = seg001
 attr[seg000:8944]: type = code; name = format_interpolated_string
+attr[seg000:89c1]: comment = [[[Store the top-level terminator and (re)write the continuation pointer: a sentence separator (any terminator != 0ffh) arms dialogue_text_continuation_ptr with the text that follows; the final 0ffh clears it (si = 0).]]]
 attr[seg000:8b10]: type = code
 attr[seg000:8b11]: name = draw_subtitle_body; comment = [[[
     Main subtitle render: layout + draw the expanded text at ds:si.
@@ -2636,6 +2663,11 @@ attr[seg000:945b]: type = code; name = callback_main_ui_element_19; comment = [[
 ]]]
 attr[seg000:946b]: ofs_seg = seg001
 attr[seg000:9472]: type = code; name = menu_callback_choice_talk_to_me
+attr[seg000:94dd]: comment = [[[
+    Multi-part continuation present (reached from 9484): interpolate + draw the pending text (loc_088d2), which re-arms or clears the pointer.
+    current_subtitle_id += 0x1000 steps the voc part nibble (the OB/OC variant letter in create_voc_file_name).
+    fire_event_callbacks then defers or performs the entry bookkeeping (a042) and its tail replays the head present + this part voice; loc_094a5 stores the (un)advanced resume pointer.
+]]]
 attr[seg000:9533]: type = code; name = menu_callback_choice_stay_here; comment = [[[
     STAY HERE verb handler (spliced in by setup_npc_dialogue_menu at seg000:910e once the NPC travels with Paul, text 92h).
     Arm the dialogue-interrupt gate, present the speaker's topic-6 line with the auto mask (20h), bump the ds:1b interaction counter.
@@ -3144,6 +3176,13 @@ attr[seg000:b532]: name = read_map_byte_at_dx_bl; comment = [[[
     Read the MAP.HSQ terrain byte at longitude dx / latitude bl (via map_func;
     dx is preserved). Bit 0x40 = a location is at this cell (set by the startup
     loop at seg000:0192).
+]]]
+attr[seg000:b56c]: name = map_build_cell_strip; comment = [[[
+    Build a rows x cols block of the planet map centred on (x = longitude,
+    lat = latitude row) into the data_09e68 scratch of 3-byte [map byte, map
+    offset] entries, row-major. Latitude centred at lat - rows/2, clamped to the
+    south pole; each row is a horizontal run of cols cells centred on the
+    longitude cell, wrapping within the row.
 ]]]
 attr[seg000:b57b]: ofs_seg = seg001
 attr[seg000:b586]: ofs_seg = seg001
@@ -4378,6 +4417,11 @@ attr[seg001:00d8]: type = u16; name = for_condit_ds_d8
 attr[seg001:00db]: type = u8; name = _1c28_ui_element_23; comment = Related to comms room messages.
 attr[seg001:00dc]: type = u16; name = for_condit_ds_dc
 attr[seg001:00de]: type = u16; name = for_condit_ds_de
+attr[seg001:00e1]: type = u8; comment = [[[
+    The fly-over side flag set by travel_scan_nearby_location (seg000:4156):
+    0 when the passed location is to the left of the heading, 1 to the right.
+    Feeds the companion fly-over dialogue line.
+]]]
 attr[seg001:00e2]: type = u16; name = distance_to_closest_Harkonnen_area_ds_e2
 attr[seg001:00e4]: type = u16; name = locations_indexed_to_zero_and_also_a_variable_ds_e4
 attr[seg001:00e7]: type = u8; name = Paul_found_unconscious_in_desert_ds_e7
@@ -4746,7 +4790,16 @@ attr[seg001:11c9]: type = u8; name = game_screen_mode_flags; comment = [[[
     the plain room view is active. ui_enter_room_view returns early while nonzero.
 ]]]
 attr[seg001:11ca]: type = u8
-attr[seg001:11cb]: type = u8
+attr[seg001:11cb]: type = u8; name = travel_no_location_dest; comment = [[[
+    Nonzero (0xff) when the travel has no location destination — a directional
+    flight on a fixed compass heading across open desert (fly east/west/etc),
+    where travel_destination_ptr holds only the starting point (last_location_ptr).
+    0 for a homing flight to a real location. Set by arm_pending_travel (dec at
+    seg000:494c) when the map click misses any location (hover >= 0xfff0); cleared
+    by loc_050be. Gates the map travel verb (BACK TO STARTING POINT vs SKIP TO
+    DESTINATION), the polar heading guard (travel_update_heading), and the route
+    hostile-zone check (travel_route_hostile_zone_check).
+]]]
 attr[seg001:11cc]: type = u16; name = travel_step_accum; comment = [[[
     The travel steps 8.8 sub-cell accumulator, re-seeded to 0x80 (half a
     cell) by adjust_travel_heading; consumed by the step math (loc_05206).
@@ -4927,9 +4980,25 @@ attr[seg001:194c]: type = u16
 attr[seg001:1954]: type = u16
 attr[seg001:1960]: type = u16
 attr[seg001:1964]: type = u16
-attr[seg001:1968]: type = u16
-attr[seg001:196a]: type = u16
-attr[seg001:196c]: type = u8
+attr[seg001:1968]: type = u16; comment = [[[
+    The cockpit fly-over silhouette signed relative bearing
+    (heading - location angle) * 0x20, latched by travel_flyover_detect (41e1)
+    and the outdoor-scene detector (loc_04e12). Its overlay-draw consumer is
+    absent in this build, so the latch is write-only.
+]]]
+attr[seg001:196a]: type = u16; comment = [[[
+    The fly-over silhouette sprite id (table_196d indexed by the location SAL
+    tier), latched alongside data_01968.
+]]]
+attr[seg001:196c]: type = u8; comment = [[[
+    travel_flyover_detect re-arm countdown: after a fly-over is latched the
+    detector idles for 6 probe passes (decrementing this) before scanning again.
+]]]
+attr[seg001:196d]: type = [u8; 5]; name = table_196d; comment = [[[
+    The cockpit fly-over silhouette sprite id per location SAL tier
+    (calc_sal_index 0..4): SIET 0x11, PALACE 0x10, VILG 0x12, HARK 0x13/0x13.
+    Indexed by travel_flyover_detect after the xlat at seg000:424a.
+]]]
 attr[seg001:1972]: name = room1_backdrop_base; comment = [[[
     Per-SAL outdoor-backdrop base resource, indexed by calc_SAL_index (0..4):
     SIET->DS0 (0x3c), PALACE->DP1 (0x72), VILG->0x7f, HARK->DF1 (0x76) / DH0 (0x84).
