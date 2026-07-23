@@ -2433,6 +2433,16 @@ attr[seg000:88f5]: ofs_seg = seg001
 attr[seg000:8908]: ofs_seg = seg001
 attr[seg000:8944]: type = code; name = format_interpolated_string
 attr[seg000:89c1]: comment = [[[Store the top-level terminator and (re)write the continuation pointer: a sentence separator (any terminator != 0ffh) arms dialogue_text_continuation_ptr with the text that follows; the final 0ffh clears it (si = 0).]]]
+attr[seg000:8a3b]: name = subtitle_pick_voice_variant; comment = [[[
+    For a voiced line (dialogue_line_word0 bit 4), pick the spoken-variant index
+    data_047e0 from the FIRST name placeholder substituted into the line, then
+    consume the flag (subtitle_set_voice_variant clears bit 4) so neither a later
+    placeholder nor the terminator rand_masked fallback (seg000:89dd) overrides it.
+    bh = data_0477f (the 0x80..0x8f placeholder byte); ax = the substituted string id.
+    Placeholder 0x84 = subst_id_04 = 0x48 + location type: sietch/palace -> 0 (O),
+    village -> 1 (OB), fortress -> 2 (OC) — the fly-over "It looks like a ..." variant.
+]]]
+attr[seg000:8ac3]: name = subtitle_set_voice_variant; comment = [[[data_047e0 = al; clear dialogue_line_word0 bit 4 (consume the voiced-variant flag).]]]
 attr[seg000:8b10]: type = code
 attr[seg000:8b11]: name = draw_subtitle_body; comment = [[[
     Main subtitle render: layout + draw the expanded text at ds:si.
@@ -3937,6 +3947,12 @@ attr[seg000:daaa]: type = code; name = set_mouse_nav_rect; fn = in rect: *Rect @
 ]]]
 attr[seg000:daaf]: ofs_seg = seg001
 attr[seg000:dae3]: type = code; name = set_mouse_pos; comment = Test cmd arg NOM = NoMouse
+attr[seg000:db03]: name = warp_mouse_cursor; comment = [[[
+    Warp the mouse pointer to (dx, bx): hide the cursor, store mouse_pos_x/y,
+    push the new position into the INT 33 driver (set_mouse_pos) and re-show.
+    Called from initialize_system (seg000:e662) with (237, 171) to place the
+    pointer at its startup position.
+]]]
 attr[seg000:db14]: type = code; name = define_mouse_range; ofs_seg = seg001
 attr[seg000:db44]: type = code; name = shl_cx_and_dx
 attr[seg000:db4c]: type = code; name = mouse_stuff
@@ -3947,6 +3963,10 @@ attr[seg000:dbc4]: targets = segvga:010c
 attr[seg000:dbec]: type = code; name = draw_mouse
 attr[seg000:dc0f]: targets = segvga:0109
 attr[seg000:dc20]: type = code; name = redraw_mouse
+attr[seg000:dc3e]: comment = [[[
+    A negative hide counter only skips the restore below.
+    The draw at dc5e always runs, so every pass ends with the cursor visible.
+]]]
 attr[seg000:dc52]: targets = segvga:010c
 attr[seg000:dc5e]: targets = segvga:0109
 attr[seg000:dc6a]: type = code; name = get_mouse_cursor_image_addr
@@ -4062,6 +4082,7 @@ attr[seg000:e610]: targets = segvga:0100
 attr[seg000:e614]: comment = Check language arg
 attr[seg000:e63d]: ofs_seg = seg001
 attr[seg000:e640]: targets = segvga:0154
+attr[seg000:e65c]: comment = Warp the pointer to its startup position (237, 171)
 attr[seg000:e674]: type = code
 attr[seg000:e675]: type = code; name = open_dune_dat
 attr[seg000:e68b]: ofs_seg = seg001
@@ -4237,7 +4258,13 @@ attr[seg001:0012]: type = u16; name = persons_in_room
 attr[seg001:0014]: type = u16; name = persons_talking_to
 attr[seg001:0016]: type = u16; name = for_condit_ds_16
 attr[seg001:0018]: type = u8; name = for_condit_ds_18; comment = FLAGS: 0x04 - Left Jessica in the desert
-attr[seg001:0019]: type = u8; name = for_condit_ds_19
+attr[seg001:0019]: type = u8; name = line_spoken_this_conversation; comment = [[[
+    Per-conversation "a dialogue line has been spoken" flag (0 = no line spoken yet, 0xFF once one is).
+    0 at conversation start (cleared in loc_093df at seg000:9417).
+    0xFF once any dialogue line is presented (fire_event...spoken_dialogue_lines at seg000:a092).
+    A fallback dialogue line tests this == 0 in its CONDIT condition, so the
+    fallback is presented only when no other line was presentable (nothing said yet).
+]]]
 attr[seg001:001a]: type = u8; name = related_to_arguing_ds_1a
 attr[seg001:001b]: type = u8; name = related_to_stay_here_come_with_me_ds_1b
 attr[seg001:001c]: type = u8; name = related_to_paying_smuggler_bills_ds_1c
@@ -4927,7 +4954,7 @@ attr[seg001:149c]: type = Rect; name = map_view_rect_template; comment = [[[
     The map window rect template (81,45)-(241,134), copied into data_046e3_rect
     when the map screen opens (seg000:432e).
 ]]]
-attr[seg001:14a4]: type = Rect
+attr[seg001:14a4]: type = Rect; name = map_caption_rect; comment = The map caption strip rect (77, 33)-(245, 41): the cursor bracket rect of map_caption_frame_task (seg000:46c4)
 attr[seg001:14ac]: type = Rect
 attr[seg001:14b4]: type = [UISprite; 3]; name = icon_list_ornypan_cockpit; comment = [[[
     ORNYPAN.HSQ icon list: the full ornithopter cockpit interior, sprites 0..2 at
