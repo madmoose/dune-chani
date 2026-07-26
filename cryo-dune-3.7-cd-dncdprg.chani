@@ -749,16 +749,77 @@ attr[seg000:1ae7]: type = code
 attr[seg000:1aea]: ofs_seg = seg001
 attr[seg000:1b0c]: type = code
 attr[seg000:1b0d]: type = code; name = game_loop_sub_01b0d
-attr[seg000:1b23]: type = code; name = run_events_for_current_time_period
+attr[seg000:1b23]: type = code; name = run_events_for_current_time_period; comment = [[[
+    Fire the scheduled events for a newly-entered time period (new_hour_flag,
+    consumed here; 16 periods per in-game day). Steps the desert-walk countdown
+    (below 0x10 it clears to 0 along with ds:f5), repaints the date/time indicator
+    (loc_01a0f) and re-aims the sky palette (loc_038e1), diffs the day part of
+    game_time against data_01174 into new_day_flag and runs the new-day hook
+    (loc_01c46), then - unless the final attack is at stage 7+ - runs the Chani
+    cure check, one period of troop occupation events, the location vegetation
+    walk, the get_ingame_time_of_day-indexed action table data_01db3, the open-
+    popup content refresh (loc_01c18) and re-stages the CONDIT location block
+    (prepare_location_data_for_condit on the saved data_011ce, with subst_id_06
+    bracketed around the whole run). The tail (loc_01b8d) steps the night attack
+    (loc_01bec) and refreshes whichever main view is up: the map/globe via
+    map_view_refresh_after_events when data_046ec is dirty, or the room screen
+    when data_0473b asks for a redraw (bit 7: dismiss overlays and re-present
+    via loc_00fa7; else draw_room_game_screen), skipped while the WAIT-verb pump
+    (data_046da) or a pending room swap owns the screen.
+]]]
 attr[seg000:1b7d]: targets = seg000:1dd3, seg000:1dd4, seg000:1dd7, seg000:1dda, seg000:1dfe
-attr[seg000:1c46]: type = code; name = run_events_for_current_time_period_new_day_01c46
+attr[seg000:1bec]: name = night_attack_period_step; comment = [[[
+    Per-period night-attack step (loc_01b8d): while night_attack_stage is up,
+    re-check the arrival consequence for the current location (loc_0503c); a
+    pending room-screen request is forced to type 6; once the stage has cleared,
+    clear the intro-attack task (loc_00b21) and set data_0473b bit 0 so the tail
+    redraws the room.
+]]]
+attr[seg000:1c18]: name = redraw_period_sensitive_view_content; comment = [[[
+    Refresh the view content that shows period-dependent numbers. On the full
+    map view (data_046eb bit 7): redraw the open troop info panel content and
+    the open location popup. In the plain room view (data_046eb == 0) with the
+    map/globe ornament up (room_view_toggle bit 7): redraw the globe-ornament
+    day/charisma stats (loc_0bdbb).
+]]]
+attr[seg000:1c46]: type = code; name = run_events_for_current_time_period_new_day_01c46; comment = [[[
+    The new-day hook of run_events_for_current_time_period (new_day_flag != 0).
+    Resets ds:ff (days since last game-phase change) when game_phase moved (copy
+    at ds:fe), else increments it; relocates named NPCs whose location changed
+    appearance (seg000:1d66); runs the phase-5c illness picker (seg000:1e43);
+    increments the contact-distance byte ds:d5 once it has reached 2; rolls the
+    daily spice-production stats: production ds:a6 = stock + spice spent today
+    (data_01172, cleared) - stock at last new day (data_01170, reloaded), and the
+    better/lower-than-yesterday CONDIT pair ds:b0/ds:b2 from the previous total
+    ds:ae; recomputes the potential-harvest value ds:a8 (seg000:1cda) and the
+    troop population sums ds:aa/ds:ac (loc_0c02e) and re-formats the stats
+    percentage strings (loc_0bf26); finally restocks smuggler inventories: each
+    smuggler with field_2 bit 3 refills empty stock slots whose price byte is
+    negative with rand 0..3 units.
+]]]
 attr[seg000:1cab]: ofs_seg = seg001
-attr[seg000:1cda]: type = code; name = iterate_over_locations_and_accumulate_number_of_Atreides_locations_and_value_related_to_spice_density; ofs_seg = seg001
-attr[seg000:1d10]: type = code; name = randomly_increase_all_harkonnen_troops_head_count_by_10
+attr[seg000:1cda]: type = code; name = iterate_over_locations_and_accumulate_number_of_Atreides_locations_and_value_related_to_spice_density; ofs_seg = seg001; comment = [[[
+    Recompute the potential-spice-harvest CONDIT word ds:a8: sum spice_density/8
+    over all Atreides-held locations (location_is_Atreides_05d36), then add
+    rand_iterated(sum/16). The Atreides location count accumulates in dx but is
+    not stored.
+]]]
+attr[seg000:1d10]: type = code; name = randomly_increase_all_harkonnen_troops_head_count; comment = [[[
+    End-of-day (time-of-day 0xf) Harkonnen growth: on a set rolling rand bit,
+    every Harkonnen troop (bitfield_10 bit 7) with population 1..0xc7 gains one
+    man (cap 0xc8).
+]]]
 attr[seg000:1d16]: ofs_seg = seg001
 attr[seg000:1d2e]: ofs_seg = seg001
 attr[seg000:1d35]: type = [u8; 49]; name = array_related_to_location_appearances
-attr[seg000:1d66]: type = code; name = iterate_over_named_NPCs_and_location_appearances_to_modify_NPCs; ofs_seg = seg001
+attr[seg000:1d66]: type = code; name = iterate_over_named_NPCs_and_location_appearances_to_modify_NPCs; ofs_seg = seg001; comment = [[[
+    New-day NPC relocation: walk the 12 room_persons records; each named NPC
+    parked at a location (location_slot low byte 0x80, high byte = the location
+    index, not 0xff) is re-homed when its stored location_and_room no longer
+    matches: if the location appearance changed, or its room number exceeds the
+    per-appearance top room (array_related_to_location_appearances), the record
+    is reset to room 1 of the current appearance.
+]]]
 attr[seg000:1d69]: let = npc: *RoomPerson @si
 attr[seg000:1d7c]: ofs_seg = seg001
 attr[seg000:1d81]: let = location: *Location @di
@@ -768,7 +829,12 @@ attr[seg000:1db3]: type = [ofs16(seg000); 16]
 attr[seg000:1dd3]: type = code; name = actions_time_in_day_0_1_2_5_6_7_9_a_b_c_d_e
 attr[seg000:1dd4]: type = code; name = j_actions_time_in_day_3
 attr[seg000:1dd7]: type = code; name = j_actions_time_in_day_4
-attr[seg000:1dda]: type = code; name = actions_time_in_day_8
+attr[seg000:1dda]: type = code; name = actions_time_in_day_8; comment = [[[
+    Time-of-day 8 action: while the spice-shipment reminder is armed (ds:bf bit
+    4), Gurney is not travelling with Paul, the COMM room is not the current
+    room and the final attack has not started, queue vision message 0x30b
+    ("Paul! Do not forget the spice shipments for the Emperor.").
+]]]
 attr[seg000:1df7]: comment = Send message type B = "Paul! Don't forget the spice shipments for the Emperor."
 attr[seg000:1dfe]: type = code; name = actions_time_in_day_f
 attr[seg000:1e01]: type = code; name = NPC_is_Chani_during_game_phase_5d_find_ill_troops_at_her_location; fn = in npc: *RoomPerson @si
@@ -792,15 +858,48 @@ attr[seg000:1ee9]: comment = Send message type 9 = "Paul, I'm so happy! I've man
 attr[seg000:1ef3]: ofs_seg = seg001
 attr[seg000:1f13]: name = callback_game_phase_change_64_main_code
 attr[seg000:1f44]: ofs_seg = seg001
-attr[seg000:1f64]: name = actions_time_in_day_4
+attr[seg000:1f64]: name = actions_time_in_day_4; comment = [[[
+    Time-of-day 4 action: the Harkonnen sietch raid scheduler. Arms once
+    game_time has passed data_01154 by 0x70 (or unconditionally from phase
+    0x3c), fires only on even days (game_time bit 4 clear), is suppressed for
+    one firing by data_011bc, and needs a set rolling rand bit. A raid picks a
+    target via harkonnen_pick_attack_target, bumps ds:c4, moves up to two
+    troops from the source area onto the target (occupation 0x8d, re-homed via
+    troop_location_084a6 / troop_08357), battle-flags the target (status bit 1),
+    queues vision message 0xC/0xD ("The Harkonnens are attacking ...!"), and -
+    when the target is the current location - enters the night attack
+    (night_attack_stage, location_06144); otherwise resolves it off-screen
+    (location_05d50).
+]]]
 attr[seg000:1fd5]: ofs_seg = seg001
 attr[seg000:1fe7]: comment = Send message type C = "The Harkonnens are attacking ...!"
 attr[seg000:1fe9]: ofs_seg = seg001
 attr[seg000:1ff1]: comment = Send message type D = "The Harkonnens are attacking ...! Be careful Muad'Dib, the prospecting troop might be involved in the fight."
-attr[seg000:2017]: type = code; name = ui_comm; ofs_seg = seg001; fn = out location: *Location @di, out zf: *bool @zf
+attr[seg000:2017]: type = code; name = harkonnen_pick_attack_target; ofs_seg = seg001; fn = out location: *Location @di, out zf: *bool @zf; comment = [[[
+    Pick the sietch the Harkonnen raid tonight (actions_time_in_day_4). Scans
+    sietch locations (appearance < 0x20) that are not hidden/battle-flagged
+    (status bits 0x82 clear), house no ill troop, and have the lowest [di+4]
+    seen (starting threshold 100); each candidate is CONDIT-staged to read the
+    ds:60 skill array and the Harkonnen-distance words: it qualifies only when
+    ds:60[0] != ds:60[3] and either a Harkonnen area is within 30 (ds:e2) or the
+    nearest one (ds:dc/ds:de) is, and the staging location is not the Carthag
+    palace. Returns the target in di (0 = none, ZF set) with the source area in
+    bp (data_0d818); also latches the target into _unk_2CCC6_comm_glow_index.
+]]]
 attr[seg000:201a]: let = location: *Location @di
 attr[seg000:205d]: ofs_seg = seg001; comment = Atreides (Carthag) palace.
-attr[seg000:20a4]: name = actions_time_in_day_3
+attr[seg000:20a4]: name = actions_time_in_day_3; comment = [[[
+    Time-of-day 3 action: the spice-shipment day counter. Armed by ds:bf bit 7.
+    Before the shipment event day (data_0118d) it keeps days_left_until_spice_
+    shipment (ds:cf) updated; on the day itself (with bit 4 clear) it rolls a
+    new demand: quantity ds:bc = (sequence ds:c3 * 150 + 100) * (rand(0..0x3f)
+    + 0xe0) / 256, scaled down by the fulfilment fraction ds:be, arms ds:bf
+    bits 4+7, and posts COMM sighting (0x20b/0x30b). While a demand is pending
+    (bit 4 set) days 1..3 after the event day post the escalating reminder
+    sightings from the 0x2161 table (person 0x0b); day 4+, or an unpaid flag
+    data_011bb, requests room-screen type 7 (loc_0215f) - the shipment
+    consequence.
+]]]
 attr[seg000:2165]: type = [u8; 11]
 attr[seg000:2170]: type = code; name = iterate_over_allied_NPCs_and_locations
 attr[seg000:2173]: ofs_seg = seg001
@@ -902,7 +1001,13 @@ attr[seg000:29be]: comment = Record the room-action code (al = 0, or 6 = comms-r
 attr[seg000:29d4]: type = code
 attr[seg000:29df]: ofs_seg = seg000
 attr[seg000:29ee]: type = code; name = queue_vision_message_without_location; fn = in message_id: u16 @ax
-attr[seg000:29f0]: type = code; name = queue_vision_message_with_location; fn = in location: *Location @si, in message_id: u16 @ax
+attr[seg000:29f0]: type = code; name = queue_vision_message_with_location; fn = in message_id: u16 @ax, in location: *Location @di; comment = [[[
+    Queue a vision message (the "Paul hears a voice" reports): no-op until Paul
+    has had his first vision (bitfield_Paul_events bit 0). The queue at
+    seg001:1190 is a count byte + up to 10 (message id, location ptr) pairs;
+    an (id, location) pair already queued is dropped, and at 10 entries the
+    oldest is dequeued first.
+]]]
 attr[seg000:29f5]: comment = Do nothing if Paul hasn't had a vision yet.
 attr[seg000:2a0f]: ofs_seg = seg001
 attr[seg000:2a34]: type = code; name = dequeue_vision_message; ofs_seg = seg001
@@ -2059,8 +2164,17 @@ attr[seg000:5d1d]: name = map_window_contains_point; fn = in x: u16 @dx, in y: u
     CF set when x0 <= x < x1 && y0 <= y < y1.
 ]]]
 attr[seg000:5d36]: name = location_is_Atreides_05d36; fn = in location: *Location @di
-attr[seg000:5d44]: name = location_05d44; fn = in location: *Location @di
-attr[seg000:5d50]: name = location_05d50; fn = in location: *Location @di
+attr[seg000:5d44]: name = location_mark_map_and_minimap_dirty; fn = in location: *Location @di; comment = [[[
+    location_mark_map_view_dirty plus the flight variant: while a travel mode
+    is active (game_screen_mode_flags bits 0-1) also flag the minimap redraw
+    (travel_minimap_state bit 0).
+]]]
+attr[seg000:5d50]: name = location_mark_map_view_dirty; fn = in location: *Location @di; comment = [[[
+    A location changed in a way the map shows (revealed, battle over, ...):
+    while a map view is up (data_046eb nonzero) and the location is visible and
+    not hidden, bump the data_046ec dirty counter so the next event-run refresh
+    repaints the view.
+]]]
 attr[seg000:5d6d]: name = map_view_refresh_after_events; comment = [[[
     Refresh the map/globe main view after the time-period event run (called from
     run_events_for_current_time_period at seg000:1b9e, gated on the data_046ec
@@ -2250,9 +2364,22 @@ attr[seg000:63c7]: name = map_draw_vegetation_mark_sprite; comment = [[[
     when the next cell east is also vegetation, else 0x78, jittered 0..3 px in x
     and y from the cells map offset so the tufts do not grid-align.
 ]]]
-attr[seg000:63f0]: type = code; name = iterate_over_all_locations_upon_new_day
+attr[seg000:63f0]: type = code; name = iterate_over_all_locations_upon_new_day; comment = [[[
+    The per-new-day location/ecology walk (no-op unless new_day_flag). Pass 1:
+    every location with status bit 0x20 (vegetation program active) and growth
+    level [di+0x1b] below 0xfa grows by 1 + half the count of stage-1 vegetation
+    cells in the 6 map cells around its map offset (loc_0642e), capped at 0xfa.
+    Pass 2 (loc_065b6): a 0x46-step LFSR walk (state cs:data_065b4, taps 0x402)
+    over map columns; every visited cell in stage 1 ((cell & 0x30) == 0x10) is
+    promoted to stage 2 (the drawable vegetation tufts, map_build_and_draw_
+    location_markers). Any promotion while the full map view is up (data_046eb
+    bit 7) bumps the data_046ec dirty counter so the view refreshes.
+]]]
 attr[seg000:63fb]: ofs_seg = seg001
-attr[seg000:642e]: type = code
+attr[seg000:642e]: type = code; name = count_stage1_vegetation_cells_near_offset; comment = [[[
+    Count the map cells in stage-1 vegetation ((cell & 0x30) == 0x10) among the 6
+    cells at map offset si-1 .. si+4. Returns the count in dx.
+]]]
 attr[seg000:6447]: type = code; name = location_battle_lost_iterate_over_allied_NPCs_and_do_something_else_sub_06447; fn = in location: *Location @di
 attr[seg000:644e]: type = code; name = location_0644e; fn = in location: *Location @di
 attr[seg000:6458]: ofs_seg = seg000
@@ -2263,7 +2390,7 @@ attr[seg000:6508]: targets = seg000:646f, seg000:653a
 attr[seg000:6515]: type = code; name = location_06515; fn = in location: *Location @di
 attr[seg000:653a]: type = code
 attr[seg000:6582]: ofs_seg = seg001
-attr[seg000:65b4]: type = u16
+attr[seg000:65b4]: type = u16; name = ecology_lfsr_state; comment = The persistent 16-bit LFSR state (taps 0x402) of the daily vegetation-promotion walk (loc_065b6).
 attr[seg000:65e6]: ofs_seg = seg001
 attr[seg000:6603]: type = code; name = call_callback_on_all_troops_in_location; fn = in location: *Location @di, in callback: ofs16(seg000) @bp
 attr[seg000:6616]: let = troop: *Troop @si
@@ -2276,7 +2403,11 @@ attr[seg000:6670]: type = code
 attr[seg000:6678]: ofs_seg = seg000
 attr[seg000:667d]: type = code; name = callback_troop_0667d; fn = in troop: *Troop @si, in param_1: u8 @bl, inout param_2: u16 @cx
 attr[seg000:668f]: name = troop_possibly_part_of_making_troop_captured_0668f; fn = in troop: *Troop @si
-attr[seg000:66b1]: name = troop_location_066b1; fn = in troop: *Troop @si, in location: *Location @di
+attr[seg000:66b1]: name = troop_remove_from_play; fn = in troop: *Troop @si, in location: *Location @di; comment = [[[
+    Remove the troop from play: unlink it from its location chain, drop its
+    map icon, park its location word at the troops-table terminator sentinel
+    (troops[67]+1 = seg001:0fbc), occupation 0xa0, population 0.
+]]]
 attr[seg000:66c0]: ofs_seg = seg001; let = troop: *Troop @si
 attr[seg000:66ce]: type = code; name = troop_rally_troop_066ce; fn = in troop: *Troop @si
 attr[seg000:66ee]: let = troop: *Troop @si
@@ -2881,14 +3012,45 @@ attr[seg000:82a9]: ofs_seg = seg001
 attr[seg000:82c7]: ofs_seg = seg001
 attr[seg000:82da]: name = troop_location_082da
 attr[seg000:82df]: ofs_seg = seg001
-attr[seg000:8308]: name = troop_08308
+attr[seg000:8308]: name = troop_travel_step; fn = in troop: *Troop @si; comment = [[[
+    One time period of a moving troop (occupation bit 6): 4 sub-steps - 8 with
+    an ornithopter (equipment bit 6) - each computed by troop_travel_substep_delta
+    and added to the gps position; a zero delta is arrival (troop_arrive).
+    Afterwards the map icon follows: off-screen it is removed; on-screen it is
+    moved (loc_0c653 recentres it on the projected position), or spawned fresh
+    from the moving-icon script and repainted (troop_icons_update_dirty_rect on
+    the icon rect).
+]]]
 attr[seg000:8347]: name = shift_prospector_troop_destinations_array_08347
 attr[seg000:8349]: ofs_seg = seg001
-attr[seg000:8357]: name = troop_08357; ofs_seg = seg001
+attr[seg000:8357]: name = troop_arrive_at_destination; ofs_seg = seg001; fn = in troop: *Troop @si; comment = [[[
+    A moving troop reached its destination: the prospector troop (troops[2])
+    shifts ARRAY_PTR_Location_prospector_destinations when it arrives at its
+    head; the gps snaps to the location coordinates. A battle-flagged (status
+    bit 1) or Atreides location settles the troop (loc_083bc); becoming the
+    chain head afterwards is the battle won (troop_location_07429), an
+    espionage arrival (occupation 5) at a hidden location reveals it (status
+    bit 7 cleared, location_05d44), anything else notifies the residents
+    (troop_location_083fd). At a non-Atreides location: espionage/attack
+    (occupation 5/6) drop to occupation 4 (troop_06ac5) and settle; an
+    occupation with low bits 11b turns around instead (loc_0841f): return the
+    borrowed equipment word [si+0xe] and head home to [si+0xc].
+]]]
 attr[seg000:83bc]: name = troop_location_finish_troop_motion_and_settle_it_into_location_083bc
 attr[seg000:83e2]: ofs_seg = seg001
 attr[seg000:83fd]: name = troop_location_083fd; ofs_seg = seg000
-attr[seg000:8403]: type = code; name = callback_troop_08403
+attr[seg000:8403]: type = code; name = callback_troop_08403; comment = [[[
+    Arrival notification for each hired resident troop: spice miners
+    (occupation 1) stop working, captured troops and those already at 6 are
+    left alone, everyone else switches to occupation 6 (defending).
+]]]
+attr[seg000:841f]: comment = [[[
+    The turn-around arrival (occupation low bits 11b at a hostile location):
+    away from home ([si+0xc]) the troop returns its borrowed equipment word
+    [si+0xe] (slot index in the low byte, the troop equipment bit in the high
+    byte; handed back only while the location has a free unit) and re-targets
+    home; at home it clears occupation bits 0-1 and settles (loc_083bc).
+]]]
 attr[seg000:8454]: type = code
 attr[seg000:8461]: name = troop_refresh_icon; comment = [[[
     Refresh the troop map icon after its occupation changed: remove the old icon
@@ -2899,10 +3061,33 @@ attr[seg000:8461]: name = troop_refresh_icon; comment = [[[
 attr[seg000:846c]: type = code; name = troop_0846c; fn = in troop: *Troop @si
 attr[seg000:848f]: name = troop_0848f
 attr[seg000:84a6]: name = troop_location_084a6; ofs_seg = seg001
-attr[seg000:851f]: name = troop_location_related_to_troop_position_in_location_0851f
-attr[seg000:858c]: name = troop_location_related_to_troop_settlement_and_troop_linked_list_0858c
-attr[seg000:85cc]: name = troop_location_085cc
-attr[seg000:8604]: name = troop_leaf_fn_08604
+attr[seg000:851f]: name = troop_link_into_location_and_assign_position; comment = [[[
+    Append the troop to its destination location: an empty chain takes it as
+    the head at position 1 (9 for a Harkonnen troop, the mirrored slot bank);
+    otherwise link it after the chain tail and give it the first free position
+    from a 30-slot occupancy bitmap (Harkonnen troops scan from slot 9).
+]]]
+attr[seg000:858c]: name = troop_unlink_from_location_chain; comment = [[[
+    Unlink the troop from its location troop chain (predecessor takes its
+    next id; the chain head case at loc_085c2 moves the head) and clear its
+    next id. Occupation bit 6 (still moving) skips the chain search.
+]]]
+attr[seg000:85cc]: name = troop_location_085cc; comment = [[[
+    After the position assign: a non-Harkonnen troop that landed in the
+    Harkonnen slot bank (position > 8) re-rolls - unlink it, remove the first
+    captured (occupation bit 5) Harkonnen troop of the chain from play
+    (troop_remove_from_play), and assign a position again.
+]]]
+attr[seg000:8604]: name = troop_travel_substep_delta; fn = in troop: *Troop @si, out dlng: u16 @dx, out dlat: u16 @bx; comment = [[[
+    One travel sub-step toward the destination location (troop->offset_of_
+    location): dlng/dlat to add to the gps position, (0, 0) = arrived.
+    The longitude gap is scaled to map cells by lng_units_per_cell_table[|lat|].
+    Dominant-axis logic: arrival when the dominant distance (cells, or |dlat|
+    rows) is below 7. Longitude-dominant: step one cell toward the target
+    (the sub-cell remainder is snapped whole), latitude +-1 only on a set
+    rolling rand bit; latitude-dominant: step +-1 row, longitude one cell only
+    on a set rand bit (a sub-cell longitude gap is snapped whole).
+]]]
 attr[seg000:8685]: name = map_select_troop; comment = [[[
     (Re)build the selected-troop UI: remove the old highlight ring, tear down
     the contact dialogue popup (map_close_troop_contact_popup) and the open
@@ -4190,8 +4375,22 @@ attr[seg000:bf29]: ofs_seg = seg001
 attr[seg000:bf2f]: comment = "  0%"
 attr[seg000:bf55]: type = code
 attr[seg000:bfa7]: type = code; name = string_update_ordinal_suffix
-attr[seg000:bfe3]: type = code; name = map_func
+attr[seg000:bfe3]: type = code; name = compute_area_controlled_percentages; comment = [[[
+    Recompute the area-controlled CONDIT percentages from the map vegetation
+    bits: over every map cell (minus the 0x187-byte polar tail), cells with
+    (cell & 0x30) == 0x30 count as Harkonnen area, other nonzero stages as
+    Atreides. ds:a2 = round(atreides * 100 / cells) + 1, ds:a4 = round(
+    harkonnen * 100 / cells). (Distinct from the position-to-offset map_func at
+    seg000:b58b.)
+]]]
 attr[seg000:bfe8]: ofs_seg = seg001
+attr[seg000:c02e]: name = recompute_condit_statistics; comment = [[[
+    Refresh the CONDIT statistics block: the area percentages (compute_area_
+    controlled_percentages), the running max of today's spice production ds:a6,
+    and the population sums - ds:ac Harkonnen troops (bitfield_10 bit 7),
+    ds:aa other troops that are neither captured (occupation bit 5) nor
+    unrallied (bit 7).
+]]]
 attr[seg000:c051]: ofs_seg = seg001
 attr[seg000:c07c]: type = code; name = set_fb1_as_active_framebuffer
 attr[seg000:c085]: type = code; name = set_backbuffer_as_frame_buffer
@@ -5330,11 +5529,11 @@ attr[seg001:009f]: type = u8; name = accept_refuse_argue_choice_ds_9f
 attr[seg001:00a0]: type = u16; name = spice_in_stock
 attr[seg001:00a2]: type = u16; name = for_condit_area_controlled_by_Atreides_ds_a2
 attr[seg001:00a4]: type = u16; name = for_condit_area_controlled_by_Harkonnen_ds_a4
-attr[seg001:00a6]: type = u16
-attr[seg001:00a8]: type = u16
+attr[seg001:00a6]: type = u16; name = for_condit_todays_spice_production_ds_a6; comment = [[[Today's spice production: stock + spice_spent_today - stock_at_last_new_day, clamped at 0; loc_0c02e keeps the running max within the day.]]]
+attr[seg001:00a8]: type = u16; name = for_condit_potential_spice_harvest_ds_a8; comment = Sum of spice_density/8 over Atreides locations + rand_iterated(sum/16) (seg000:1cda).
 attr[seg001:00aa]: type = u16
 attr[seg001:00ac]: type = u16
-attr[seg001:00ae]: type = u16
+attr[seg001:00ae]: type = u16; name = for_condit_previous_day_spice_production_ds_ae
 attr[seg001:00b0]: type = u16; name = for_condit_spice_production_better_than_previous_day_ds_b0
 attr[seg001:00b2]: type = u16; name = for_condit_spice_production_lower_than_previous_day_ds_b2
 attr[seg001:00b4]: type = u16
@@ -5346,7 +5545,7 @@ attr[seg001:00be]: type = u8; name = for_condit_spice_shipment_related_ds_be
 attr[seg001:00bf]: type = u8; name = for_condit_spice_shipment_related_ds_bf
 attr[seg001:00c0]: type = u16; name = for_condit_spice_shipment_related_ds_c0
 attr[seg001:00c2]: type = u8; name = final_attack_stage_ds_c2
-attr[seg001:00c3]: type = u8
+attr[seg001:00c3]: type = u8; name = spice_shipment_sequence_number_ds_c3; comment = [[[Counts the Emperor's spice-shipment demands; the quantity formula scales with it (seg000:20d2).]]]
 attr[seg001:00c4]: type = u8; name = number_of_sietches_attacked_by_Harkonnen_ds_c4
 attr[seg001:00c5]: type = u8; name = person_marker_base; comment = [[[
     Random base offset for arranging people standing in a room. Set
@@ -5693,8 +5892,8 @@ attr[seg001:1150]: type = u16; name = last_location_ptr; comment = [[[
 ]]]
 attr[seg001:1152]: type = signed(u8); name = ui_hud_companion_1
 attr[seg001:1153]: type = signed(u8); name = ui_hud_companion_2
-attr[seg001:1154]: type = u16
-attr[seg001:1156]: type = u16
+attr[seg001:1154]: type = u16; name = harkonnen_raids_armed_after_game_time; comment = game_time base the Harkonnen raid scheduler measures from: raids need game_time >= this + 0x70, or game_phase >= 0x3c (seg000:1f64). 0xffff until a phase callback stamps it.
+attr[seg001:1156]: type = u16; name = illness_plot_armed_after_ingame_day; comment = In-game day gate of the phase-5c illness picker (seg000:1e43). 0xffff until a phase callback stamps it.
 attr[seg001:1158]: type = u16
 attr[seg001:115a]: type = u16
 attr[seg001:115c]: type = u16
@@ -5704,9 +5903,9 @@ attr[seg001:116c]: type = u8
 attr[seg001:116d]: type = u8
 attr[seg001:116e]: type = u8
 attr[seg001:116f]: type = u8
-attr[seg001:1170]: type = u16
-attr[seg001:1172]: type = u16
-attr[seg001:1174]: type = u16
+attr[seg001:1170]: type = u16; name = spice_stock_at_last_new_day; comment = spice_in_stock as of the last new-day production diff (seg000:1c7a).
+attr[seg001:1172]: type = u16; name = spice_spent_today; comment = [[[Spice paid out today (smuggler purchases, shipments); cleared and folded into the production diff by the new-day hook (seg000:1c6e).]]]
+attr[seg001:1174]: type = u16; name = game_time_at_last_event_run; comment = [[[game_time as of the last run_events_for_current_time_period; the day-part diff against it raises new_day_flag (seg000:1b4b).]]]
 attr[seg001:1176]: type = u16; name = location_visibility_distance; comment = [[[
     The sietch visibility radius in map cells (static init 1): sietch map markers
     farther than this from the player draw the +5 distant sprite variant, and the
@@ -5720,7 +5919,7 @@ attr[seg001:1190]: type = u8; name = vision_message_count
 attr[seg001:1191]: type = [u16; 20]; name = vision_message_queue; comment = [[[The queued vision messages, vision_message_count entries of (message id, location ptr or 0), max 10; queue_vision_message_with_location appends (deduplicated, oldest dropped at overflow), dequeue_vision_message consumes from the front.]]]
 attr[seg001:1193]: type = u16
 attr[seg001:11bb]: type = u8
-attr[seg001:11bc]: type = u8
+attr[seg001:11bc]: type = u8; name = harkonnen_raid_suppress_once; comment = [[[Nonzero suppresses the next Harkonnen raid check; consumed (cleared) by actions_time_in_day_4 (seg000:1f83).]]]
 attr[seg001:11bd]: type = u16; name = dialogue_played_log_head; comment = [[[Head (write cursor) of the dialogue-played log: the growing 0-terminated word list at cs:0xaa.. of packed (entry_index | lip_sync_id << 11) records of replayable spoken lines (appended at seg000:a07f; pre-filled by the Ctrl+V cheat seg000:b270).]]]
 attr[seg001:11bf]: type = u16; name = book_bookmark_ptr; comment = [[[
     Bookmark: cs offset of the current page word in the dialogue-played log
