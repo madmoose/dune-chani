@@ -240,7 +240,13 @@ attr[seg000:0161]: type = u16
 attr[seg000:0163]: type = u16
 attr[seg000:0165]: type = u16
 attr[seg000:0167]: type = u16
-attr[seg000:0169]: type = code; name = map2_resource_func
+attr[seg000:0169]: type = code; name = map2_resource_func; comment = [[[
+    Startup MAP2.HSQ pass. Build a 256-word histogram of MAP2 bytes at
+    RESOURCE_GLOBDATA (each count seeded with 7), then per location: snap map_x,
+    cache the MAP byte offset, mark the MAP cell (byte |= 40h), read the MAP2
+    byte at that offset into spice_field_id and set spice_amount =
+    histogram[field] >> 4. Ends with the per-location troop placement pass.
+]]]
 attr[seg000:016c]: comment = MAP2.HSQ
 attr[seg000:0171]: ofs_seg = seg001
 attr[seg000:0182]: ofs_seg = seg001
@@ -585,7 +591,12 @@ attr[seg000:1269]: type = code; name = callback_troop_accumulate_atomics_equippe
 attr[seg000:127c]: type = code; name = is_Gurney_Halleck_and_between_game_phases_15_and_20; fn = in npc: u8 @al, out carry: bool @cf
 attr[seg000:128f]: type = [u8; 76]; name = cutscene_game_phase_C8_dialogue
 attr[seg000:12db]: type = [u8; 29]; name = cutscene_game_phase_30_dialogue
-attr[seg000:12f8]: type = [u8; 3]; name = cutscene_game_phase_below_14_dialogue
+attr[seg000:12f8]: type = [u8; 3]; name = cutscene_game_phase_below_14_dialogue; comment = [[[
+    The below-phase-14h scripted scene = [0eh, 10h, 0ffh]: action 7 (spice
+    overlay + line), action 8 (overlay off + line), end. This is the
+    prospector troop spice-map scene, reached when they are first told to
+    SPECIALIZE IN SPICE.
+]]]
 attr[seg000:12fb]: type = [u8; 24]; name = cutscene_game_phase_58_dialogue
 attr[seg000:1313]: type = [u8; 14]; name = cutscene_game_phase_48_dialogue
 attr[seg000:1321]: type = [u8; 46]; name = cutscene_game_phase_0c_dialogue
@@ -593,9 +604,26 @@ attr[seg000:134f]: type = [u8; 33]; name = cutscene_game_phase_14_dialogue
 attr[seg000:1370]: type = [u8; 34]; name = cutscene_game_phase_18_dialogue
 attr[seg000:1392]: type = code; name = change_menu_to_continue_menu; ofs_seg = seg001
 attr[seg000:1399]: type = code; name = change_menu_to_special_menu_after_specializing_prospector_troop_in_spice; ofs_seg = seg001
-attr[seg000:13a0]: type = code; name = callback_action_in_continue_sequence_07
-attr[seg000:13aa]: type = code; name = callback_action_in_continue_sequence_08
+attr[seg000:13a0]: type = code; name = callback_action_in_continue_sequence_07; comment = [[[
+    Continue-sequence action 7: install the prospector " Continue..." panel,
+    set the data_046eb bit-6 one-shot and speak the next line
+    ("Here, take this map of the planet.").
+    The overlay is not drawn here: presenting the line runs show_voice_subtitle,
+    whose bit-6 short-circuit (seg000:88bb) routes the text through
+    move_troop_show_instruction_caption, whose tail raises the spice-density
+    overlay (loc_0541f, re-setting data_046eb = 0x40 at seg000:548f).
+]]]
+attr[seg000:13aa]: type = code; name = callback_action_in_continue_sequence_08; comment = [[[
+    Continue-sequence action 8: drop the spice-density overlay (loc_058fa),
+    repaint the troop-contact panel outline and speak the next line ("You can
+    update this map...").
+]]]
 attr[seg000:13b0]: ofs_seg = seg001
+attr[seg000:13b6]: name = sequence_present_line_and_voice; comment = [[[
+    The shared line tail of the sequence actions: present the speaker-0fh
+    topic-7 line (loc_09761) into the screen buffer, play its voice, drop the
+    bubble pointer and return to fb1.
+]]]
 attr[seg000:13c8]: type = code; name = callback_action_in_continue_sequence_00
 attr[seg000:13db]: type = code; name = callback_action_in_continue_sequence_02
 attr[seg000:13e4]: type = code; name = callback_action_in_continue_sequence_01
@@ -651,9 +679,19 @@ attr[seg000:16c1]: targets = segvga:017b
 attr[seg000:16d8]: ofs_seg = seg000
 attr[seg000:16fc]: type = code; name = game_phase_set_to_c8_game_ending
 attr[seg000:1701]: ofs_seg = seg000
-attr[seg000:1707]: name = menu_callback_choice_continue_for_sequence
+attr[seg000:1707]: name = menu_callback_choice_continue_for_sequence; comment = [[[
+    The " Continue..." slot of a scripted scene: while the prospector panel
+    (menu_prospector_troop_after_specializing_in_spice) is the active one, a
+    click inside the talking-head HUD element replays the line (WHAT?);
+    anything else steps the script.
+]]]
 attr[seg000:170f]: ofs_seg = seg001
-attr[seg000:171a]: type = code; name = menu_callback_choice_continue
+attr[seg000:171a]: type = code; name = menu_callback_choice_continue; comment = [[[
+    Step the scripted scene: read the next action byte (0ffh ends it,
+    loc_01736) and dispatch it. GOTCHA: the byte is a BYTE OFFSET into
+    array_callbacks_actions_in_continue_sequence (mov bx,ax; jmp [array+bx]),
+    not an index - 0eh selects entry 7 and 10h entry 8.
+]]]
 attr[seg000:1731]: targets = seg000:13a0, seg000:13aa, seg000:13c8, seg000:13db, seg000:13e4, seg000:140b, seg000:1422, seg000:1442, seg000:1474, seg000:148d, seg000:14c9, seg000:167c
 attr[seg000:1736]: ofs_seg = seg000
 attr[seg000:176b]: type = code; name = frame_task_callback_blink
@@ -1949,6 +1987,30 @@ attr[seg000:5385]: ofs_seg = seg001
 attr[seg000:53b6]: type = code
 attr[seg000:53ba]: ofs_seg = seg001
 attr[seg000:53f1]: type = code; name = menu_callback_choice_map_main_see_spice_density
+attr[seg000:5406]: name = map_enter_spice_density_overlay; comment = [[[
+    Raise the spice-density overlay at its home position: the panel origin
+    (data_04710/04712) reloads from the data_011c1/011c3 home words (75, 15)
+    and the open popups close. The SEE SPICE DENSITY verb falls in from
+    loc_05400; the map recompose re-enters via the bit-6 check at seg000:5ad0.
+]]]
+attr[seg000:541f]: name = map_enter_spice_density_overlay_in_place; comment = [[[
+    Mid entry: raise the overlay at the current data_04710/04712 panel origin,
+    left wherever the last popup staged it - the contact popup parks it at
+    (92, 30), or (92, 14) with the popup in the lower half (seg000:7a15).
+    Copies the zoomed globe position into globe_param_3/4 so the overlay opens
+    on the map position the view is centred at, then falls into the draw.
+]]]
+attr[seg000:542f]: name = map_draw_spice_density_overlay; comment = [[[
+    Draw the spice-density overlay: a panel at data_04710/04712 with a
+    0a0h x 59h map window at +(5,7). The window content is the MAP2.HSQ spice
+    layer run through the windowed row fill (res_map_seg swapped, data_046eb =
+    40h so map_draw_zoomed_globe fills the row buffer without blitting) and
+    rendered by vga_draw_landscape through the per-location colour table
+    loc_057e5 builds. Then the markers, the you-are-here box, the panel
+    registration into map_popup_ptr (or map_popup2_ptr when another popup owns
+    the primary slot) and the pending menu fold; ends with data_046eb = 0c0h,
+    the map window restored and the nav rect on the panel.
+]]]
 attr[seg000:543e]: ofs_seg = seg001
 attr[seg000:5459]: ofs_seg = seg001
 attr[seg000:5481]: comment = RES_MAP2_HSQ
@@ -1992,6 +2054,13 @@ attr[seg000:5766]: targets = segvga:0184
 attr[seg000:578a]: type = code
 attr[seg000:57a7]: targets = segvga:0181
 attr[seg000:57dd]: comment = "  TROOP OCCUPATION  "
+attr[seg000:57e5]: name = build_spice_density_xlat; comment = [[[
+    Build the overlay 100h-entry palette-remap table (at bp): every entry the
+    backdrop 70h, then each visible location paints its own MAP2 spice-field
+    id (location +10h). Status bit 6 clear takes the flat marker colour (75h,
+    78h with the MON cmd arg); bit 6 set takes the density-ramp shade
+    50h + (spice_density >> 4).
+]]]
 attr[seg000:57ec]: comment = RES_MAP2_HSQ
 attr[seg000:5801]: ofs_seg = seg001; let = location: *Location @si
 attr[seg000:5817]: comment = Test cmd arg MON = Monotone
@@ -2008,6 +2077,12 @@ attr[seg000:58b4]: type = code
 attr[seg000:58c1]: type = code
 attr[seg000:58ce]: type = code
 attr[seg000:58f1]: targets = segvga:017e
+attr[seg000:58fa]: name = map_leave_spice_density_overlay; comment = [[[
+    Leave the spice-density overlay (no-op unless data_046eb bit 6): clear the
+    bit, take the panel out of whichever popup slot holds it, repaint the map
+    under it (troop_icons_update_dirty_rect) and put the map view nav rect
+    back.
+]]]
 attr[seg000:5909]: ofs_seg = seg001
 attr[seg000:5912]: ofs_seg = seg001
 attr[seg000:5923]: type = code
@@ -2884,6 +2959,12 @@ attr[seg000:7bb9]: name = troop_present_reaction_line; comment = [[[
     so on the map view it lands in the contact popup. Plays the voice on success
     and shares troop_07c02 tail (loc_07c56).
 ]]]
+attr[seg000:7bbe]: name = troop_present_dialogue_line_with_action; comment = [[[
+    Present one line of the contacted troop dialogue with pending_room_action
+    = al (the CONDIT action code the line conditions test): fresh resume
+    cursor, the line through present_room_person_dialogue(0x0f = the Fremen
+    voice bank), then its voice.
+]]]
 attr[seg000:7bc2]: comment = Store the caller-supplied action code (al) before presenting the troop dialogue line.
 attr[seg000:7bed]: type = code; name = menu_callback_choice_map_troop_dialogue_ask_for_more_information; comment = [[[
     The order menu ASK FOR MORE INFORMATION verb: unless the equipment spinner
@@ -2977,29 +3058,73 @@ attr[seg000:7fe8]: ofs_seg = seg001
 attr[seg000:7fef]: ofs_seg = seg001
 attr[seg000:8018]: type = code; name = location_leaf_fn_iterate_on_troops_and_do_stuff_08018; ofs_seg = seg001; fn = in location: *Location @di
 attr[seg000:801e]: ofs_seg = seg001
-attr[seg000:8064]: type = code; name = menu_callback_choice_multiple_move_troop; ofs_seg = seg001
+attr[seg000:8064]: type = code; name = menu_callback_choice_multiple_move_troop; ofs_seg = seg001; comment = [[[
+    The MOVE TROOP / CHANGE DESTINATION verb: install the destination-pick
+    mouse handlers (mouse_handlers_01aac), show the "Select the destination"
+    caption (loc_080df, COMMAND 0x54) and push the Cancel menu with the
+    move-mode cleanup (loc_0824d). The prospector troop (troops[2]) instead
+    copies its destination queue into the data_04718 working array (3 words;
+    the count scan covers 4), shows COMMAND 0x55 and pushes
+    menu_map_move_prospectors (loc_080ac).
+]]]
 attr[seg000:806d]: ofs_seg = seg001
 attr[seg000:8079]: ofs_seg = seg001
 attr[seg000:807c]: ofs_seg = seg000
 attr[seg000:8084]: ofs_seg = seg001
 attr[seg000:8087]: ofs_seg = seg001
-attr[seg000:80ac]: ofs_seg = seg001
+attr[seg000:80ac]: name = move_prospectors_configure_menu; ofs_seg = seg001; comment = [[[
+    Configure menu_map_move_prospectors: ADD A DESTINATION greys (bit 0x40 on
+    the record id) once the working count reaches 3; returns bx = the
+    move-mode cleanup loc_0824d.
+]]]
 attr[seg000:80c7]: type = code; name = menu_callback_choice_map_move_prospectors_add_destination
 attr[seg000:80c8]: type = code; name = give_new_destinations_for_prospectors
 attr[seg000:80d9]: type = code; name = menu_callback_choice_map_move_prospectors_give_new_destinations
+attr[seg000:80df]: name = move_troop_show_instruction_caption; comment = [[[
+    Show the move-order instruction as a voiced subtitle in the contact popup
+    text box (COMMAND id in ax): pen shifted right 0x26 when x >= 0x32, 0x19
+    columns, voice = id + 0x10a + per_person_voc_base_table[14] unless a
+    dialogue is active; then flip the map into the spice-density overlay
+    sub-mode (data_04720 = data_018f3, loc_0541f) and drop the talking-head
+    HUD element.
+]]]
 attr[seg000:80e7]: ofs_seg = seg001
 attr[seg000:8113]: ofs_seg = seg001
 attr[seg000:814f]: ofs_seg = seg001
 attr[seg000:8155]: ofs_seg = seg001
 attr[seg000:81c9]: ofs_seg = seg001
 attr[seg000:81cc]: targets = segvga:0139
-attr[seg000:81ec]: type = code; name = mouse_handler_081ec
-attr[seg000:8214]: type = code; name = menu_callback_choice_map_move_prospectors_done
+attr[seg000:81ec]: type = code; name = mouse_handler_move_troop_pick; comment = [[[
+    The move-mode LMB: a destination pick. Gate: rect_contains against
+    [map_popup2_ptr] - during the move mode that word is 0 unless the modify-
+    equipment panel record was staged, so the test reads the pseudo-rect at
+    ds:0 (rand_bits/game_time/location_and_room/location_appearance); a miss
+    exits the menu (cancel). Then the caption-panel hit test (loc_05944, which
+    swallows the return for caption clicks), and the marker pick: with the
+    marker-mode byte forced to the overlay value 0x40, find_nearest_location_
+    marker over ALL appearances (al = 0xff) within distance 9; a valid pick
+    (loc_08256) falls into the shared done path (seg000:8214).
+]]]
+attr[seg000:8214]: type = code; name = menu_callback_choice_map_move_prospectors_done; comment = [[[
+    The move-order done path: the prospector copies the working queue back to
+    ARRAY_PTR_Location_prospector_destinations (an empty head cancels).
+    The troop then speaks the acknowledgement line (troop_present_move_
+    acknowledgement); an event that drops the interrupt gate cancels; else the
+    order issues (troop_issue_move_order), the pick menu pops (no cleanup),
+    the map mouse handlers return and the map main menu rebuilds.
+]]]
 attr[seg000:821a]: ofs_seg = seg001
 attr[seg000:8221]: ofs_seg = seg001
 attr[seg000:8224]: ofs_seg = seg001
 attr[seg000:824d]: type = code
-attr[seg000:8256]: type = code
+attr[seg000:8256]: type = code; name = move_troop_validate_pick; comment = [[[
+    Validate/queue the picked destination (di): a non-prospector troop falls
+    straight through (carry clear = go). The prospector needs a sietch
+    (appearance < 0x20) or an Atreides-held area (status bit 3); a full
+    working queue (3) is reset first, the pick appends, the overlay and menu
+    redraw, and only the queue reaching 3 proceeds (after a 0x32-tick beat);
+    otherwise carry set = keep picking.
+]]]
 attr[seg000:8259]: ofs_seg = seg001
 attr[seg000:82a0]: comment = [[[
     ZF check for the map centre button and the globe menu handlers: returns ZF set iff the
@@ -3009,8 +3134,20 @@ attr[seg000:82a0]: comment = [[[
 ]]]
 attr[seg000:82a3]: ofs_seg = seg001
 attr[seg000:82a9]: ofs_seg = seg001
+attr[seg000:82b7]: name = move_troop_teardown; comment = [[[
+    The move-mode teardown (the Cancel cleanup and the done path): while the
+    overlay sub-mode (data_046eb bit 6) is up, exit it (loc_058fa), repaint
+    the contact popup panel and re-present the contact dialogue (loc_07be0).
+]]]
 attr[seg000:82c7]: ofs_seg = seg001
-attr[seg000:82da]: name = troop_location_082da
+attr[seg000:82da]: name = troop_present_move_acknowledgement; comment = [[[
+    Present the troop acknowledgement line for a move order to di: staging the
+    destination as the troop location for CONDIT (and the name placeholders via
+    set_command_menu_origin), action code 0x0b - or 0x10 without restaging when
+    the destination is where the troop already stands - through loc_07bbe.
+    Returns the interrupt-gate ZF: nonzero = a spoken-line event refused the
+    order.
+]]]
 attr[seg000:82df]: ofs_seg = seg001
 attr[seg000:8308]: name = troop_travel_step; fn = in troop: *Troop @si; comment = [[[
     One time period of a moving troop (occupation bit 6): 4 sub-steps - 8 with
@@ -3059,8 +3196,23 @@ attr[seg000:8461]: name = troop_refresh_icon; comment = [[[
     location marker; a moving one (occupation bit 6) always respawns.
 ]]]
 attr[seg000:846c]: type = code; name = troop_0846c; fn = in troop: *Troop @si
-attr[seg000:848f]: name = troop_0848f
-attr[seg000:84a6]: name = troop_location_084a6; ofs_seg = seg001
+attr[seg000:848f]: name = prospector_sync_destination_queue; comment = [[[
+    Drop leading prospector-queue entries already reached (head == the current
+    destination while not moving); returns ZF set when the queue is empty
+    (di = the head).
+]]]
+attr[seg000:84a6]: name = troop_issue_move_order; ofs_seg = seg001; comment = [[[
+    Issue a move order: si = troop, di = the destination location. The
+    prospector re-syncs against its queue head (troop_0848f) and moves to it.
+    A troop already moving just retargets (a fetch mission drops its low
+    bits). Otherwise: notify the hired troops left behind (troop_06ebf),
+    unlink from the chain; a defending troop (occupation 6) leaving a battle-
+    flagged location may collapse the defence (the last-defender check), and
+    heading to a peaceful sietch costs 3 motivation while another battle
+    destination aborts. Then location word = destination, occupation bit 6 on,
+    position 0, its equipment leaves the old location, the icon refreshes and
+    (unless bitfield_10 bit 4 hides it) 7 travel sub-steps run immediately.
+]]]
 attr[seg000:851f]: name = troop_link_into_location_and_assign_position; comment = [[[
     Append the troop to its destination location: an empty chain takes it as
     the head at position 1 (9 for a Harkonnen troop, the mirrored slot bank);
@@ -3174,7 +3326,11 @@ attr[seg000:88af]: name = show_voice_subtitle; comment = [[[
     - get_phrase_or_command_string_si: resolve id -> COMMAND/PHRASE bytes
     - loc_088f1: expand phrase tokens (0xe0+) into temp buffer 0xa840
     - loc_088d2: format_interpolated_string -> 0xa6b0, then if voice_subtitle_mode < 2 draw via loc_088e1 -> loc_08b11.
-    The data_046eb & 0x40 short-circuit drops the bubble entirely (loc_080df).
+    The data_046eb bit-6 short-circuit (seg000:88bb) clears the bit and jumps to
+    move_troop_show_instruction_caption instead: the text becomes the contact-popup
+    caption and the routine tail re-raises the spice-density overlay (loc_0541f,
+    which re-sets data_046eb = 0x40) - the map-overlay subtitle path, and the way
+    continue-sequence action 7 (seg000:13a3) gets the overlay on screen.
 ]]]
 attr[seg000:88d2]: ofs_seg = seg001
 attr[seg000:88e1]: name = draw_subtitle_text_from_si; comment = [[[
@@ -4210,6 +4366,7 @@ attr[seg000:b647]: name = map_position_to_screen; comment = [[[
     (the same lng * len >> 16 cell projection map_copy_window_row uses).
     Globe mode (data_046eb bit 0x80) scales both deltas by 4.
 ]]]
+attr[seg000:b69a]: name = map_overlay_swap_position; comment = [[[Exchange the live zoomed-globe position with the spice-density overlay's (globe_param_3/4); called either side of the overlay draw so each keeps its own centre.]]]
 attr[seg000:b6c3]: type = code; name = map_draw_zoomed_globe; comment = [[[
     Draw the map main view. Globe mode (data_046eb bit 0x80): centre (0xa0,0x4c),
     clamp latitude to +-0x4b and call vga_draw_map_zoomed (the full interpolated
@@ -5925,8 +6082,8 @@ attr[seg001:11bf]: type = u16; name = book_bookmark_ptr; comment = [[[
     Bookmark: cs offset of the current page word in the dialogue-played log
     (0xaa = first entry); persists while the book is closed.
 ]]]
-attr[seg001:11c1]: type = u16
-attr[seg001:11c3]: type = u16
+attr[seg001:11c1]: type = u16; name = spice_overlay_home_x; comment = [[[Spice-density overlay panel home origin x (75); the panel drag handler (seg000:59d1) persists moves here]]]
+attr[seg001:11c3]: type = u16; name = spice_overlay_home_y; comment = Spice-density overlay panel home origin y (15)
 attr[seg001:11c5]: type = u16; name = travel_destination_ptr; comment = [[[
     The pending/active travel destination location ptr (0 = none). Set by
     arm_pending_travel; map_screen_cleanup keeps game_screen_mode_flags while
