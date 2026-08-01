@@ -5260,6 +5260,13 @@ attr[seg000:dea5]: targets = segvga:0103
 attr[seg000:deac]: ofs_seg = seg001
 attr[seg000:dec1]: comment = "GAME  PAUSED"
 attr[seg000:ded3]: comment = " <ESC> removes this window\\nAny other key resumes game"
+attr[seg000:df07]: name = pause_remove_window; comment = [[[
+    Remove the GAME PAUSED window drawn by pause_if_p_key_pressed:
+    repaint the five HUD verb-row elements it covered (ui_hud_elements[7..12]),
+    reopen the resource bank saved at entry (draw_ui_elements_list leaves ICONES open),
+    redraw the active command menu, then draw_mouse (balances the pause entry's
+    call_restore_cursor). Runs once per keypress in the pause wait loop.
+]]]
 attr[seg000:df0b]: ofs_seg = seg001
 attr[seg000:df1e]: type = code; name = get_mouse_pos_etc
 attr[seg000:df23]: comment = Test cmd arg NOM = NoMouse
@@ -6929,6 +6936,11 @@ attr[seg001:2941]: type = u8
 attr[seg001:2942]: type = u8; name = _byte_21DF2_cmd_args
 attr[seg001:2943]: type = u8; name = _byte_21DF3_cmd_args_memory
 attr[seg001:2944]: type = u8; name = _byte_21DF4_cmd_args_audio
+attr[seg001:2945]: type = Rect; name = pause_window_panel_record; comment = [[[
+    The GAME PAUSED window panel record, drawn by pause_if_p_key_pressed via loc_07b1b:
+    rect (92,159)-(228,200) exclusive (the HUD verb-strip area, horizontally centered),
+    +8 frame colour 0xfe (outline inset to (92,159)-(227,199)), +9 fill colour 0xf1.
+]]]
 attr[seg001:294f]: type = ResTableEntry; name = RES_TABLAT_BIN
 attr[seg001:2951]: name = aTablat_bin
 attr[seg001:295c]: type = ResTableEntry; name = RES_DNCHAR_BIN
