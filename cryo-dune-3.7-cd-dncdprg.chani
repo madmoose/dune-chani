@@ -606,12 +606,8 @@ attr[seg000:1392]: type = code; name = change_menu_to_continue_menu; ofs_seg = s
 attr[seg000:1399]: type = code; name = change_menu_to_special_menu_after_specializing_prospector_troop_in_spice; ofs_seg = seg001
 attr[seg000:13a0]: type = code; name = callback_action_in_continue_sequence_07; comment = [[[
     Continue-sequence action 7: install the prospector " Continue..." panel,
-    set the data_046eb bit-6 one-shot and speak the next line
-    ("Here, take this map of the planet.").
-    The overlay is not drawn here: presenting the line runs show_voice_subtitle,
-    whose bit-6 short-circuit (seg000:88bb) routes the text through
-    move_troop_show_instruction_caption, whose tail raises the spice-density
-    overlay (loc_0541f, re-setting data_046eb = 0x40 at seg000:548f).
+    raise the spice-density overlay (data_046eb bit 6) and speak the next line
+    over it ("Here, take this map of the planet.").
 ]]]
 attr[seg000:13aa]: type = code; name = callback_action_in_continue_sequence_08; comment = [[[
     Continue-sequence action 8: drop the spice-density overlay (loc_058fa),
@@ -1987,19 +1983,6 @@ attr[seg000:5385]: ofs_seg = seg001
 attr[seg000:53b6]: type = code
 attr[seg000:53ba]: ofs_seg = seg001
 attr[seg000:53f1]: type = code; name = menu_callback_choice_map_main_see_spice_density
-attr[seg000:5406]: name = map_enter_spice_density_overlay; comment = [[[
-    Raise the spice-density overlay at its home position: the panel origin
-    (data_04710/04712) reloads from the data_011c1/011c3 home words (75, 15)
-    and the open popups close. The SEE SPICE DENSITY verb falls in from
-    loc_05400; the map recompose re-enters via the bit-6 check at seg000:5ad0.
-]]]
-attr[seg000:541f]: name = map_enter_spice_density_overlay_in_place; comment = [[[
-    Mid entry: raise the overlay at the current data_04710/04712 panel origin,
-    left wherever the last popup staged it - the contact popup parks it at
-    (92, 30), or (92, 14) with the popup in the lower half (seg000:7a15).
-    Copies the zoomed globe position into globe_param_3/4 so the overlay opens
-    on the map position the view is centred at, then falls into the draw.
-]]]
 attr[seg000:542f]: name = map_draw_spice_density_overlay; comment = [[[
     Draw the spice-density overlay: a panel at data_04710/04712 with a
     0a0h x 59h map window at +(5,7). The window content is the MAP2.HSQ spice
@@ -2728,23 +2711,25 @@ attr[seg000:6fe5]: type = code; name = callback_troop_location_for_troop_occupat
     nothing until the daily repair slot comes round (the time period whose low
     nibble matches the troop id, 705c). Otherwise: the viability test, the worm /
     saboteur events (714c), then bitfield_10 bit 8 (working) and the accumulation -
-    troop_0708a gives this period harvest, field_E accumulates it (every crossing
-    of a 128 boundary raises the spice skill via troop_clamp_skill_and_do_something
-    _else), one tenth of it goes to spice_in_stock with the remainder carried in
-    data_046e1, and (harvest + location field_13) / location spice_amount is
-    subtracted from spice_density with the remainder left in field_13. Eating past
-    the overlay current shade bumps data_046ec so the spice-density overlay
-    repaints. Not viable clears BOTH accumulators and stops the troop (loc_0707b).
+    troop_0708a gives this period harvest in kg, field_E accumulates it (every
+    crossing of a 128 boundary raises the spice skill via troop_clamp_skill_and_do
+    _something_else), the whole of it goes to spice_in_stock converted to the stock
+    10 kg batches (div 10, the sub-batch kg carried in spice_harvest_remainder),
+    and (harvest + location field_13) / location spice_amount is subtracted from
+    spice_density with the remainder left in field_13. Eating past the overlay
+    current shade bumps data_046ec so the spice-density overlay repaints. Not
+    viable clears BOTH accumulators and stops the troop (loc_0707b).
 ]]]
 attr[seg000:705c]: name = callback_troop_location_for_troop_occupation_spice_mining_harvester_was_previously_damaged
 attr[seg000:7068]: comment = Damaged harvester is now fixed.
 attr[seg000:7085]: type = code; name = callback_troop_make_troop_stop_working; fn = in troop: *Troop @si
 attr[seg000:708a]: type = code; name = troop_update_harvest_rate; fn = in troop: *Troop @si; comment = [[[
-    This time period spice harvest for the troop - the ACTUAL amount, not an
-    estimate: seg000:6fff adds the return value to the troop running total, pays a
-    tenth of it into spice_in_stock and takes the matching bite out of the location
-    spice density. troop_prepare_troop_data_for_condit tail-jumps here (32c4) to
-    stage the same number in ds:48, which the info panel shows as Current N kgs/h.
+    This time period spice harvest for the troop in kg - the ACTUAL amount, not an
+    estimate: seg000:6fff adds the return value to the troop running total, pays it
+    all into spice_in_stock (converted to that stock 10 kg batches by the div at
+    701b) and takes the matching bite out of the location spice density.
+    troop_prepare_troop_data_for_condit tail-jumps here (32c4) to stage the same
+    number in ds:48, which the info panel shows as Current N kgs/h.
     
     (motivation modifier + spice skill high nibble) * population, quartered without
     a harvester (equipment bit 7), times ((location spice_density & 0xf0) + 1)
@@ -3326,11 +3311,7 @@ attr[seg000:88af]: name = show_voice_subtitle; comment = [[[
     - get_phrase_or_command_string_si: resolve id -> COMMAND/PHRASE bytes
     - loc_088f1: expand phrase tokens (0xe0+) into temp buffer 0xa840
     - loc_088d2: format_interpolated_string -> 0xa6b0, then if voice_subtitle_mode < 2 draw via loc_088e1 -> loc_08b11.
-    The data_046eb bit-6 short-circuit (seg000:88bb) clears the bit and jumps to
-    move_troop_show_instruction_caption instead: the text becomes the contact-popup
-    caption and the routine tail re-raises the spice-density overlay (loc_0541f,
-    which re-sets data_046eb = 0x40) - the map-overlay subtitle path, and the way
-    continue-sequence action 7 (seg000:13a3) gets the overlay on screen.
+    The data_046eb & 0x40 short-circuit drops the bubble entirely (loc_080df).
 ]]]
 attr[seg000:88d2]: ofs_seg = seg001
 attr[seg000:88e1]: name = draw_subtitle_text_from_si; comment = [[[
@@ -3455,7 +3436,7 @@ attr[seg000:90bd]: name = setup_npc_dialogue_menu; fn = in npc: *RoomPerson @si;
     TALK TO ME and STOP TALKING) and push menu_NPC_actions onto the
     screen-element stack. Splices the chosen [text id, callback] into
     menu_NPC_actions[+6/+8], then jmp screen_element_stack_push with the
-    menu render/cleanup func loc_097cf.
+    menu cleanup func loc_097cf.
 ]]]
 attr[seg000:90c4]: comment = Harkonnen Captain
 attr[seg000:90cc]: comment = " OVERPOWER THE PRISONER "
@@ -5037,9 +5018,13 @@ attr[seg000:d316]: name = screen_overlay_request_transition
 attr[seg000:d338]: name = screen_element_stack_push; comment = [[[
     Public entry to screen_element_stack_insert: set cl=0ffh and fall in.
     cl is the slot draw_command_menu pre-highlights at d388; 0ffh (>= 5) highlights none.
-    bp = the command-record buffer to insert, bx = its per-frame render/cleanup func.
+    bp = the command-record buffer to insert, bx = its cleanup func.
 ]]]
-attr[seg000:d33a]: name = screen_element_stack_insert; comment = Insert (bp = record buffer, bx = per-frame render func) into the z-ordered screen-element stack (screen_element_stack_ptr / data_021da), sorted by the buffers leading priority byte. Higher-priority entries already on the stack are popped and their render func called as it inserts. loc_0d338 enters with cl = 0ffh.
+attr[seg000:d33a]: name = screen_element_stack_insert; comment = [[[
+    Insert (bp = record buffer, bx = cleanup func) into the z-ordered screen-element stack (screen_element_stack_ptr / data_021da), sorted by the buffers leading priority byte.
+    Higher-priority entries already on the stack are popped and their cleanup func called as it inserts.
+    loc_0d338 enters with cl = 0ffh.
+]]]
 attr[seg000:d343]: comment = [[[
     Equal priority byte: the new element REPLACES the top slot in place (jz loc_0d368) - the stack does not deepen.
     This is how a mid-dialogue setup_npc_dialogue_menu rebuild (e.g. re-targeting the panel at Fremen 2 after the chief rallies, 964f) swaps the verb records while one STOP TALKING still pops the panel.
@@ -5683,7 +5668,12 @@ attr[seg001:009c]: type = u8; name = for_condit_battle_balance_ds_9c; comment = 
 attr[seg001:009d]: type = u8; name = for_condit_smuggler_dialogue_related_ds_9d
 attr[seg001:009e]: type = u8; name = for_condit_smuggler_arguing_count_ds_9e
 attr[seg001:009f]: type = u8; name = accept_refuse_argue_choice_ds_9f
-attr[seg001:00a0]: type = u16; name = spice_in_stock
+attr[seg001:00a0]: type = u16; name = spice_in_stock; comment = [[[
+    The palace spice stock, stored in batches of 10 kg - a value of 123 is 1230 kg.
+    Mining troops pay their whole harvest in via the div-by-10 unit conversion at
+    seg000:701b (sub-batch kg carried in spice_harvest_remainder).
+    Duncan sign (COMMAND string 0x30) appends a literal 0 to show it in kg.
+]]]
 attr[seg001:00a2]: type = u16; name = for_condit_area_controlled_by_Atreides_ds_a2
 attr[seg001:00a4]: type = u16; name = for_condit_area_controlled_by_Harkonnen_ds_a4
 attr[seg001:00a6]: type = u16; name = for_condit_todays_spice_production_ds_a6; comment = [[[Today's spice production: stock + spice_spent_today - stock_at_last_new_day, clamped at 0; loc_0c02e keeps the running max within the day.]]]
@@ -6082,8 +6072,8 @@ attr[seg001:11bf]: type = u16; name = book_bookmark_ptr; comment = [[[
     Bookmark: cs offset of the current page word in the dialogue-played log
     (0xaa = first entry); persists while the book is closed.
 ]]]
-attr[seg001:11c1]: type = u16; name = spice_overlay_home_x; comment = [[[Spice-density overlay panel home origin x (75); the panel drag handler (seg000:59d1) persists moves here]]]
-attr[seg001:11c3]: type = u16; name = spice_overlay_home_y; comment = Spice-density overlay panel home origin y (15)
+attr[seg001:11c1]: type = dec(u16)
+attr[seg001:11c3]: type = dec(u16)
 attr[seg001:11c5]: type = u16; name = travel_destination_ptr; comment = [[[
     The pending/active travel destination location ptr (0 = none). Set by
     arm_pending_travel; map_screen_cleanup keeps game_screen_mode_flags while
@@ -6428,7 +6418,7 @@ attr[seg001:1f0e]: name = command_menu_buf; comment = The verb-menu record buffe
 attr[seg001:1f0f]: type = u8
 attr[seg001:1f10]: type = u16
 attr[seg001:1f12]: type = u16
-attr[seg001:1f7e]: type = MenuHeader; name = menu_NPC_actions
+attr[seg001:1f7e]: type = MenuHeader; name = menu_npc_actions
 attr[seg001:1f80]: type = MenuEntry; comment = " TALK TO ME "
 attr[seg001:1f84]: type = MenuEntry; comment = " COME WITH ME "
 attr[seg001:1f88]: type = MenuEntry
@@ -7618,6 +7608,10 @@ attr[seg001:46dd]: type = u8; name = new_hour_flag; comment = [[[
 attr[seg001:46de]: type = u8; name = new_day_flag
 attr[seg001:46df]: type = u8; name = sky_fade_active
 attr[seg001:46e0]: type = u8
+attr[seg001:46e1]: type = u16; name = spice_harvest_remainder; comment = [[[
+    Kilograms of harvested spice not yet forming a full 10 kg batch of
+    spice_in_stock; carried into the next mining period division at seg000:701b.
+]]]
 attr[seg001:46e3]: type = Rect; name = data_046e3_rect
 attr[seg001:46e5]: type = u16
 attr[seg001:46e7]: type = u16
@@ -8507,10 +8501,40 @@ attr[segvga:2a68]: type = code; name = transition_expanding_box; comment = [[[
     Anchors at (bx=0x4a, dx=0x9c) via calc_fb_offset, then calls loc_segvga_02ab0 in widening passes (dx=1,2,3,...) that stamp 4x4 cell strips downward and step outward. Continues until dx reaches 0x26.
 ]]]
 attr[segvga:2ad0]: type = code; name = transition_noop_2ad0; comment = Effect 0x2c: no-op (retf). Dispatched but does nothing.
-attr[segvga:2ad1]: type = code; name = transition_horizontal_slide; comment = [[[
-    Effects 0x0c, 0x0e: horizontal 8-pixel-strip slide.
-    Direction chosen by sign of caller dx: positive walks bx from cx down to -0x138 (slide right-to-left via loc_segvga_02bac/loc_segvga_02b56); negative walks bx from -0x138 up to 0x98 (slide left-to-right via loc_segvga_02c02/loc_segvga_02b56).
-    Preloads a column lookup via loc_segvga_02c52 from src or dst page accordingly.
+attr[segvga:2ad1]: type = code; name = transition_page_turn; comment = [[[
+    Effects 0x0c, 0x0e: the book page-turn fold (book_page_turn_present, seg000:b02c).
+    A 45-degree fold line sweeps across the screen; the fold triangle shows the turning page rotated 90 degrees, read from a rotated copy of the page built in the fb2 segment by page_turn_build_rotated_page.
+    Direction = sign of caller dx. Positive (next page): rotated copy built from es (the visible old page); anchor bx walks 0x90 down to -0x138 step -8, sweeping up the right edge then left along the top row; page_turn_fill_forward_band paints the revealed strip of the new page (ds).
+    Negative (previous page / back to cover): rotated copy built from ds (the incoming new page); bx walks -0x138 up to 0x90 step 8, sweeping right along the top row then down the right edge; page_turn_fill_backward_band paints the strip the fold vacates.
+    Anchor point per frame: row = max(bx,0) clamped, column = 0x140 + min(bx,0). calc_fb_offset(row, column) gives di; page_turn_draw_fold draws the triangle at that anchor.
+    Each frame waits one PIT tick (2afa) before drawing and one vsync (loc_segvga_02572) after.
+]]]
+attr[segvga:2b56]: name = page_turn_draw_fold; comment = [[[
+    Draw the fold triangle at the anchor: in bx = clamped row, dx = anchor column, di = anchor offset.
+    Source si = (0x141-dx)*200 - 0x98 (+ 0x98-dx when dx < 0x98) into the rotated page in fb2 (ds = saved si segment); height/width ax = min(0x98-bx, dx).
+    Row r spans [column-ax, column-r): a right triangle with a vertical left edge and the hypotenuse on the fold diagonal; each row samples one rotated-page column (si += 0xc8), so the triangle shows the page content rotated 90 degrees.
+    The two half-loops alternate even (rep movsw) and odd (rep movsw + movsb) row widths.
+    Edge frames read a few bytes past the 64000-byte page image (segment wrap garbage at the triangle tip).
+]]]
+attr[segvga:2bac]: name = page_turn_fill_forward_band; comment = [[[
+    Forward turn: paint the 8-pixel diagonal band of the new page (ds = saved ds = fb1) revealed as the fold moved this frame.
+    In: bx = clamped row, dx = anchor column, di = anchor offset; copies fb1 to the screen at the same offsets (si = di).
+    ax = min(0x98-bx, dx) rows. Column > 0x138 (anchor still on the right edge): an 8-row lead-in wedge of widths 0..7 first, stride 0x13f.
+    Main loop: ax rows of 8 bytes just right of the fold diagonal, stride 0x13f (down 1, left 1).
+    When the diagonal exits the left edge (dx < ax): a tail wedge of widths 8..1 straight down (stride 0x140).
+]]]
+attr[segvga:2c02]: name = page_turn_fill_backward_band; comment = [[[
+    Backward turn: paint the 8-pixel strip the fold triangle vacated as it moved right/down this frame, from the new page (ds = saved ds = fb1, si = di).
+    Returns when di < 0xa0 (anchor column < 160 on the top row: the strip would start left of the screen).
+    bx > 0 (anchor on the right edge): first an 8-row band of 0xa0-bx bytes ending at the anchor column, 8 rows above the triangle top (di -= 0xa00), stride 0x140; then ax = 0x98-bx.
+    bx = 0 (anchor on the top row): ax = 0x98, di = anchor - 0xa0.
+    Tail: ax rows of 8 bytes straight down (stride 0x140) along the left of the triangle vertical trailing edge.
+]]]
+attr[segvga:2c52]: name = page_turn_build_rotated_page; comment = [[[
+    Build the rotated page image in the fb2 segment (es = the saved caller si, data_segvga_02535).
+    Rotates the source page (ds, selected by the caller) 90 degrees: dst[c*200+r] = src[(199-r)*320 + (319-c)] for 320 columns right-to-left, each written bottom-to-top (4 rows per inner step, si -= 0x500).
+    Pixels in [0x60,0x62) get +2: the page paper colors remap to their darker shades, so the fold shows the shaded back of the page.
+    Tail (2cac): within the rotated image, copies bytes 48..56 of column c-54 into column c for c = 126..194 - in screen terms, rows 144..151 at x 193..126 take the paper 54 pixels to their right, patching the spine area out of the fold content.
 ]]]
 attr[segvga:2cc7]: type = code; name = transition_noop_2cc7; comment = Effect 0x32: no-op (retf).
 attr[segvga:2cc8]: type = code; name = transition_noop_2cc8; comment = Effects 0x16, 0x18: no-op (retf).
