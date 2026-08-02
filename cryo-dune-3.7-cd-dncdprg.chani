@@ -205,8 +205,8 @@ end
 
 struct[UISprite]:
     field[index]: type = u16
-    field[y]: type = u16
     field[x]: type = u16
+    field[y]: type = u16
 end
 
 struct[XY]:
@@ -4455,8 +4455,8 @@ attr[seg000:b941]: name = globe_menu_push; ofs_seg = seg001; comment = [[[
 attr[seg000:b947]: ofs_seg = seg000
 attr[seg000:b952]: ofs_seg = seg000
 attr[seg000:b95b]: ofs_seg = seg000
-attr[seg000:b961]: type = code; name = menu_callback_choice_globe_see_standard_vision
-attr[seg000:b96b]: type = code; name = menu_callback_choice_globe_see_results
+attr[seg000:b961]: type = code; name = menu_callback_choice_globe_see_standard_vision; comment = STANDARD VISION: slide the decorations closed, back to the full globe redraw mode, redraw/present, and re-push the globe menu (row 1 becomes SEE RESULTS).
+attr[seg000:b96b]: type = code; name = menu_callback_choice_globe_see_results; comment = SEE RESULTS: slide the decorations open over the stats overlay, enter the pixel-store-skip draw mode, redraw/present, and re-push the globe menu (row 1 becomes STANDARD VISION).
 attr[seg000:b977]: type = code; name = map_func_gfx; ofs_seg = seg001; comment = [[[
     Render the globe pixels: es = fb1, bp = RESOURCE_TABLAT (the 99-entry rotation table),
     ds:si = res_map_ofs (MAP.HSQ equator-row centre, base 0x62fc),
@@ -4602,14 +4602,41 @@ attr[seg000:be20]: comment = RES_FRESK_HSQ
 attr[seg000:be23]: ofs_seg = seg001
 attr[seg000:be48]: ofs_seg = seg001
 attr[seg000:be4e]: ofs_seg = seg000
-attr[seg000:be57]: type = code; name = frame_task_callback_0be57
+attr[seg000:be57]: type = code; name = results_gauge_task; comment = [[[
+    The SEE RESULTS gauge animation frame task (interval 0xc, armed by
+    results_draw_text_and_icones): per gauge 0..5 step the current value one
+    toward its target and stamp the ICONES bar (sprite 0x37 even / 0x38 odd
+    gauges, display height clamped to 0x1e) at the seg001:24ee anchor minus the
+    value, the 0x39 cap 10 rows above, and on reaching the target the trend
+    glyph (results_trend_glyphs, small font, colour 0x3f even / 0x25 odd) above
+    the cap. Draws straight to the screen; removed by loc_0b93b.
+]]]
 attr[seg000:be5a]: ofs_seg = seg001
 attr[seg000:be63]: ofs_seg = seg001
+attr[seg000:bed7]: name = results_update_gauge_targets; comment = [[[
+    Refresh the SEE RESULTS data: stamp results_stats_timestamp (game_time & fff0),
+    recompute_condit_statistics, update the six percent strings + trend glyphs
+    (results_update_percent_strings), then the six gauge targets at
+    results_gauge_targets: harkonnen area/2+1, atreides area/2+1, potential
+    spice>>4+1, todays spice>>4+1, hi(ds:ac)+1, hi(ds:aa)+1.
+]]]
 attr[seg000:bee8]: ofs_seg = seg001
-attr[seg000:bf26]: ofs_seg = seg001
+attr[seg000:bf26]: name = results_update_percent_strings; ofs_seg = seg001; comment = [[[
+    Write the six stat values into the consecutive COMMAND strings 0xc4..0xc9
+    (si walks from phrase 0xc4 through each string), and the trend glyph per
+    value into results_trend_glyphs: 1 = rose, 2 = fell (vs the last value in
+    results_prev_values), 3 = unchanged across a period boundary; unchanged
+    within the same period keeps the previous glyph.
+]]]
 attr[seg000:bf29]: ofs_seg = seg001
 attr[seg000:bf2f]: comment = "  0%"
 attr[seg000:bf55]: type = code
+attr[seg000:bf61]: name = results_stat_string_replace_x10; comment = [[[
+    Digit replace for the kg/population stats: force the last digit to 0 and
+    write the 5-digit value before it (loc_0e31c), so the string shows value*10
+    with leading-zero blanking; then the shared trend tail at loc_0bf7d.
+]]]
+attr[seg000:bf73]: name = results_stat_string_replace; comment = 3-digit in-place digit replace (find_last_numeric + string_replace_number) for the area percentages, then the shared trend tail at loc_0bf7d.
 attr[seg000:bfa7]: type = code; name = string_update_ordinal_suffix
 attr[seg000:bfe3]: type = code; name = compute_area_controlled_percentages; comment = [[[
     Recompute the area-controlled CONDIT percentages from the map vegetation
@@ -6160,8 +6187,9 @@ attr[seg001:1154]: type = u16; name = harkonnen_raids_armed_after_game_time; com
 attr[seg001:1156]: type = u16; name = illness_plot_armed_after_ingame_day; comment = In-game day gate of the phase-5c illness picker (seg000:1e43). 0xffff until a phase callback stamps it.
 attr[seg001:1158]: type = u16
 attr[seg001:115a]: type = u16
-attr[seg001:115c]: type = u16
-attr[seg001:116a]: type = u8
+attr[seg001:115c]: type = u16; name = results_stats_timestamp; comment = [[[game_time & fff0 at the last stats refresh; the trend tail treats an equal value as 'unchanged' (glyph 3) only across a period change.]]]
+attr[seg001:115e]: name = results_prev_values; comment = Six words: each stat's last value, exchanged by the loc_0bf7d trend tail.
+attr[seg001:116a]: type = u8; name = results_trend_glyphs; comment = Six trend glyph codes (1 rose / 2 fell / 3 unchanged) drawn by results_gauge_task when a gauge lands.
 attr[seg001:116b]: type = u8
 attr[seg001:116c]: type = u8
 attr[seg001:116d]: type = u8
@@ -8316,6 +8344,8 @@ attr[seg001:dd02]: type = u8; name = globe_draw_skips_pixel_stores; comment = [[
 ]]]
 attr[seg001:dd03]: type = u8; name = globe_screen_active; comment = [[[Nonzero while the GLOBE view owns the display (inc by callback_main_ui_element_00, cleared by remove_globe_frame_tasks); also the music-situation classifier globe input (loc_0aa96).]]]
 attr[seg001:dd0f]: type = u16; name = _word_2D1BF_globe_decoration_offset
+attr[seg001:dd11]: name = results_gauge_targets; comment = [[[Six gauge target bytes (results_update_gauge_targets); the task steps results_gauge_current toward them.]]]
+attr[seg001:dd17]: name = results_gauge_current; comment = Six gauge current bytes, zeroed by results_draw_text_and_icones so the bars rise from empty.
 attr[seg001:dd1d]: name = top_of_mem
 attr[segvga:0100]: type = code; name = j_vga_set_mode_13h
 attr[segvga:0103]: type = code; name = j_vga_get_framebuffer_info
