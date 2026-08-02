@@ -8336,11 +8336,14 @@ attr[seg001:dcfa]: type = u16
 attr[seg001:dcfc]: type = u16
 attr[seg001:dcfe]: type = u16; name = _word_2D1AE_res_map_ofs
 attr[seg001:dd00]: type = u16; name = _word_2D1B0_res_map_seg
-attr[seg001:dd02]: type = u8; name = globe_draw_skips_pixel_stores; comment = [[[
-    Globe pixel-store skip flag, read into al by map_func_gfx (seg000:b97e).
-    BSS, so 0 at startup and outside the map screen.
-    0: vga_globe_init patches its data_segvga_01e4a slot with two NOPs - every globe pixel is computed and stored (the full redraw the intro2 scene uses).
-    nonzero: the slot gets a short jmp that skips the pixel store path.
+attr[seg001:dd02]: type = u8; name = globe_draw_area_control_colors; comment = [[[
+    Globe colour-mode flag, read into al by map_func_gfx (seg000:b97e). BSS, so 0
+    at startup. 0: vga_globe_init patches its data_segvga_01e4a slot with two NOPs
+    - every pixel maps through the normal terrain colours (segvga:1e4c). Nonzero
+    (the SEE RESULTS mode): the slot gets a short jmp into loc_segvga_01ec9, the
+    area-control recolouring - 0x10|colour for cells with no vegetation-stage
+    bits, 0x20+colour for stages 0x10/0x20 (Atreides-held), 0x30+colour for 0x30
+    (Harkonnen-held); the globe keeps spinning in these colours.
 ]]]
 attr[seg001:dd03]: type = u8; name = globe_screen_active; comment = [[[Nonzero while the GLOBE view owns the display (inc by callback_main_ui_element_00, cleared by remove_globe_frame_tasks); also the music-situation classifier globe input (loc_0aa96).]]]
 attr[seg001:dd0f]: type = u16; name = _word_2D1BF_globe_decoration_offset
@@ -8573,12 +8576,18 @@ attr[segvga:1c38]: comment = bit set: write fg pixel
 attr[segvga:1c46]: name = vga_grab_rect; comment = [[[Copy a rectangle from the framebuffer into caller's buffer (ES:SI on entry). Stack params [bp]: x1, y1, x2, y2 (right/bottom exclusive). Swaps DS/ES to read from A000 and writes row-by-row; row stride = 320.]]]
 attr[segvga:1c76]: name = vga_put_rect; comment = [[[Copy a pixel buffer into a rectangle on the framebuffer. Complement of vga_grab_rect. Stack params [bp]: x1, y1, x2, y2 (right/bottom exclusive); DS:SI = source pixel data. ES must be A000; DI set by calc_fb_offset.]]]
 attr[segvga:1cb6]: name = vga_globe_init; comment = [[[
-    Globe draw entry (from map_func_gfx): al = skip flag, ds:si = MAP centre ptr, bp = RESOURCE_TABLAT, es = fb1.
-    Patches data_segvga_01e4a with 2 NOPs (al=0, store every pixel) or a short jmp (al!=0, skip the pixel stores),
-    then caches its working pointers in cs: 01ca0/01ca2 = map ptr, 01ca4 = TABLAT (rotation table),
-    01ca6/01ca8 = GLOBDATA+1 (the two outline stream cursors), 01caa = GLOBDATA+0xcda (the per-x latitude/cell tables, 200 bytes per x column),
-    01cac = globe_tilt_window_table middle (+0xc4), 01cae/01cb0 = left/right pixel store cursors seeded around the centre (0x649f/0x64a0 = row 80, x 159/160), 01cb4 = the +/-320 row step.
-    Then draws the centre row (loc_segvga_01d5a) and loops vga_globe_setup once per outline row until done.
+    Globe draw entry (from map_func_gfx): al = globe_draw_area_control_colors,
+    ds:si = MAP centre ptr, bp = RESOURCE_TABLAT, es = fb1.
+    Patches data_segvga_01e4a with 2 NOPs (al = 0, the normal terrain colours) or
+    a short jmp into globe_pixel_area_control_colors (al != 0, the SEE RESULTS
+    red/blue area-control recolouring), then caches its working pointers in cs:
+    01ca0/01ca2 = map ptr, 01ca4 = TABLAT (rotation table), 01ca6/01ca8 =
+    GLOBDATA+1 (the two outline stream cursors), 01caa = GLOBDATA+0xcda (the
+    per-x latitude/cell tables, 200 bytes per x column), 01cac =
+    globe_tilt_window_table middle (+0xc4), 01cae/01cb0 = left/right pixel store
+    cursors seeded around the centre (0x649f/0x64a0 = row 80, x 159/160), 01cb4 =
+    the +/-320 row step. Then draws the centre row (loc_segvga_01d5a) and loops
+    vga_globe_setup once per outline row until done.
 ]]]
 attr[segvga:1d07]: name = vga_globe_setup; comment = [[[
     Draw one globe outline row (both x directions from the centre column).
@@ -8588,7 +8597,14 @@ attr[segvga:1d07]: name = vga_globe_setup; comment = [[[
     then the map byte at [centre + wrapped offset] maps to a colour: al = (v & 0x0f), +12 if (v & 0x30) == 0x10 and al < 8, +0x10 into the globe palette block (1e4c..1e5c).
     Mirrored west/east pixels store via the 01cae/01cb0 cursors (std/cld stosb).
 ]]]
-attr[segvga:1ec9]: type = code
+attr[segvga:1ec9]: type = code; name = globe_pixel_area_control_colors; comment = [[[
+    The SEE RESULTS pixel path (the data_segvga_01e4a jmp target, al != 0): map
+    the west/east map bytes to the area-control palette instead of the terrain
+    ramp. al = 0x10 | (v & 0x0f); vegetation-stage bits (v & 0x30) nonzero add
+    0x10, and stage 0x30 (Harkonnen) another 0x10 (shr/and on the flag nibble),
+    giving blocks 0x10 plain / 0x20 Atreides / 0x30 Harkonnen. Stores through the
+    same two cursors and rejoins the row loop at loc_segvga_01d85.
+]]]
 attr[segvga:1f4c]: name = vga_draw_map_zoomed
 attr[segvga:2384]: name = map_globe_edge_insets; comment = [[[
     18 per-row edge insets for map rows at |latitude| 0x46..0x57: the number of
