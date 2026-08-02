@@ -4393,7 +4393,13 @@ attr[seg000:b7d2]: name = map_copy_window_row; comment = [[[
     +4..+7 as the bands 32-bit rotated offset (vga_globe_init). Rows shorter than
     the window width (data_0dcf2) are centred; the copy wraps around the row end.
 ]]]
-attr[seg000:b827]: type = code; name = draw_globe_and_ui_to_front_buffer
+attr[seg000:b827]: type = code; name = draw_globe_and_ui_to_front_buffer; comment = [[[
+    Compose the whole globe screen into fb1 (run inside the transition): full
+    redraw patch, blue background + globe with atmosphere, side decorations at
+    offset 0, HUD head, the globe verb menu, the globe frieze sides, the six
+    rotation controls (ui_globe_rotation_controls[0..6] via loc_0d72b), and the
+    globe-mode music refresh.
+]]]
 attr[seg000:b841]: ofs_seg = seg001
 attr[seg000:b84a]: type = code; name = globe_fill_blue_background_to_front_buffer
 attr[seg000:b851]: ofs_seg = seg001
@@ -4420,7 +4426,13 @@ attr[seg000:b8a7]: type = code; name = setup_globe_draw; comment = [[[
 ]]]
 attr[seg000:b8a9]: ofs_seg = seg001
 attr[seg000:b8c0]: comment = RES_FRESK_HSQ
-attr[seg000:b8c6]: type = code; name = callback_main_ui_element_00
+attr[seg000:b8c6]: type = code; name = callback_main_ui_element_00; comment = [[[
+    Open the GLOBE view (the map-view left-frieze planet ornament, ui element 0):
+    dismiss overlays, reset the map-view state, setup_globe_draw, mark the globe
+    screen active (globe_screen_active), build the screen through transition
+    (al = 0 vertical curtain, bp = draw_globe_and_ui_to_front_buffer), install the
+    data_02562 mouse handlers, animate the HUD head up, and arm the rotation task.
+]]]
 attr[seg000:b8d8]: ofs_seg = seg000
 attr[seg000:b8e1]: ofs_seg = seg001
 attr[seg000:b8ea]: name = add_globe_rotation_frame_task; ofs_seg = seg000; comment = [[[
@@ -4433,7 +4445,13 @@ attr[seg000:b915]: type = code; name = globe_slide_decorations_close
 attr[seg000:b930]: type = code; name = remove_globe_frame_tasks
 attr[seg000:b935]: ofs_seg = seg000
 attr[seg000:b93b]: ofs_seg = seg000
-attr[seg000:b941]: ofs_seg = seg001
+attr[seg000:b941]: name = globe_menu_push; ofs_seg = seg001; comment = [[[
+    Push the globe verb menu (menu_globe): patch record 1 in place first —
+    text 0xb1 SEE RESULTS + menu_callback_choice_globe_see_results while
+    globe_draw_skips_pixel_stores is clear, text 0xb2 STANDARD VISION +
+    menu_callback_choice_globe_see_standard_vision while it is set —
+    then screen_element_stack_push with the no-op cleanup.
+]]]
 attr[seg000:b947]: ofs_seg = seg000
 attr[seg000:b952]: ofs_seg = seg000
 attr[seg000:b95b]: ofs_seg = seg000
@@ -4445,6 +4463,14 @@ attr[seg000:b977]: type = code; name = map_func_gfx; ofs_seg = seg001; comment =
     al = globe_draw_skips_pixel_stores, then far-call segvga vga_globe_init via the gfx vtable (seg001:3911).
 ]]]
 attr[seg000:b985]: targets = segvga:0145
+attr[seg000:b98b]: name = globe_redraw_and_present; comment = Redraw the globe pixels (map_func_gfx) and fall into the shared present/advance tail.
+attr[seg000:b98e]: name = globe_present_and_advance; comment = [[[
+    The shared globe present tail: project the player pin (globe_player_screen_pos),
+    present the sprite clip rect from fb1 (with the mouse restore/rearm bracket),
+    stamp the pin (draw_globe_cursor_at_dx_bx) when dx is nonzero, and advance the
+    rotation phase by 1 for the next pass. Also entered by the rotation frame task
+    on its pass-complete carry.
+]]]
 attr[seg000:b993]: ofs_seg = seg001
 attr[seg000:b9ae]: type = code; name = frame_task_callback_0b9ae; comment = [[[
     The globe rotation frame task (interval 1).
@@ -4455,10 +4481,10 @@ attr[seg000:b9ae]: type = code; name = frame_task_callback_0b9ae; comment = [[[
     A pass is 2*outline_rows+1 calls, so the globe creeps one phase step (1/398 revolution) per pass.
 ]]]
 attr[seg000:b9b2]: targets = segvga:0148
-attr[seg000:b9b9]: type = code; name = callback_ui_element_0b9b9
-attr[seg000:b9c0]: type = code; name = callback_ui_element_0b9c0
-attr[seg000:b9cc]: type = code; name = callback_ui_element_0b9cc
-attr[seg000:b9d3]: type = code; name = callback_ui_element_0b9d3
+attr[seg000:b9b9]: type = code; name = callback_ui_element_0b9b9; comment = Globe tilt-up arrow (sprite 49, held-repeat): tilt += 8 while the LMB is down, then redraw.
+attr[seg000:b9c0]: type = code; name = callback_ui_element_0b9c0; comment = Globe tilt-down arrow (sprite 51, held-repeat): tilt -= 8 while the LMB is down, then redraw.
+attr[seg000:b9cc]: type = code; name = callback_ui_element_0b9cc; comment = Globe rotate arrow (sprite 50, held-repeat): rotation phase -= 0x20 while the LMB is down, then redraw.
+attr[seg000:b9d3]: type = code; name = callback_ui_element_0b9d3; comment = Globe rotate arrow (sprite 52, held-repeat): rotation phase += 0x20 while the LMB is down, then redraw.
 attr[seg000:b9e0]: type = code; name = globe_rotation_increment_ax; ofs_seg = seg001; comment = [[[
     Advance the globe rotation phase by ax (signed): dx = [_dword_23DFC] + ax, wrapped into 0..0x18e (398 phase units = one revolution),
     then fall through into recalculate_globe_rotation_table to rebuild the per-row fp for the new phase.
@@ -4484,29 +4510,83 @@ attr[seg000:ba75]: type = code; name = set_globe_tilt_and_rotation; ofs_seg = se
     Clamps the tilt magnitude up to at least 0x20 (ba86..ba93, unsigned compares: 0..0x1f -> 0x20, -0x1f..-1 -> -0x20) and stores it in _word_21910_globe_tilt.
     Then rebuilds the per-row rotation fp table (recalculate_globe_rotation_table) and the tilt window table (loc_0ba2d).
 ]]]
-attr[seg000:ba9e]: type = code; name = callback_ui_element_0ba9e
+attr[seg000:ba9e]: type = code; name = callback_ui_element_0ba9e; comment = [[[
+    Globe centre-on-player (sprite 53, also the EXIT GLOBE prelude and the
+    post-load globe rebuild): step the view toward the player map position, at
+    most 0x20 phase / 0x18 tilt rows per redraw, looping (cx counts the clamps)
+    until no step was clamped.
+]]]
 attr[seg000:baf1]: type = code
+attr[seg000:baf2]: name = globe_player_screen_pos; comment = [[[
+    Project the player map position onto the globe view: dx = screen x, bx = screen y,
+    or dx = 0 when hidden (suppress flag set, far side, or off the visible disc).
+    Steps: cell = hi16(2*rowlen*lon, rounded) minus the TABLAT rotation fp cells,
+    folded into [0, len/2) with west/far flags; scan the GLOBDATA per-x-column
+    selector tables for the first column x reaching that cell (the scasb cursor
+    persists across columns); encode the (north, far) section + latitude word and
+    find it in globe_tilt_window_table words 34..161 (repnz scasw) for the signed
+    screen-row delta; walk the outline stream rows 0x36..1 for the row whose
+    latitude byte at column x best matches (reject a difference over 2); fold the
+    signs back around the disc centre (160, 79).
+]]]
 attr[seg000:bb56]: ofs_seg = seg001
 attr[seg000:bb72]: ofs_seg = seg001
 attr[seg000:bb90]: ofs_seg = seg001
 attr[seg000:bb9c]: ofs_seg = seg001
 attr[seg000:bbb0]: ofs_seg = seg001
 attr[seg000:bc0c]: type = code; name = draw_globe_cursor_at_dx_bx
-attr[seg000:bc1f]: type = code
+attr[seg000:bc1f]: type = code; name = globe_mouse_idle; comment = [[[
+    The globe view idle handler (data_02562[0]): while one of the two globe menus
+    is the active screen element, swap the verb strip between menu_globe (off the
+    disc) and menu_globe_default_click_on_globe (SEE MAP OF THIS AREA, over the
+    disc); equal priority replaces the stack top in place.
+]]]
 attr[seg000:bc22]: ofs_seg = seg001
 attr[seg000:bc28]: ofs_seg = seg001
 attr[seg000:bc33]: ofs_seg = seg001
 attr[seg000:bc3c]: ofs_seg = seg001
 attr[seg000:bc42]: ofs_seg = seg001
 attr[seg000:bc45]: ofs_seg = seg000
-attr[seg000:bc64]: type = code
+attr[seg000:bc4e]: name = globe_disc_hit_test; comment = [[[
+    Carry set when the cursor (dx, bx) is inside the globe disc rect
+    (96,25)-(224,134), leaving dx -= 96 and bx -= 25 for the pick.
+]]]
+attr[seg000:bc64]: type = code; name = globe_mouse_lmb; comment = [[[
+    The globe view LMB handler (data_02562[1]): a click on the disc picks the map
+    cell under the cursor (globe_pick_map_position), stores it as the zoomed
+    globe/map centre, redraws once, then zooms out to the map interface from the
+    click position (loc_0bc8d).
+]]]
 attr[seg000:bc81]: type = code; name = callback_ui_element_0bc81
-attr[seg000:bc99]: ofs_seg = seg001
+attr[seg000:bc8d]: name = globe_zoom_out_to_map; comment = [[[
+    The shared globe exit tail: restore the cursor, run the zoom-box animation
+    from (dx, bx), start the music fade, and transition into the map interface.
+]]]
+attr[seg000:bc99]: name = globe_zoom_box_animation; ofs_seg = seg001; comment = [[[
+    The globe exit zoom: seed a rect around (dx, bx) with colour 7 (data_0dd06),
+    then 8 passes: grow each side by (4, 2) clamped to the sprite clip rect
+    (_word_218F0), draw the outline straight to the screen (loc_0c551), and run
+    the interior 2x zoom shimmer one pixel inside it (loc_0bd00).
+]]]
 attr[seg000:bcb5]: ofs_seg = seg001
 attr[seg000:bcb8]: ofs_seg = seg001
 attr[seg000:bcf3]: ofs_seg = seg001
+attr[seg000:bd00]: name = globe_zoom_box_shimmer_step; comment = [[[
+    Shrink the zoom-box rect by one on all sides, run blit_zoom_shimmer inside it
+    (blit_fb1_to_screen_effect al = 0, cx = 10 ticks), and restore the rect.
+]]]
 attr[seg000:bd05]: ofs_seg = seg001
 attr[seg000:bd16]: ofs_seg = seg001
+attr[seg000:bd25]: name = globe_pick_map_position; comment = [[[
+    The inverse pick: a click at disc-relative (dx = x-96, bx = y-25, the
+    globe_disc_hit_test leftovers) resolved to ax = longitude (0..0xffff),
+    bx = signed latitude row; carry set on a hit, clear when the click misses
+    the globe outline. Walks |y-54|+1 outline row markers, reads the latitude
+    byte at column |x-64| (negated on the lower half), looks it up in the tilt
+    window middle for the (section, latitude) word, fetches the per-x-column
+    selector + cell offset, folds the section signs and the TABLAT rotation fp
+    in, wraps into the doubled row and divides out the longitude (dx:0 / 2*len).
+]]]
 attr[seg000:bd30]: ofs_seg = seg001
 attr[seg000:bd5c]: ofs_seg = seg001
 attr[seg000:bd65]: ofs_seg = seg001
@@ -8234,7 +8314,7 @@ attr[seg001:dd02]: type = u8; name = globe_draw_skips_pixel_stores; comment = [[
     0: vga_globe_init patches its data_segvga_01e4a slot with two NOPs - every globe pixel is computed and stored (the full redraw the intro2 scene uses).
     nonzero: the slot gets a short jmp that skips the pixel store path.
 ]]]
-attr[seg001:dd03]: type = u8
+attr[seg001:dd03]: type = u8; name = globe_screen_active; comment = [[[Nonzero while the GLOBE view owns the display (inc by callback_main_ui_element_00, cleared by remove_globe_frame_tasks); also the music-situation classifier globe input (loc_0aa96).]]]
 attr[seg001:dd0f]: type = u16; name = _word_2D1BF_globe_decoration_offset
 attr[seg001:dd1d]: name = top_of_mem
 attr[segvga:0100]: type = code; name = j_vga_set_mode_13h
@@ -8547,8 +8627,14 @@ attr[segvga:2a15]: type = code; name = transition_dissolve_lfsr_fast; comment = 
     Shared body with loc_segvga_02a10 at loc_segvga_02a18; this entry presets dx=0x96.
 ]]]
 attr[segvga:2a68]: type = code; name = transition_expanding_box; comment = [[[
-    Effect 0x02: rectangle expanding from screen center.
-    Anchors at (bx=0x4a, dx=0x9c) via calc_fb_offset, then calls loc_segvga_02ab0 in widening passes (dx=1,2,3,...) that stamp 4x4 cell strips downward and step outward. Continues until dx reaches 0x26.
+    Effect 0x02: expanding-box reveal (the globe exit into the map view). Copies
+    8x4-pixel blocks of the new DS image into ES in an outward rectangular spiral
+    from (row 74, col 156) via calc_fb_offset: run lengths 1 right, 2 down, then
+    per ring {n left, n up, n+1 right, n+1 down} with n stepping 2..0x26. The
+    ax post-adjust after each 4-row block copy (+1280 net) selects the walk
+    direction: 0fb08h right (+8), 0 down (+1280), 0faf8h left (-8), 0f600h up
+    (-1280); loc_segvga_02ab0 runs one direction and then spin-waits for the
+    next PIT tick ([bp]).
 ]]]
 attr[segvga:2ad0]: type = code; name = transition_noop_2ad0; comment = Effect 0x2c: no-op (retf). Dispatched but does nothing.
 attr[segvga:2ad1]: type = code; name = transition_page_turn; comment = [[[
@@ -8590,8 +8676,15 @@ attr[segvga:2cc7]: type = code; name = transition_noop_2cc7; comment = Effect 0x
 attr[segvga:2cc8]: type = code; name = transition_noop_2cc8; comment = Effects 0x16, 0x18: no-op (retf).
 attr[segvga:2cc9]: type = code; name = transition_noop_2cc9; comment = Effect 0x14: no-op (retf).
 attr[segvga:2cca]: type = code; name = transition_vertical_curtain; comment = [[[
-    Effect 0x00: vertical band-wipe with a color-7 (grey) leading edge.
-    Sign of dl picks scroll direction. Each frame: rep movsw the dst region down (or up) by 0xa00 bytes (8 lines), fill the freed band with color 0x707 via rep stosw, vsync via loc_segvga_0253d. Continues until si crosses the screen.
+    Effect 0x00: vertical curtain over the 152-row game area (cx = 0x98; addresses
+    from offset 0, no fb_base_ofs), an 8-row colour-7 band riding the seam, each
+    pass paced ~5 PIT ticks + vsync (loc_segvga_0253d). DL >= 0: the new DS image
+    slides DOWN into view from the top (pass k shows its bottom k*8 rows at the
+    top, band below). DL < 0 (the globe open, dx = 0ffffh): snapshot the live
+    screen into the fb2 segment ([data_segvga_02535], loc_segvga_02596), slide
+    that old image UP off the screen, and reveal the new DS image in place below
+    the rising band (8 fresh rows per pass). Neither branch draws the final
+    frame; the seg000:c12a full-copy tail finishes it.
 ]]]
 attr[segvga:2d42]: type = code; name = transition_noop_2d42; comment = Effect 0x1a: no-op (retf).
 attr[segvga:2d43]: type = code; name = transition_noop_2d43; comment = Effect 0x20: no-op (retf).
@@ -8718,13 +8811,18 @@ attr[segvga:356f]: name = fb_row_copy_shifted; comment = [[[
     Used to apply per-row horizontal displacement for water ripple.
 ]]]
 attr[segvga:3581]: type = code; name = blit_zoom_shimmer; comment = [[[
-    Animate 2x-scaled shimmer: cycle through 4 sub-pixel offsets from
-    zoom_tile_offsets, calling fb_blit_2x_scaled per frame, timer-gated.
+    Zoom-shimmer the rect (SS:SI) for CX PIT ticks: repeatedly blit the rect
+    interior from the clean DS source (= fb1) into ES (= screen) at 2x scale
+    around the rect top-left, cycling the four zoom_tile_offsets sub-pixel source
+    offsets. Because every pass rewrites the whole interior from fb1, anything
+    drawn over the screen inside the rect (e.g. the previous zoom-box outline) is
+    erased each pass. Only caller: globe_zoom_box_shimmer_step (cx = 10).
 ]]]
 attr[segvga:35c8]: name = fb_blit_2x_scaled; comment = [[[
-    Blit DX-wide, BX-tall block from ES:DI+AX to ES:DI at 2x nearest-neighbour scale.
-    Reads every other source byte, writes each pixel doubled horizontally
-    and vertically (writes to current row and row+320).
+    Blit a DX-wide, BX-tall (in output half-units) block from DS:DI+AX to ES:DI at
+    2x nearest-neighbour scale. The source is DS (= fb1 via blit_fb1_to_screen_effect):
+    lodsb reads every other DS byte, each written doubled horizontally and vertically
+    (current ES row and row+320); SI and DI both advance two rows per output pair.
 ]]]
 attr[segvga:3602]: type = code; name = xor_bracket_zoom_to_panel; comment = [[[
     The troop-contact popup's open flourish (vga_effect_dispatch al=2): a 20x20
