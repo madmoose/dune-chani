@@ -834,9 +834,10 @@ attr[seg000:1c46]: type = code; name = run_events_for_current_time_period_new_da
 attr[seg000:1cab]: ofs_seg = seg001
 attr[seg000:1cda]: type = code; name = accumulate_harkonnen_spice_production; ofs_seg = seg001; comment = [[[
     Recompute the Harkonnen spice production CONDIT word ds:a8: sum
-    spice_density/8 over the locations location_is_Atreides_05d36 accepts
-    (appearance >= 0x28, status bit 3), then add rand_iterated(sum/16). (The
-    location count accumulates in dx but has no store.)
+    spice_density/8 over the locations location_is_Atreides_05d36 REJECTS (the
+    1ce4 jb skips the Atreides holdings - everything the Harkonnens still
+    exploit), then add rand_iterated(sum/16). (The location count accumulates
+    in dx but has no store.)
 ]]]
 attr[seg000:1d10]: type = code; name = randomly_increase_all_harkonnen_troops_head_count; comment = [[[
     End-of-day (time-of-day 0xf) Harkonnen growth: on a set rolling rand bit,
@@ -2240,7 +2241,15 @@ attr[seg000:5d1d]: name = map_window_contains_point; fn = in x: u16 @dx, in y: u
     Half-open point-in-map-window test against data_046e3_rect:
     CF set when x0 <= x < x1 && y0 <= y < y1.
 ]]]
-attr[seg000:5d36]: name = location_is_Atreides_05d36; fn = in location: *Location @di
+attr[seg000:5d36]: name = location_is_Atreides_05d36; fn = in location: *Location @di; comment = [[[
+    Carry set when the location is an Atreides holding: appearance >= 0x28 with
+    status bit 3 (Atreides-held). Name verified against every caller - carry set
+    reads as friendly everywhere: safe orni destination (4196), no battle
+    possible (627e), minimal map popup (6252), attack/espionage orders cancel on
+    arrival (83a7), captured troops speak for themselves (7a7d), and the
+    Harkonnen spice production sums the locations this REJECTS (1cda). The call
+    sites branch with jb = carry = TRUE - three dune-re ports once inverted it.
+]]]
 attr[seg000:5d44]: name = location_mark_map_and_minimap_dirty; fn = in location: *Location @di; comment = [[[
     location_mark_map_view_dirty plus the flight variant: while a travel mode
     is active (game_screen_mode_flags bits 0-1) also flag the minimap redraw
@@ -5813,8 +5822,8 @@ attr[seg001:00a8]: type = u16; name = for_condit_harkonnen_spice_production_ds_a
     The Harkonnen spice production stat (the SEE RESULTS screen shows it in the
     Harkonnen-coloured column of SPICE PRODUCTION, x10 in kg; static init 0x186 =
     3900 kg at the game start). Recomputed each new day by seg000:1cda: sum of
-    spice_density/8 over the locations location_is_Atreides_05d36 accepts
-    (appearance >= 0x28, status bit 3) + rand_iterated(sum/16).
+    spice_density/8 over the locations location_is_Atreides_05d36 REJECTS (the
+    1ce4 jb skips the Atreides holdings) + rand_iterated(sum/16).
 ]]]
 attr[seg001:00aa]: type = u16
 attr[seg001:00ac]: type = u16
