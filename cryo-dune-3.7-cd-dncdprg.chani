@@ -1074,17 +1074,21 @@ attr[seg000:2db1]: type = code; name = draw_room_game_screen; ofs_seg = seg000
 attr[seg000:2dcd]: ofs_seg = seg000
 attr[seg000:2dd3]: type = code; name = callback_transition_02dd3
 attr[seg000:2e41]: ofs_seg = seg000
-attr[seg000:2e98]: name = set_command_menu_origin; comment = [[[
-    Save the verb-menu list identity and compute its draw origin from the
-    two-byte header at di: command_menu_list = di; command_menu_x = [di];
-    command_menu_y = [di+1] + 0ch. Popup menus pass a real template; the plain
-    room menu passes current_location_ptr, whose first_name/last_name bytes
-    serve as the nominal header.
+attr[seg000:2e98]: name = stage_location_name_placeholders; comment = [[[
+    di = a Location record: remember which location the dialogue/verb strings are
+    about (staged_name_location_ptr = di) and stage its display name into the
+    substitution table: subst_id_01 = first_name (COMMAND 1..12
+    "Arrakeen".."Celimyn"), subst_id_02 = last_name + 0xc (COMMAND 0x0d "(Atreides)"
+    .. 0x17 "Pyort") - the 0x81/0x82 placeholders in dialogue text. Every call site
+    passes a Location record: the room menu open (2ecd, current_location_ptr), a
+    vision message's location (2c1d), a contacted troop's location (7c0b), a move
+    order's destination (82f2), the Harkonnen captain's target (9364) and the
+    latest illness location (952f).
 ]]]
 attr[seg000:2eb2]: name = ui_draw_room_command_panel; comment = [[[
     Draw the bottom command/dialogue panel (run via gfx_call_bp_with_front_buffer_as_screen).
     When a dialogue is active (data_04774 != 0) it renders the dialogue (loc_0301a); otherwise it builds and renders the verb menu for current_location_ptr:
-    set_command_menu_origin -> build_room_command_records -> (room mode) build_persons_in_room_records,
+    stage_location_name_placeholders -> build_room_command_records -> (room mode) build_persons_in_room_records,
     then rebuild_and_draw_room_nav_panel and the book/companion buttons (loc_0d763), and enqueues the record list (bp=1f0eh) into the draw-task list.
 ]]]
 attr[seg000:2ec3]: ofs_seg = seg000
@@ -1970,8 +1974,23 @@ attr[seg000:5206]: name = travel_step_position; comment = [[[
     past 0x1ff the longitude is rescaled to a single-row step. Past |lat| 0x60 the pole
     flips: heading += 0x80 and longitude += 0x8000.
 ]]]
-attr[seg000:5274]: type = code; name = prepare_location_data_for_condit_sub_05274
+attr[seg000:5274]: type = code; name = condit_scan_nearest_locations; comment = [[[
+    Scan the locations table from the staged location di (dx/bx = its map cell)
+    and record the five nearest-location triples at ds:ca..e6, each {distance u16,
+    location ptr u16, octant u8}: any other location (ca), village (d0: appearance
+    < 0x28, status bit 7 clear), sietch (d6: appearance < 0x28, status bit 7 set;
+    skipped entirely while game_phase < discoverable_at_phase), Atreides area (dc:
+    appearance >= 0x28, status bit 7 clear) and Harkonnen area (e2: appearance >=
+    0x28, status bit 7 set). Distance = max(|dlon| >> 8, |dlat|). The tail computes
+    the five octant bytes and sets subst_id_09 = 0xda + the sietch octant (the 0x89
+    compass-direction placeholder).
+]]]
 attr[seg000:528d]: ofs_seg = seg001
+attr[seg000:5323]: name = condit_store_octant_toward_location; comment = [[[
+    bp = a nearest-location ptr slot: compute the compass octant (0 = N .. 7 = NW)
+    from the reference cell dx/bx toward the location [bp] points at, store it in
+    the byte at [bp+2] and return it in ax. Octant = (compass angle + 0x10) >> 5.
+]]]
 attr[seg000:5344]: type = code; name = iterate_over_locations_and_coordinates; fn = in lng: u16 @dx, in lat: u16 @bx, out nearest: *Location @di, out distance: u16 @bp; comment = [[[
     Find the nearest non-hidden location (status bit 0x80 clear) to the map position
     dx/bx: distance = max(|d_map_x| >> 8, |d_map_y|) with a byte compare picking the
@@ -3128,10 +3147,10 @@ attr[seg000:82c7]: ofs_seg = seg001
 attr[seg000:82da]: name = troop_present_move_acknowledgement; comment = [[[
     Present the troop acknowledgement line for a move order to di: staging the
     destination as the troop location for CONDIT (and the name placeholders via
-    set_command_menu_origin), action code 0x0b - or 0x10 without restaging when
-    the destination is where the troop already stands - through loc_07bbe.
-    Returns the interrupt-gate ZF: nonzero = a spoken-line event refused the
-    order.
+    stage_location_name_placeholders), action code 0x0b - or 0x10 without
+    restaging when the destination is where the troop already stands - through
+    loc_07bbe. Returns the interrupt-gate ZF: nonzero = a spoken-line event
+    refused the order.
 ]]]
 attr[seg000:82df]: ofs_seg = seg001
 attr[seg000:8308]: name = troop_travel_step; fn = in troop: *Troop @si; comment = [[[
@@ -3456,9 +3475,9 @@ attr[seg000:9123]: type = code; name = character_id_to_sprite; fn = in id: u8 @a
       - id < 0x0d (named characters): return id unchanged; data_047d0 = 0, i.e.
         the random idle path (loc_0994f picks animations {0..3}).
       - id == 0x0d (the SMUG smuggler head, char_to_sprite_smug): data_047d0 =
-        (command_menu_x >> 1) + 1, read from the active verb-list header byte
-        [current_location_ptr][0] (the menu x pixel origin). The reason the idle
-        facing is keyed to the menu x-origin is not yet understood.
+        ([current_location_ptr][0] >> 1) + 1 = (the location's first_name id >> 1)
+        + 1 - the smuggler idle expression varies with which location the player
+        is at.
       - id 0x0e..0x10: fold in walk/facing animation state (char_to_sprite_walk_
         facing, via data_04756 / data_04758 / data_0476c and the game_phase 0xc8 gate).
       - id >= 0x11, incl. the player 0x2d (char_to_sprite_player): al is forced to
@@ -3467,11 +3486,10 @@ attr[seg000:9123]: type = code; name = character_id_to_sprite; fn = in id: u8 @a
 ]]]
 attr[seg000:912f]: name = char_to_sprite_smug; comment = [[[
     = id == 0x0d (the SMUG smuggler head): derive the idle expression from the
-    active verb-menu position. di = current_location_ptr; ah = [di] = the command-
-    list header byte 0 = the menu x pixel origin (= command_menu_x, see
-    set_command_menu_origin seg000:2e98). data_047d0 = (menu_x >> 1) + 1.
-    Why the smuggler idle facing is keyed to the menu x-origin is not yet
-    understood.
+    current location. di = current_location_ptr; ah = [di] = Location.first_name
+    (the COMMAND name id 1..12, the same byte stage_location_name_placeholders
+    stages as subst_id_01). data_047d0 = (first_name >> 1) + 1, so the smuggler
+    wears a different idle face per location.
 ]]]
 attr[seg000:913b]: name = char_to_sprite_walk_facing; comment = [[[
     = id 0x0e..0x10: fold in the walk/facing animation state. si = data_04756;
@@ -5716,24 +5734,36 @@ attr[seg001:00c6]: type = u8; name = book_flags; comment = [[[
 ]]]
 attr[seg001:00c8]: type = u8; name = comm_sighting_count
 attr[seg001:00c9]: type = u8; name = for_condit_comms_room_message_count_ds_c9
-attr[seg001:00ca]: type = u16; name = for_condit_ds_ca
-attr[seg001:00cc]: type = u16; name = for_condit_ds_cc
+attr[seg001:00ca]: type = u16; name = nearest_location_distance_ds_ca; comment = Distance to the nearest other location of any kind (condit_scan_nearest_locations).
+attr[seg001:00cc]: type = u16; name = nearest_location_ptr_ds_cc
+attr[seg001:00ce]: name = nearest_location_octant_ds_ce
 attr[seg001:00cf]: type = u8; name = days_left_until_spice_shipment
-attr[seg001:00d0]: type = u16; name = for_condit_ds_d0
-attr[seg001:00d2]: type = u16; name = for_condit_ds_d2
+attr[seg001:00d0]: type = u16; name = nearest_village_distance_ds_d0; comment = Distance to the nearest village (appearance < 0x28, status bit 7 clear).
+attr[seg001:00d2]: type = u16; name = nearest_village_ptr_ds_d2
+attr[seg001:00d4]: name = nearest_village_octant_ds_d4
 attr[seg001:00d5]: type = u8; name = contact_distance_related_ds_d5; comment = Related to increasing the contact distance once in every while.
-attr[seg001:00d6]: type = u16; name = for_condit_ds_d6; comment = Used for the "There is a sietch very near" and "There is a sietch not far from here" messages
-attr[seg001:00d8]: type = u16; name = for_condit_ds_d8
+attr[seg001:00d6]: type = u16; name = nearest_sietch_distance_ds_d6; comment = [[[
+    Distance to the nearest phase-discoverable sietch (appearance < 0x28, status
+    bit 7 set). Used for the "There is a sietch very near" and "There is a sietch
+    not far from here" messages.
+]]]
+attr[seg001:00d8]: type = u16; name = nearest_sietch_ptr_ds_d8
+attr[seg001:00da]: name = nearest_sietch_octant_ds_da; comment = Feeds subst_id_09, the 0x89 compass-direction placeholder (COMMAND 0xda + octant).
 attr[seg001:00db]: type = u8; name = _1c28_ui_element_23; comment = Related to comms room messages.
-attr[seg001:00dc]: type = u16; name = for_condit_ds_dc
-attr[seg001:00de]: type = u16; name = for_condit_ds_de
+attr[seg001:00dc]: type = u16; name = nearest_Atreides_area_distance_ds_dc; comment = Distance to the nearest Atreides area (appearance >= 0x28, status bit 7 clear).
+attr[seg001:00de]: type = u16; name = nearest_Atreides_area_ptr_ds_de
+attr[seg001:00e0]: name = nearest_Atreides_area_octant_ds_e0
 attr[seg001:00e1]: type = u8; comment = [[[
     The fly-over side flag set by travel_scan_nearby_location (seg000:4156):
     0 when the passed location is to the left of the heading, 1 to the right.
     Feeds the companion fly-over dialogue line.
 ]]]
-attr[seg001:00e2]: type = u16; name = distance_to_closest_Harkonnen_area_ds_e2
-attr[seg001:00e4]: type = u16; name = locations_indexed_to_zero_and_also_a_variable_ds_e4
+attr[seg001:00e2]: type = u16; name = nearest_Harkonnen_area_distance_ds_e2; comment = [[[
+    Distance to the nearest Harkonnen area (appearance >= 0x28, status bit 7 set).
+    The ESPIONAGE occupation and the Harkonnen-captain dialogue need it < 0x1e.
+]]]
+attr[seg001:00e4]: type = u16; name = nearest_Harkonnen_area_ptr_ds_e4
+attr[seg001:00e6]: name = nearest_Harkonnen_area_octant_ds_e6
 attr[seg001:00e7]: type = u8; name = Paul_found_unconscious_in_desert_ds_e7
 attr[seg001:00e8]: type = u8; name = ui_hud_head_index
 attr[seg001:00e9]: type = u8; name = for_condit_ds_e9
@@ -6032,10 +6062,10 @@ attr[seg001:114e]: type = u16; name = current_location_ptr; comment = [[[
     (arrive_at_location). Mostly read as the location record (get_map_position,
     equipment/troop scans, "is di the current location" compares); the verb-menu
     code additionally uses the record's address as the room command list's
-    identity (seg000:a2aa cmp against command_menu_list, seg000:303b cmp against
-    100h = the Atreides palace to show the centre palace-plan button) and reads
-    its first two bytes as the nominal menu-origin header
-    (set_command_menu_origin).
+    identity (seg000:a2aa cmp against staged_name_location_ptr, seg000:303b cmp
+    against 100h = the Atreides palace to show the centre palace-plan button), and
+    the room menu open passes it to stage_location_name_placeholders so the
+    0x81/0x82 placeholders name the current location.
 ]]]
 attr[seg001:1150]: type = u16; name = last_location_ptr; comment = [[[
     The location record the player is at or last left (static init 0x100 =
@@ -6131,17 +6161,22 @@ attr[seg001:11eb]: type = u16; name = string_subst_id_table; comment = [[[
     format_interpolated_string (seg000:8970) maps placeholder 0x8N to entry[N]: ax = [N*2 + 11ebh].
     Each entry is a COMMAND/PHRASE string id passed to get_phrase_or_command_string_si (seg000:cf70) and expanded in place.
     entry[0] (placeholder 0x80) is unused: 0x80 reads an inline 16-bit id from the text instead.
-    Some entries are overwritten at runtime with the active location name; entries 1-2 also alias command_menu_x/command_menu_y.
+    Most entries are overwritten at runtime; entries 1-2 hold the staged location's
+    first/last name ids (stage_location_name_placeholders, seg000:2e98).
     Default ids resolve to the COMMAND1 strings noted per entry.
     entry[0]: default id 1 = COMMAND "Arrakeen" (unused).
 ]]]
-attr[seg001:11ed]: type = u16; name = command_menu_x; comment = [[[
-    Verb-menu draw origin x. = command_list header[0]. Set by set_command_menu_origin (seg000:2e98).
-    string_subst_id_table[1]: placeholder 0x81 default id 1 = COMMAND "Arrakeen".
+attr[seg001:11ed]: type = u16; name = subst_id_01; comment = [[[
+    string_subst_id_table[1]: placeholder 0x81 = the staged location's first-name
+    COMMAND id (first_name 1..12 = "Arrakeen".."Celimyn"), written by
+    stage_location_name_placeholders (seg000:2e98) as [di] = Location.first_name.
+    Default id 1 = COMMAND "Arrakeen".
 ]]]
-attr[seg001:11ef]: type = u16; name = command_menu_y; comment = [[[
-    Verb-menu draw origin y. = command_list header[1] + 0ch. Set by set_command_menu_origin (seg000:2e98).
-    string_subst_id_table[2]: placeholder 0x82 default id 2 = COMMAND "Carthag".
+attr[seg001:11ef]: type = u16; name = subst_id_02; comment = [[[
+    string_subst_id_table[2]: placeholder 0x82 = the staged location's last-name
+    COMMAND id (last_name 1..11 + 0xc = 0x0d "(Atreides)" .. 0x17 "Pyort"), written
+    by stage_location_name_placeholders (seg000:2e98) as [di+1] + 0xc.
+    Default id 2 = COMMAND "Carthag".
 ]]]
 attr[seg001:11f1]: type = u16; name = subst_id_03; comment = string_subst_id_table[3]: placeholder 0x83 default id 3 = COMMAND "Tuono".
 attr[seg001:11f3]: type = u16; name = subst_id_04; comment = string_subst_id_table[4]: placeholder 0x84 default id 4 = COMMAND "Habbanya".
@@ -7839,12 +7874,15 @@ attr[seg001:47de]: type = u16; name = dialogue_line_word0; comment = [[[
 attr[seg001:47e0]: type = u8
 attr[seg001:47e1]: type = u16
 attr[seg001:47e4]: type = u16
-attr[seg001:47e6]: type = u16; name = command_menu_list; comment = [[[
-    The list the on-screen verb menu was built from, saved by
-    set_command_menu_origin (seg000:2e98): current_location_ptr for the plain
-    room menu, or a popup menu template (menu_NPC_actions etc.). Compared
-    against current_location_ptr (seg000:a2aa) to ask whether the plain room
-    menu is the one on screen.
+attr[seg001:47e6]: type = u16; name = staged_name_location_ptr; comment = [[[
+    The Location record the dialogue/verb strings are staged for, saved by
+    stage_location_name_placeholders (seg000:2e98) alongside the subst_id_01/02
+    name placeholders: current_location_ptr for the plain room menu, or the
+    location a dialogue line is about (vision message, troop contact, move order
+    destination, captain target, illness location). The dialogue-line-0x0d
+    callback (seg000:a28e) reads it as that subject location: compared against
+    current_location_ptr (a2aa) to ask "is it somewhere else?", and if so the
+    globe view zooms on it.
 ]]]
 attr[seg001:47e8]: type = u16; name = _word_23C98_x0
 attr[seg001:47ea]: type = u16; name = _word_23C9A_y0
