@@ -599,7 +599,19 @@ attr[seg000:12f8]: type = [u8; 3]; name = cutscene_game_phase_below_14_dialogue;
 ]]]
 attr[seg000:12fb]: type = [u8; 24]; name = cutscene_game_phase_58_dialogue
 attr[seg000:1313]: type = [u8; 14]; name = cutscene_game_phase_48_dialogue
-attr[seg000:1321]: type = [u8; 46]; name = cutscene_game_phase_0c_dialogue
+attr[seg000:1321]: type = [u8; 46]; name = cutscene_game_phase_0c_dialogue; comment = [[[
+    The communication-room gather scene, started by phase-0xc callback (event 0x0c
+    on Jessica "It looks like a communication room..." advances the phase).
+    Opcode bytes are table byte-offsets (action = byte/2); odd bytes are inline args.
+    Action 00 [room, count, markers...]: the count+marker bytes after the room arg
+    are the shot cast placement list sal_read_position_markers copies verbatim
+    (data_04778 points at the count byte; 0xff = empty slot, else the person id
+    standing at that SAL marker slot).
+    Decode: 00 [8; 9 slots: 7=Leto, 8=Jessica] redraw+step; 08 wait; 02 [0] Leto
+    line; 02 [1] Jessica line; 00 [8; 5 slots: Leto, Jessica, Duncan, -, Gurney]
+    redraw+step; 08 wait; 02 [0]; 02 [0]; 02 [1]; 00 [8; 5 slots: -, Jessica,
+    Duncan, -, Gurney] redraw+step; 06 [0] speaker swap; 08 wait; 02 [0]; ff end.
+]]]
 attr[seg000:134f]: type = [u8; 33]; name = cutscene_game_phase_14_dialogue
 attr[seg000:1370]: type = [u8; 34]; name = cutscene_game_phase_18_dialogue
 attr[seg000:1392]: type = code; name = change_menu_to_continue_menu; ofs_seg = seg001
@@ -620,18 +632,37 @@ attr[seg000:13b6]: name = sequence_present_line_and_voice; comment = [[[
     topic-7 line (loc_09761) into the screen buffer, play its voice, drop the
     bubble pointer and return to fb1.
 ]]]
-attr[seg000:13c8]: type = code; name = callback_action_in_continue_sequence_00
+attr[seg000:13c8]: type = code; name = callback_action_in_continue_sequence_00; comment = [[[
+    Action 00 [room, count, markers...]: show room `room` (location_and_room low
+    byte) and point data_04778 at the count byte of the inline cast placement
+    list, which sal_read_position_markers (3d9c) copies verbatim into the
+    position-marker array while the scene is active - the shot places its cast
+    explicitly. The count byte doubles as the skip length, so the cursor lands
+    past the list; falls into action 02 (redraw + step).
+]]]
 attr[seg000:13db]: type = code; name = callback_action_in_continue_sequence_02
-attr[seg000:13e4]: type = code; name = callback_action_in_continue_sequence_01
+attr[seg000:13e4]: type = code; name = callback_action_in_continue_sequence_01; comment = [[[
+    Action 01 [speaker]: prospector-style Continue panel (head click replays),
+    take the prior subtitle down; a speaker change with the dialogue-zoom flag up
+    (room_render_flags bit 7) re-renders the room offscreen; then loc_09761
+    presents the speaker next unspoken topic-7 line (its fire tail plays the
+    voice and re-pushes the Continue panel via a0bd/loc_02ebf).
+]]]
 attr[seg000:1401]: ofs_seg = seg000
-attr[seg000:140b]: type = code; name = callback_action_in_continue_sequence_03
+attr[seg000:140b]: type = code; name = callback_action_in_continue_sequence_03; comment = [[[
+    Action 03 [speaker]: show the speaker silently - start_room_lip_sync raises
+    their talking head over the current shot (the changed-head teardown swaps a
+    prior head out), then the lip-sync/idle stop leaves the head image standing
+    with no voice; steps the next script byte immediately. The gather scene uses
+    it to put Leto on screen before his next line.
+]]]
 attr[seg000:1422]: type = code; name = callback_action_in_continue_sequence_05
 attr[seg000:143d]: ofs_seg = seg001
 attr[seg000:1442]: type = code; name = callback_action_in_continue_sequence_06_chankiss
 attr[seg000:1459]: targets = segvga:016f
 attr[seg000:1462]: ofs_seg = seg001
 attr[seg000:1465]: comment = CHANKISS.HSQ
-attr[seg000:1474]: type = code; name = callback_action_in_continue_sequence_04
+attr[seg000:1474]: type = code; name = callback_action_in_continue_sequence_04; comment = Action 04: ret - pause the scene until the next Continue click.
 attr[seg000:1475]: type = [ofs16(seg000); 12]; name = array_callbacks_actions_in_continue_sequence
 attr[seg000:148d]: type = code; name = callback_action_in_continue_sequence_09
 attr[seg000:1492]: ofs_seg = seg000
@@ -1237,6 +1268,20 @@ attr[seg000:35ad]: name = travel_settle_companion_dispatch; comment = [[[
     passes near (loc_040f9) + the hostile-zone warning; if either armed a room
     action and a companion is aboard, raise the fly-over cabin (loc_0368b) and
     the companion speaks a line (096d8 lip-sync, 03551 dialogue line).
+]]]
+attr[seg000:35b4]: comment = [[[
+    The mode == 0 branch: the room-entry auto-dialogue scan, run once per room
+    present (loc_02e52). data_047a6 (armed by the full draw_room_game_screen entry
+    at 2dba) gates the pass: only the scene-reload presents - a committed room move
+    or a travel arrival - reach the scan. The standing-person conditions read
+    pending_room_action, still 5 from the move commit at 3fca, which is how the
+    room-entry lines (Gurney "the stillsuits have been stored here", Jessica
+    "Wait! I can feel something...") fire on entering the room.
+]]]
+attr[seg000:35c8]: comment = [[[
+    Dining hall (room 8) special: with spice-shipment state pending
+    (ds:c0 masked by data_01158) and Duncan present (persons_in_room bit 3),
+    loc_02566 runs the shipment-report scene first.
 ]]]
 attr[seg000:35e3]: ofs_seg = seg000
 attr[seg000:35f1]: comment = Clear the pending room-action on the room-screen reset path.
@@ -2775,7 +2820,31 @@ attr[seg000:708a]: type = code; name = troop_update_harvest_rate; fn = in troop:
     to 9 bits - which is the 16-bit product >> 7. The result replaces field_C and,
     when it changed, sets bitfield_10 bits 2-3 to 8 (it ROSE) or 4 (it fell).
 ]]]
-attr[seg000:70cc]: type = code; name = callback_troop_location_for_troop_occupation_spice_prospecting; fn = in troop: *Troop @si, in location: *Location @di
+attr[seg000:70cc]: type = code; name = callback_troop_location_for_troop_occupation_spice_prospecting; fn = in troop: *Troop @si, in location: *Location @di; comment = [[[
+    One time period of spice prospecting.
+    A battle at the location (status bit 1) suspends the job.
+    An area already prospected (status bit 6) goes straight to the finish tail at loc_07126.
+]]]
+attr[seg000:70dc]: comment = [[[
+    dep_C caches the prospecting duration in periods, computed once on the first
+    working period: (spice_amount * 16) / (motivation + spice_skill).
+]]]
+attr[seg000:70f7]: comment = [[[
+    cx = periods elapsed since ralliement. Duration not yet reached:
+    dep_E = elapsed * 100 / duration, the progress percent the info panel shows.
+]]]
+attr[seg000:7110]: comment = [[[
+    Prospecting complete: spice skill +2 (rank-up marker 1),
+    the location marked prospected (status bit 6),
+    and a spice-overlay repaint tick when the overlay is up.
+]]]
+attr[seg000:7126]: comment = [[[
+    The finish tail, also entered directly when the area is already prospected:
+    re-sync the stopped bit (now not viable, so bit 4 sets and the icon swaps),
+    progress = 100%. Then, unless the contact popup is on this troop: with a
+    prospector destination queued, move on; otherwise send message 0x0e once
+    (the pushed pre-sync occupation skips it when the troop was already stopped).
+]]]
 attr[seg000:7144]: comment = Send message type E = "We have finished our prospecting job, here in ...."
 attr[seg000:7148]: type = u8
 attr[seg000:714c]: type = code; name = troop_location_events_for_spice_mining_troops_with_harvesters; fn = in troop: *Troop @si, in location: *Location @di
@@ -3633,6 +3702,15 @@ attr[seg000:94dd]: comment = [[[
     Multi-part continuation present (reached from 9484): interpolate + draw the pending text (loc_088d2), which re-arms or clears the pointer.
     current_subtitle_id += 0x1000 steps the voc part nibble (the OB/OC variant letter in create_voc_file_name).
     fire_event_callbacks then defers or performs the entry bookkeeping (a042) and its tail replays the head present + this part voice; loc_094a5 stores the (un)advanced resume pointer.
+]]]
+attr[seg000:94f3]: comment = [[[
+    Per-presentation speaker seeds, run at the head of
+    present_first_matching_dialogue_line (9fa2). For a real speaker (id < 10h):
+    ds:18 = the speaker room_persons flags byte (+0fh), so conditions can test
+    the travelling bit 40h ("came with me") and the left-in-desert bit 04h;
+    ds:16 = game_time minus the entry travel timestamp (+8 time_joined while
+    travelling, else +0ah time_dismissed). Then, before the endgame and for
+    speakers < 9, stage the latest illness location name placeholders.
 ]]]
 attr[seg000:9533]: type = code; name = menu_callback_choice_stay_here; comment = [[[
     STAY HERE verb handler (spliced in by setup_npc_dialogue_menu at seg000:910e once the NPC travels with Paul, text 92h).
@@ -5220,7 +5298,14 @@ attr[seg000:d48a]: name = draw_command_menu_item; comment = [[[
 attr[seg000:d4e2]: targets = seg000:d096, seg000:d0ff, seg000:d12f, seg000:d16a
 attr[seg000:d4ec]: ofs_seg = seg001
 attr[seg000:d506]: targets = segvga:011e
-attr[seg000:d50f]: type = code; name = highlight_hovered_text_action_item
+attr[seg000:d50f]: type = code; name = highlight_hovered_text_action_item; comment = [[[
+    Repaint the hovered verb slot when it changes (cl = the new slot, ffh = none;
+    index_of_last_hovered_action_item latches it; the old slot repaints plain, the
+    new one highlighted via the 8000h flag). While a scripted scene is active
+    (data_04774), the hover logic yields to the blink task: cl = _byte_23C25_blink
+    (0 / ffh), so the " Continue..." slot 0 blinks highlighted/plain as the task
+    toggles the byte every 64h ticks.
+]]]
 attr[seg000:d526]: ofs_seg = seg001
 attr[seg000:d533]: ofs_seg = seg001
 attr[seg000:d575]: ofs_seg = seg001
@@ -5676,8 +5761,17 @@ attr[seg001:000e]: type = u16; name = persons_met
 attr[seg001:0010]: type = u16; name = persons_travelling_with
 attr[seg001:0012]: type = u16; name = persons_in_room
 attr[seg001:0014]: type = u16; name = persons_talking_to
-attr[seg001:0016]: type = u16; name = for_condit_ds_16
-attr[seg001:0018]: type = u8; name = for_condit_ds_18; comment = FLAGS: 0x04 - Left Jessica in the desert
+attr[seg001:0016]: type = u16; name = for_condit_ds_16; comment = [[[
+    Seeded per presented line by loc_094f3: game_time minus the speaker
+    room-person travel timestamp (+8 while travelling, else +0ah) - "how long
+    since they joined/left".
+]]]
+attr[seg001:0018]: type = u8; name = for_condit_ds_18; comment = [[[
+    Seeded per presented line by loc_094f3: the speaker room_persons flags byte
+    (+0fh). Conditions test bit 40h = travelling with Paul (gates the "I feel
+    nothing particular in this room" palace-search lines) and bit 04h = left
+    Jessica in the desert.
+]]]
 attr[seg001:0019]: type = u8; name = line_spoken_this_conversation; comment = [[[
     Per-conversation "a dialogue line has been spoken" flag (0 = no line spoken yet, 0xFF once one is).
     0 at conversation start (cleared in loc_093df at seg000:9417).
