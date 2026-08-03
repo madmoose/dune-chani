@@ -3094,12 +3094,12 @@ attr[seg000:80c7]: type = code; name = menu_callback_choice_map_move_prospectors
 attr[seg000:80c8]: type = code; name = give_new_destinations_for_prospectors
 attr[seg000:80d9]: type = code; name = menu_callback_choice_map_move_prospectors_give_new_destinations
 attr[seg000:80df]: name = move_troop_show_instruction_caption; comment = [[[
-    Show the move-order instruction as a voiced subtitle in the contact popup
-    text box (COMMAND id in ax): pen shifted right 0x26 when x >= 0x32, 0x19
-    columns, voice = id + 0x10a + per_person_voc_base_table[14] unless a
-    dialogue is active; then flip the map into the spice-density overlay
-    sub-mode (data_04720 = data_018f3, loc_0541f) and drop the talking-head
-    HUD element.
+    Show the move-order instruction as a voiced subtitle in the contact popup text box (COMMAND id in ax).
+    The 2244 descriptor edit is on y and h (descriptor = x@+0, y@+2, w@+4, h@+6, see seg000:7a34..7a3d):
+    box y ([2246]) shifts DOWN 0x26 when y >= 0x32 (the lower-half popup), and the box height ([224a]) narrows to 0x19 (two lines).
+    Voice = id + 0x10a + per_person_voc_base_table[entry 0x0e] unless a dialogue is active.
+    Then flip the map into the spice-density overlay sub-mode: data_04720 = data_018f3 (the head box record, the effect-6
+    XOR-outline source rect consumed at seg000:553c), data_04722 = 0, call loc_0541f; finally drop HUD element 18.
 ]]]
 attr[seg000:80e7]: ofs_seg = seg001
 attr[seg000:8113]: ofs_seg = seg001
@@ -6842,11 +6842,12 @@ attr[seg001:2412]: name = book_video_icons_list; comment = [[[
     down the left edge of a video page at (6,5) (6,17) (6,29);
     book_draw_current_page stamps sprite = video id - 11 into all three.
 ]]]
-attr[seg001:2426]: name = book_video_page_words; comment = [[[
+attr[seg001:2426]: type = u16; name = book_video_page_words; comment = [[[
     The 12 page words whose book pages carry an HNM video; index i maps to
     resource id 0x19+i. The Ctrl+V cheat copies the last 10 into the
     dialogue-played log.
 ]]]
+attr[seg001:2428]: type = u16
 attr[seg001:242a]: type = u16
 attr[seg001:242c]: type = u16
 attr[seg001:242e]: type = u16
@@ -7826,7 +7827,12 @@ attr[seg001:4716]: type = u16
 attr[seg001:4718]: type = u16
 attr[seg001:471a]: type = u16
 attr[seg001:471c]: type = u16
-attr[seg001:4720]: type = u16
+attr[seg001:4720]: type = u16; comment = [[[
+    Source record for the overlay-open effect-6 flourish: callers store a panel/menu record address here
+    (0x18f3 the head box from the caption tail seg000:8129, 0x1e6e the map main menu from seg000:5400).
+    map_draw_spice_density_overlay consumes it at seg000:553c: when nonzero, run_vga_effect(6)
+    (xor_rect_outline_advance) grows an XOR outline from this record's origin (+8,+8) to the overlay panel rect.
+]]]
 attr[seg001:4722]: type = u8
 attr[seg001:4723]: type = u8
 attr[seg001:4724]: type = u8
@@ -8634,7 +8640,14 @@ attr[segvga:23eb]: name = vga_blit_shaded; comment = [[[
     shade bytes 0x1c,0x19 / 0x18,0x17) for the curved globe edge. Row pixels are
     remapped from palette bank 0 to bank 1: (cell & 0x0f) + 0x10.
 ]]]
-attr[segvga:2441]: name = vga_draw_landscape; comment = [[[Render a pixel map through an xlat palette-remap table at [BP]. BL=dest row, DX=dest col, DI=row count; source at DS:SI with 200-byte row stride. BH=0: plain remap, then if grayscale_mode update 16 DAC entries at index 80 from CS:8BFh. BH≠0: animated remap (maps pixels to palette range 0x71-0x74) and cycles the xlat table between each row to animate. Each pixel is only drawn if it matches both its next-column and next-row neighbor (interior-only rendering).]]]
+attr[segvga:2441]: name = vga_draw_landscape; comment = [[[
+    Render a pixel-map row buffer through the xlat palette-remap table at SS:BP.
+    BL=dest row, DX=dest col, DI=width, CX=row count, AX=top row latitude; source at DS:SI with 200-byte (0xc8) row stride.
+    A pixel is drawn (xlat-remapped) only when it equals both its next-column and next-row neighbour; mismatches become the 0x70 backdrop (interior-only rendering).
+    Rows at |latitude| >= 0x46 get the map_globe_edge_insets curved-globe trim on both sides (loc_segvga_02396/loc_segvga_023d7).
+    BH=0: plain remap, then if grayscale_mode update 16 DAC entries at index 80 (0x50) from CS:8BFh.
+    BH!=0: animated remap (drawn pixels map to palette 0x71-0x74) and rotates every non-0x70 xlat entry left 2 bits between rows to animate.
+]]]
 attr[segvga:25a9]: type = [ofs16(segvga); 31]; name = transition_dispatch_table; comment = 31 word offsets, one per transition effect type (AX mod 62, step 2). Each entry points to a different transition function.
 attr[segvga:25e7]: name = vga_transition; comment = [[[Perform a transition effect between two framebuffers. AX selects the transition type: forced even and wrapped mod 62 to index one of 31 handlers in transition_dispatch_table. CX=152 passed to the handler; caller's SI/DS/ES saved as source/destination buffer state before dispatch.]]]
 attr[segvga:2616]: targets = segvga:2628, segvga:26b0, segvga:272e, segvga:2757, segvga:279a, segvga:2a0f, segvga:2a10, segvga:2a15, segvga:2a68, segvga:2ad0, segvga:2ad1, segvga:2cc7, segvga:2cc8, segvga:2cc9, segvga:2cca, segvga:2d42, segvga:2d43, segvga:2d44, segvga:2dc0, segvga:2dc3, segvga:2eea, segvga:2f53, segvga:2f71, segvga:2f87, segvga:2f9f, segvga:30f0, segvga:30f1, segvga:3130
