@@ -4201,11 +4201,11 @@ attr[seg000:aa70]: type = code; name = copy_sd_chunk_to_pcm_buf
 attr[seg000:ab15]: type = code; name = audio_start_voc; comment = [[[
     Start a .voc sound effect (al = the sfx resource index; 0 = none).
     Three gates run before anything is opened or played:
-      is_voc_pcm_playing != 0 -> return. An effect NEVER interrupts a clip that
-      is still playing, so it is simply dropped. The ornithopter takeoff relies
-      on this: run_travel_departure_npc_scans (seg000:474b) may have started a
-      companion refusal line just before seg000:47f6 asks for SN6, and the line
-      keeps the voice until pcm_stop_voc ends the departure (seg000:478c).
+      is_voc_pcm_playing != 0 -> return. NOTE this is the DECLARED flag
+      (seg001:dc2b), not whether the card is transferring. lip_sync_stop clears
+      it early, so an effect started after any teardown passes this gate and the
+      pcm_stop_voc below cuts a voice that is still audible - the SN6 engine
+      loop at 47f6 does exactly that to a companion refusal line.
       check_pcm_enabled == 0 -> return (no digital sound).
       al == [audio_current_sfx_id] -> loc_0ab35: replay the resident resource
       without pcm_stop_voc and without re-opening it.
@@ -8565,7 +8565,25 @@ attr[seg001:dc24]: type = u16; name = _word_2D0D4_video_chunk_tag
 attr[seg001:dc26]: type = u16; name = _word_2D0D6_pcm_voc_lipsync_data
 attr[seg001:dc28]: type = u16; name = current_head_mouth_box; comment = [[[Pointer to the current head's talking_head_mouth_box_table entry (set at seg000:a73c); the speech stamp clip (9df8) and the speech-time idle diff clamp (9c90) read it.]]]
 attr[seg001:dc2a]: type = u8; name = _byte_2D0DA_last_lipsync_data
-attr[seg001:dc2b]: type = u8; name = _byte_2D0DB_is_voc_pcm_playing
+attr[seg001:dc2b]: type = u8; name = _byte_2D0DB_is_voc_pcm_playing; comment = [[[
+    A DECLARATION that a voice was started, not a mirror of the card.
+    Set to 1 at a567 (blocking narration), a768 (talking-head voice) and b1f5
+    (video transition). Cleared only via set_voc_pcm_is_not_playing (abc6),
+    reached from lip_sync_stop (a7b9), the narration wait (abba) and b233.
+    Two consequences that look like bugs but are the original behaviour:
+      lip_sync_stop clears it while the DMA block is still transferring, so the
+      flag reads 0 while audio is still audible;
+      pcm_stop_voc (ac14) does NOT clear it, so the flag can read 1 with the
+      card idle.
+    audio_start_voc (ab18) and start_narration_voice_clip (ab5f) gate on this
+    flag. Because a teardown clears it early, a sound effect started afterwards
+    passes the gate and its own pcm_stop_voc (ab29) halts the still-playing
+    voice - this is how the SN6 engine loop at 47f6 cuts a companion refusal
+    line during an ornithopter departure. How much of the line is heard depends
+    on how long the game takes to reach 47f6, which is CPU-speed dependent:
+    measured at 792ms of a 1301ms clip on a slow machine and 656ms on a fast
+    one, so period recordings differ.
+]]]
 attr[seg001:dc2c]: type = u16; name = _word_2D0DC_next_lipsync_frame_time_hi
 attr[seg001:dc2e]: type = u16; name = _word_2D0DE_next_lipsync_frame_time_lo
 attr[seg001:dc30]: type = u16
